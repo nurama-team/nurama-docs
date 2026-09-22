@@ -15,17 +15,19 @@ Source and issues live in the public mirror at [github.com/nurama-team/nurama-sd
 
 | Client | Import | Credential | Reaches |
 | --- | --- | --- | --- |
-| `NuramaClient` | `@nurama/sdk` | User tokens or personal access tokens | The full API |
-| `BotClient` | `@nurama/sdk/bot` | Bot API key | The bot gateway: everything except account, billing, device and bot administration |
+| `NuramaClient` | `@nurama/sdk` | Personal access token (`apiKey` option) | The API, within the token's scopes |
+| `BotClient` | `@nurama/sdk/bot` | Bot API key | The bot gateway, within the key's scopes |
 
 ```ts
 import NuramaClient from '@nurama/sdk';
 
 const client = new NuramaClient('https://api.nurama.com', {
+  apiKey: process.env.NURAMA_TOKEN, // nrm_pat_…
   websocketURL: 'https://ws.nurama.com', // optional, defaults to the API host
 });
-await client.auth.login({ login: 'you@example.com', password: '…' });
 ```
+
+With `apiKey` set, the client sends the token on every request and never touches session handling. The `auth` namespace and the session flow it drives exist for the Nurama apps; integrations should not sign in with a password.
 
 ```ts
 import BotClient from '@nurama/sdk/bot';

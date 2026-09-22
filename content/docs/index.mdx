@@ -1,25 +1,30 @@
 ---
 title: Overview
-description: What the Nurama platform exposes to developers and where to find each part.
+description: What the Nurama platform exposes to developers, which credential to use, and where to find each part.
 ---
 
-Nurama is a collaborative asset-review platform: workspaces contain projects, projects contain assets, folders, boards, tasks and chats, and every change fans out to the people watching it in real time. This site documents the four ways you can build on it.
+Nurama is a collaborative asset-review platform: workspaces contain projects, projects contain assets, folders, boards, tasks and chats, and every change fans out to the people watching it in real time. This site documents how to build on it.
+
+## Pick a credential first
+
+Integrations never sign in with a person's email and password. Each way of connecting has its own credential, and the credential decides what the connection can do.
+
+| You are building | Use | Acts as |
+| --- | --- | --- |
+| An AI assistant integration (Claude, Cursor, any MCP client) | The hosted [MCP server](/docs/guides/mcp) with OAuth sign-in | The person who signed in, limited to the scopes they approved |
+| A script or automation that should act as you | A [personal access token](/docs/getting-started/authentication#personal-access-tokens) | You, limited to the scopes on the token |
+| A shared service, bot or team automation | A [bot API key](/docs/guides/bots) | A dedicated bot user with its own memberships and scopes |
+
+All three are scoped, revocable and cannot touch billing, account security or token management.
+
+## The surfaces
 
 <Cards>
+  <Card title="MCP server" href="/docs/guides/mcp" description="Connect an assistant to mcp.nurama.com and let it read and act on Nurama with scoped tools." />
   <Card title="REST API" href="/docs/reference/api" description="JSON over HTTPS under /v1. Generated from the OpenAPI document, with a playground on every operation." />
   <Card title="WebSocket events" href="/docs/reference/websocket" description="Socket.IO channels per resource. Every notification type, typing indicator and collab event." />
   <Card title="SDK" href="/docs/guides/sdk" description="@nurama/sdk wraps the API and the socket layer for Node, browsers and bots." />
-  <Card title="MCP server" href="/docs/guides/mcp" description="Expose Nurama to Claude, Cursor or any MCP client through scoped tools." />
 </Cards>
-
-## How the pieces fit
-
-| Layer | Use it when | Reference |
-| --- | --- | --- |
-| REST API | You need a resource or action and control the HTTP yourself. | [Endpoints](/docs/reference/api) |
-| WebSocket | You need to react to changes without polling. | [Events](/docs/reference/websocket) |
-| SDK | You write JavaScript or TypeScript. It calls the two layers above with typed methods. | [Method index](/docs/reference/sdk/method-index) |
-| MCP | An AI assistant should act on Nurama on a person's or a bot's behalf. | [Tools](/docs/reference/mcp) |
 
 ## Machine-readable sources
 

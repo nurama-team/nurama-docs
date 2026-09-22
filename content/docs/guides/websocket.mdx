@@ -23,18 +23,18 @@ Joining requires the matching `canGet…Notifications` permission, direct or inh
 
 ## Handshake
 
-Pass your credential as `token` in the handshake query. User JWTs, personal access tokens and bot API keys are all accepted; bot keys must connect through `bot-ws.nurama.com`. Public channels need no token.
+Pass your credential as `token` in the handshake query: a personal access token against `ws.nurama.com`, or a bot API key against `bot-ws.nurama.com`. Public channels need no token.
 
 ```ts
 import { io } from 'socket.io-client';
 
 const socket = io(`https://ws.nurama.com/project/${projectId}/creator`, {
-  query: { token: accessToken },
+  query: { token: process.env.NURAMA_TOKEN },
 });
 socket.on('notification', (event) => console.log(event.type, event));
 ```
 
-When a JWT expires or is revoked the server emits `tokenEvent` and disconnects shortly after. Reconnect with a fresh token; the SDK does this automatically.
+When a credential is revoked the server emits `tokenEvent` and disconnects shortly after.
 
 ## The notification envelope
 

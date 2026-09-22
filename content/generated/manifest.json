@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-22T16:15:10.168Z",
+  "generatedAt": "2026-09-22T16:46:30.798Z",
   "source": {
     "repository": "nurama-team/nurama",
-    "commit": "c04a6338fe8dff902df92f1abb2ffb75dcdecaea",
+    "commit": "6e0993d9aff5b904697e8c17aa80732b16d4ac11",
     "ref": "claude/openapi-docs-audit-sxknz2"
   },
   "versions": {
@@ -12,7 +12,7 @@
     "mcp": "0.1.0"
   },
   "counts": {
-    "paths": 236,
-    "operations": 303
+    "paths": 227,
+    "operations": 292
   }
 }

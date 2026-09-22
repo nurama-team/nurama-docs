@@ -1,48 +1,61 @@
 ---
 title: Authentication
-description: The three credential types, how to obtain each one, and where each may be used.
+description: Personal access tokens, bot API keys and MCP sign-in, how to obtain each, and the scopes that limit them.
 ---
 
-Every authenticated request carries a bearer token:
+Every request to the REST API carries a bearer credential:
 
 ```
 Authorization: Bearer <credential>
 ```
 
-Three kinds of credential exist. They differ in whose identity actions are attributed to and in which endpoints accept them.
+Three credentials are available to integrations. They differ in whose identity actions are attributed to and in which host accepts them.
 
-| Credential | Prefix | Acts as | Obtain it from | Use against |
+| Credential | Prefix | Acts as | Obtain it | Use against |
 | --- | --- | --- | --- | --- |
-| User access token (JWT) | — | The signed-in user | `POST /auth/login` | `api.nurama.com` |
-| Personal access token | `nrm_pat_` | The user who minted it | `POST /tokens` or **Settings → Tokens** in the app | `api.nurama.com` |
-| Bot API key | `nrm_bot_` | A dedicated bot user | `POST /workspaces/{workspaceId}/bots` (workspace admin) | `bot.nurama.com` |
+| Personal access token | `nrm_pat_` | The user who created it | Nurama web app, **Settings → Tokens** | `api.nurama.com` |
+| Bot API key | `nrm_bot_` | A dedicated bot user | Workspace settings, **Bots** tab (workspace admins) | `bot.nurama.com` |
+| MCP OAuth connection | — | The user who signed in | Automatically, when an MCP client connects to `mcp.nurama.com` | The MCP server only |
 
-## User tokens
-
-`POST /auth/login` with `login` (email, or a user name where enabled) and `password` returns the user and an `AuthTokens` object holding an access token and a refresh token, each with an expiry. When MFA is enabled on the account the first response holds only a `verifyMFA` token; complete the challenge to receive the pair.
-
-Access tokens are short-lived. Exchange the refresh token at `POST /auth/refresh-tokens` for a new pair, and `POST /auth/logout` to revoke it. The SDK does all of this for you.
+Email-and-password sessions exist for the Nurama apps and are not part of the public API. The endpoints behind them are not documented here.
 
 ## Personal access tokens
 
-A personal access token is a long-lived credential scoped to a subset of what its owner can do. Create one with `POST /tokens`, naming the token and the scopes it may exercise. The secret is returned once. List and revoke tokens with `GET /tokens` and `DELETE /tokens/{tokenId}`.
+A personal access token is a long-lived credential that acts as you within the scopes you chose. Create it under **Settings → Tokens** in the web app, name it, pick scopes, and copy the secret once. Revoke it from the same screen. Tokens cannot create or manage other tokens, so a compromised token cannot widen its own access.
 
-Use a personal access token for scripts and local automations that should run as you, including a personal [MCP server](/docs/guides/mcp).
+Use one for scripts, local automations and CI jobs that should run as you. If several people or a production system will depend on the integration, create a bot instead so it does not stop working when you leave a workspace.
 
 ## Bot API keys
 
-A bot is a user account owned by a workspace. A workspace owner or admin creates it with `POST /workspaces/{workspaceId}/bots`, choosing its display name and the scopes its key carries. The raw key is shown once; rotate it with `POST /workspaces/{workspaceId}/bots/{botId}/rotate-key`. Bots are added to projects through the memberships endpoints under the same path, and see exactly what those memberships allow.
+A bot is a user account owned by a workspace. A workspace owner or admin creates it from the workspace's **Bots** tab, choosing its display name and scopes, then adds it to the projects it should see. The key is shown once and can be rotated from the same place. Bots appear in chats under their own name and avatar, and audit trails attribute their actions to the bot.
 
-Bot keys are only accepted on the bot gateway, `bot.nurama.com` for HTTP and `bot-ws.nurama.com` for Socket.IO. Endpoints that manage the account itself (authentication, billing, devices, the bot administration endpoints) are not reachable with a bot key. The SDK's `BotClient` targets the gateway by default; see [Bots](/docs/guides/bots).
+Bot keys are only accepted on the bot gateway: `bot.nurama.com` for HTTP and `bot-ws.nurama.com` for Socket.IO. See [Building a bot](/docs/guides/bots) for the workflow, and the [SDK guide](/docs/guides/sdk) for `BotClient`.
+
+## MCP connections
+
+When an MCP client such as Claude connects to `https://mcp.nurama.com/mcp`, it is sent through an OAuth 2.1 sign-in in the browser. The person signs in to Nurama, approves a read-only (`nurama.read`) or read-and-write (`nurama.write`) grant, and the client receives a token it uses for that connection. Nothing is copied or stored by hand, and the grant can be revoked from the Nurama account. A personal access token can be used instead of the OAuth flow for headless clients; see the [MCP guide](/docs/guides/mcp).
 
 ## Scopes
 
-Personal access tokens and bot keys carry scopes such as `chat:write` or `tasks:write`. A request to a scope-gated endpoint without the matching scope fails with `403`, even when the underlying user or bot has permission. Scopes are set when the credential is created; rotate the credential to change them.
+Personal access tokens and bot keys carry scopes from this list. An MCP grant maps `nurama.read` to the read scopes and `nurama.write` to all of them.
+
+| Scope | Allows |
+| --- | --- |
+| `workspaces:read` | Read workspace metadata and your own memberships |
+| `projects:read` | Read project metadata and membership |
+| `assets:read` | Read asset metadata and request signed download URLs |
+| `assets:write` | Upload, update, publish and tag assets |
+| `chat:read` | Read chats, messages and message attachments |
+| `chat:write` | Post messages, edit your own messages, attach files |
+| `tasks:read` | Read boards, tasks, task events and task relations |
+| `tasks:write` | Create, update, move, assign and link tasks |
+
+A request to a scope-gated endpoint without the matching scope fails with `403`, even when the underlying user has permission. Scopes are fixed when the credential is created; make a new one to change them. Whatever the scopes, none of the three credentials can reach billing, subscriptions, credits, account security or token management. Those surfaces are reserved for the Nurama apps.
 
 ## WebSocket handshake
 
-Socket.IO connections authenticate with the same credential, passed as `token` in the handshake query. Public release channels (`/public/{token}`) need no credential. Details are in the [WebSocket guide](/docs/guides/websocket).
+Socket.IO connections authenticate with the same personal access token or bot key, passed as `token` in the handshake query. Public release channels (`/public/{token}`) need no credential. Details are in the [WebSocket guide](/docs/guides/websocket).
 
 <Callout type="warn">
-Treat all three credential types as secrets. Never embed a bot key or personal access token in client-side code; issue user tokens there instead.
+Treat tokens and bot keys as secrets. Never embed them in client-side code or share one credential between people; each person should hold their own token, and shared automations should run as a bot.
 </Callout>

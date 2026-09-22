@@ -1,37 +1,36 @@
 ---
 title: Quick start
-description: Base URLs, a first authenticated request, and the same call through the SDK.
+description: Create a personal access token, make a first request, and do the same through the SDK.
 ---
+
+The fastest way to try the API is a personal access token: a scoped credential that acts as you. Shared or production automations should use a [bot](/docs/guides/bots) instead, and AI assistants should connect through the [MCP server](/docs/guides/mcp).
 
 ## Base URLs
 
 | Purpose | URL |
 | --- | --- |
-| REST API (users) | `https://api.nurama.com/v1` |
+| REST API (personal access tokens) | `https://api.nurama.com/v1` |
 | REST API (bot API keys) | `https://bot.nurama.com/v1` |
-| WebSocket (users) | `https://ws.nurama.com` (Socket.IO) |
-| WebSocket (bots) | `https://bot-ws.nurama.com` (Socket.IO) |
+| WebSocket (personal access tokens) | `https://ws.nurama.com` (Socket.IO) |
+| WebSocket (bot API keys) | `https://bot-ws.nurama.com` (Socket.IO) |
+| MCP server | `https://mcp.nurama.com/mcp` |
 
 All REST paths in this documentation are relative to the `/v1` prefix. Requests and responses are JSON unless an operation says otherwise.
 
-## Your first request
+## 1. Create a token
 
-Sign in to get a token pair, then call an endpoint with the access token. See [Authentication](/docs/getting-started/authentication) for the other credential types.
+In the Nurama web app open **Settings → Tokens → New token**. Give it a name and pick the scopes it needs. For a first look, `workspaces:read` and `projects:read` are enough. The token starts with `nrm_pat_` and is shown once; store it like a password.
 
-```bash
-curl -s https://api.nurama.com/v1/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"login":"you@example.com","password":"…"}'
-```
-
-The response contains `user` and `tokens.access.token`. Use it as a bearer token:
+## 2. Make a request
 
 ```bash
 curl -s https://api.nurama.com/v1/workspaces \
-  -H "Authorization: Bearer $ACCESS_TOKEN"
+  -H "Authorization: Bearer $NURAMA_TOKEN"
 ```
 
-## The same thing with the SDK
+The response lists the workspaces you belong to. A request outside the token's scopes fails with `403` and the error key `forbidden`; see [Conventions](/docs/getting-started/conventions) for the error shape.
+
+## 3. The same thing with the SDK
 
 ```bash
 pnpm add @nurama/sdk
@@ -40,18 +39,20 @@ pnpm add @nurama/sdk
 ```ts
 import NuramaClient from '@nurama/sdk';
 
-const client = new NuramaClient('https://api.nurama.com');
-await client.auth.login({ login: 'you@example.com', password: '…' });
+const client = new NuramaClient('https://api.nurama.com', {
+  apiKey: process.env.NURAMA_TOKEN,
+});
 
 const workspaces = await client.workspace.listWorkspaces();
 ```
 
-The client stores the token pair, refreshes it when it expires, and exposes every endpoint as a method named after its resource. Continue with the [SDK guide](/docs/guides/sdk).
+With `apiKey` set, the client sends the token on every request and skips session handling entirely. Continue with the [SDK guide](/docs/guides/sdk).
 
 ## Where to go next
 
 <Cards>
-  <Card title="Authentication" href="/docs/getting-started/authentication" description="User tokens, personal access tokens and bot API keys." />
-  <Card title="Conventions" href="/docs/getting-started/conventions" description="Pagination, visibility tiers, errors and identifiers." />
+  <Card title="Authentication" href="/docs/getting-started/authentication" description="Tokens, bot keys and MCP sign-in compared, with the scope list." />
+  <Card title="Building a bot" href="/docs/guides/bots" description="A service identity for shared automations." />
+  <Card title="MCP server" href="/docs/guides/mcp" description="Give an assistant scoped access in two steps." />
   <Card title="REST reference" href="/docs/reference/api" description="Every endpoint with request and response schemas." />
 </Cards>

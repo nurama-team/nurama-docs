@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { Cards, Card } from 'fumadocs-ui/components/card';
 
 const sections = [
-  { title: 'Getting started', href: '/docs/getting-started', description: 'Base URLs, authentication, your first request.' },
+  { title: 'Getting started', href: '/docs/getting-started', description: 'Create a token, make your first request, pick the right credential.' },
   { title: 'REST API', href: '/docs/reference/api', description: 'Every endpoint, generated from the OpenAPI document, with a live playground.' },
   { title: 'WebSocket events', href: '/docs/reference/websocket', description: 'Socket.IO channels, event payloads and all notification types.' },
   { title: 'SDK', href: '/docs/guides/sdk', description: '@nurama/sdk for Node and the browser, plus the bot client.' },
-  { title: 'MCP server', href: '/docs/guides/mcp', description: 'Give an AI assistant scoped access to Nurama through Model Context Protocol.' },
+  { title: 'MCP server', href: '/docs/guides/mcp', description: 'Connect Claude or Cursor to mcp.nurama.com with a scoped OAuth sign-in.' },
   { title: 'Bots', href: '/docs/guides/bots', description: 'Build a bot that reads chats, replies and reacts to events.' },
 ];
 

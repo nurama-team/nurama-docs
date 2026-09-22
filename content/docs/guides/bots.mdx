@@ -7,7 +7,7 @@ A bot is a workspace-owned user with its own API key. It appears in chats under 
 
 ## 1. Create the bot
 
-A workspace owner or admin calls `POST /workspaces/{workspaceId}/bots` with a display name and the scopes the key should carry, then adds the bot to the projects it should see with `PUT /workspaces/{workspaceId}/bots/{botId}/memberships/project/{projectId}`. The raw `nrm_bot_…` key is returned once.
+A workspace owner or admin creates the bot from the workspace's **Bots** tab in the Nurama web app, choosing a display name and the scopes the key should carry, then adds it to the projects it should see. The same can be done over the API with `POST /workspaces/{workspaceId}/bots` and the membership endpoints under it. The raw `nrm_bot_…` key is shown once.
 
 ## 2. Connect
 

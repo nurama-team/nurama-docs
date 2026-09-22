@@ -1,39 +1,50 @@
 ---
 title: MCP server
-description: Connect Claude, Cursor or any Model Context Protocol client to Nurama with scoped tools.
+description: Connect Claude, Cursor or any Model Context Protocol client to Nurama in two steps.
 ---
 
-The Nurama MCP server exposes the platform as [Model Context Protocol](https://modelcontextprotocol.io) tools. Each running server authenticates with one credential; the credential's memberships and scopes are the only limit on what the model can reach.
+Nurama runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) server at `https://mcp.nurama.com/mcp`. An assistant connected to it can read projects, chats, assets, boards and tasks, and, when allowed, post messages and create or update tasks, all as the person who signed in and within the scopes they approved.
 
-## Choose a credential
+## Connect
 
-| | Bot API key (`nrm_bot_…`) | Personal access token (`nrm_pat_…`) |
-| --- | --- | --- |
-| Messages appear as | The bot | You |
-| Audit attribution | The bot user | Your user |
-| Best for | Shared or production deployments | Your own machine |
-| Who creates it | A workspace admin | You, under **Settings → Tokens** |
+Add the server to your client and sign in when the browser opens. Nurama asks whether to grant read-only (`nurama.read`) or read-and-write (`nurama.write`) access.
 
-Both are passed as `NURAMA_API_KEY`; the server tells them apart by prefix. See [Authentication](/docs/getting-started/authentication) for how to mint each.
-
-## Register the server
-
-The server runs as a stdio subprocess that the client launches. With Claude Code:
+**Claude Code**
 
 ```bash
-claude mcp add --transport stdio nurama \
-  --env NURAMA_API_KEY=nrm_pat_xxx \
-  -- npx -y @nurama/mcp
+claude mcp add --transport http nurama https://mcp.nurama.com/mcp
 ```
 
-Other clients follow the same shape: command, arguments, and `NURAMA_API_KEY` in the launched process's environment. Ask the assistant which Nurama tools it has to confirm the connection.
+**Claude desktop and claude.ai**: add a custom connector with the URL `https://mcp.nurama.com/mcp`.
 
-## What the model can do
+**Cursor and other clients**: add an entry to the client's MCP configuration.
 
-Read tools cover memberships, project feeds, chats, messages, boards and tasks. Write tools, such as sending a message or creating a task, are explicitly allow-listed and flagged as mutating in the [tool catalogue](/docs/reference/mcp), which lists every tool with its input schema. The raw catalogue, identical to the server's `tools/list` response, is at [`/mcp-tools.json`](/mcp-tools.json).
+```json
+{
+  "mcpServers": {
+    "nurama": { "url": "https://mcp.nurama.com/mcp" }
+  }
+}
+```
 
-Scope the credential to what the deployment needs: a read-only key cannot be talked into writing, whatever the prompt says.
+Ask the assistant which Nurama tools it has to confirm the connection. The [tool catalogue](/docs/reference/mcp) lists every tool with its input schema; the raw list, identical to the server's `tools/list` response, is at [`/mcp-tools.json`](/mcp-tools.json).
 
-## Which endpoint the server uses
+## Headless clients
 
-A bot key sends requests to `bot.nurama.com`; a personal access token uses `api.nurama.com`. Rate limits differ accordingly (see [Conventions](/docs/getting-started/conventions)).
+Where a browser sign-in is not possible, for example in CI or a server-side agent, send a [personal access token](/docs/getting-started/authentication#personal-access-tokens) as a bearer header instead of using OAuth:
+
+```
+Authorization: Bearer nrm_pat_…
+```
+
+The connection then acts as the token's owner within the token's scopes. Bot API keys are not accepted by the MCP server; they are a service identity for the REST and WebSocket APIs, not a personal credential for an assistant.
+
+## What the assistant can do
+
+Read tools cover memberships, project feeds, chats, messages, boards and tasks. Write tools, such as sending a message or creating a task, are flagged as mutating in the catalogue and only work under a read-and-write grant or a token with the matching write scopes. Nothing the assistant does can reach billing, account security or token management, whatever it is asked.
+
+Grant the narrowest access that does the job: a read-only connection cannot be talked into writing, whatever the prompt says.
+
+## Revoking access
+
+Revoke an OAuth grant or a personal access token from your Nurama account settings. Connections using it stop working immediately.
