@@ -1,0 +1,62 @@
+---
+title: Building a bot
+description: Create a bot user, connect with the bot client, and respond to mentions.
+---
+
+A bot is a workspace-owned user with its own API key. It appears in chats under its own name and avatar, holds project memberships like any member, and is limited by the scopes on its key.
+
+## 1. Create the bot
+
+A workspace owner or admin calls `POST /workspaces/{workspaceId}/bots` with a display name and the scopes the key should carry, then adds the bot to the projects it should see with `PUT /workspaces/{workspaceId}/bots/{botId}/memberships/project/{projectId}`. The raw `nrm_bot_…` key is returned once.
+
+## 2. Connect
+
+```ts
+import BotClient from '@nurama/sdk/bot';
+
+const bot = new BotClient(process.env.NURAMA_BOT_API_KEY);
+const { user } = await bot.membership.getMyMemberships();
+```
+
+`BotClient` targets `bot.nurama.com` and `bot-ws.nurama.com`. It exposes the same namespaces as the user client minus account, billing, device and bot administration.
+
+## 3. Listen for mentions
+
+Subscribe to the bot's own user channel and react to `chatMention`:
+
+```ts
+await bot.socket.subscribe(`/user/${botUserId}`, 'notification', async (event) => {
+  if (event.type !== 'chatMention') return;
+  const { chatId, messageId } = event.tokens;
+
+  await bot.socket.emit(`/user/${botUserId}`, 'typing:start', { chatId });
+  const history = await bot.chat.getMessages(chatId, { limit: 20, sort: { createdAt: -1 }, excludeReplies: true });
+  const reply = await decide(history);
+  await bot.chat.createMessage(chatId, { content: reply, replyToId: messageId });
+  await bot.socket.emit(`/user/${botUserId}`, 'typing:stop', { chatId });
+});
+```
+
+To see every message in a project rather than only mentions, subscribe to `/project/{projectId}/creator` and `/project/{projectId}/reviewer` and handle `chatCreateMessage`. Reply in the tier the message came from.
+
+## Useful methods
+
+| Goal | Method |
+| --- | --- |
+| Chat the bot was mentioned in | `bot.chat.getChat(chatId)` |
+| Recent history | `bot.chat.getMessages(chatId, params)` |
+| Post a reply | `bot.chat.createMessage(chatId, { content, replyToId?, assetMentions?, mentions? })` |
+| Active assets in a project | `bot.project.getHomeFeed(projectId, visibility, params)` |
+| Project members | `bot.membership.getProjectMemberships(projectId, params)` |
+| Create a task | `bot.task.createTask(data)` |
+
+The full list with read/mutate flags is the [method index](/docs/reference/sdk/method-index).
+
+## Good behaviour
+
+- Default to read-only methods; only write when that is the bot's purpose.
+- Rate limits are per key (120 requests per minute). Batch reads and cache memberships.
+- Render asset references as `{{assetMention:UUID}}` tokens and pass the ids in `assetMentions` so they become clickable.
+- Never log the API key. Rotate it with `POST /workspaces/{workspaceId}/bots/{botId}/rotate-key` if it leaks.
+
+If your bot is an AI assistant, consider running the [MCP server](/docs/guides/mcp) instead of writing the tool layer yourself.

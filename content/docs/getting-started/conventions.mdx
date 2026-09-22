@@ -1,0 +1,52 @@
+---
+title: Conventions
+description: Identifiers, pagination, visibility tiers, error responses and rate limits shared by every endpoint.
+---
+
+## Identifiers
+
+Resources are identified by UUIDs. Path parameters are named after the resource they identify (`workspaceId`, `projectId`, `chatId`, `messageId`); the schemas in the reference say which are required.
+
+## Visibility tiers
+
+Projects have three audiences: `creator`, `reviewer` and `public`. Assets, folders, chats and notifications exist per tier, and many list endpoints take the tier as a path segment or query parameter. A caller only sees the tiers their role allows, and reads never cross tiers. When you reply to something, use the tier it came from.
+
+## Pagination
+
+List endpoints return a paginated envelope and accept:
+
+| Parameter | Meaning |
+| --- | --- |
+| `limit` | Page size. Most endpoints cap it at 20. |
+| `paginate` | `cursor` (default for streams such as messages and feeds) or `index` (fixed-size lists). |
+| `cursor` | Opaque cursor from the previous page, for cursor pagination. |
+| `page` | Page number, for index pagination. |
+| `sort` | Field and direction, where the endpoint documents it. |
+
+Cursor responses include the cursor for the next page; index responses include total counts. The SDK's `PaginatedResponse<T>` type covers both shapes.
+
+## Errors
+
+Errors share one shape:
+
+```json
+{
+  "code": 403,
+  "message": "forbidden",
+  "errorKey": "forbidden"
+}
+```
+
+`errorKey` is stable and is the value to switch on; `message` is for people. Beyond the responses listed for each operation, any authenticated endpoint may return `400` (validation), `401` (missing or expired credential) or `403` (no permission, missing scope, or a feature the workspace's plan does not include). Validation errors describe the offending field in `message`.
+
+## Rate limits
+
+Requests are rate limited per credential. Bot keys share one bucket per key (120 requests per minute); user credentials have per-route limits. A `429` response carries a `Retry-After` header.
+
+## File uploads
+
+Files are never posted to the API. You create the asset (or message attachment) first, receive pre-signed upload URLs in the response, upload the bytes directly to storage, then call the matching `complete-upload` endpoint. The SDK wraps the whole sequence; see the `asset` namespace in the [SDK reference](/docs/reference/sdk/routes/asset).
+
+## Dates and times
+
+Timestamps are ISO 8601 strings in UTC. Durations and media positions are in milliseconds unless a field says otherwise.

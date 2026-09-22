@@ -1,0 +1,46 @@
+**@nurama/sdk**
+
+***
+
+# @nurama/sdk
+
+## Modules
+
+- [BotClient](BotClient.md)
+- [NuramaClient](NuramaClient.md)
+- [routes/ai](routes/ai.md)
+- [routes/asset](routes/asset.md)
+- [routes/auth](routes/auth.md)
+- [routes/blogPosts](routes/blogPosts.md)
+- [routes/board](routes/board.md)
+- [routes/bot](routes/bot.md)
+- [routes/chat](routes/chat.md)
+- [routes/chatAi](routes/chatAi.md)
+- [routes/config](routes/config.md)
+- [routes/convo](routes/convo.md)
+- [routes/credits](routes/credits.md)
+- [routes/device](routes/device.md)
+- [routes/folder](routes/folder.md)
+- [routes/invite](routes/invite.md)
+- [routes/membership](routes/membership.md)
+- [routes/notification](routes/notification.md)
+- [routes/payment](routes/payment.md)
+- [routes/product](routes/product.md)
+- [routes/project](routes/project.md)
+- [routes/public](routes/public.md)
+- [routes/scratch](routes/scratch.md)
+- [routes/settings](routes/settings.md)
+- [routes/shortlink](routes/shortlink.md)
+- [routes/socket](routes/socket.md)
+- [routes/storage](routes/storage.md)
+- [routes/subscription](routes/subscription.md)
+- [routes/supportChat](routes/supportChat.md)
+- [routes/supportTicket](routes/supportTicket.md)
+- [routes/tag](routes/tag.md)
+- [routes/task](routes/task.md)
+- [routes/taskRelation](routes/taskRelation.md)
+- [routes/token](routes/token.md)
+- [routes/user](routes/user.md)
+- [routes/version](routes/version.md)
+- [routes/webhook](routes/webhook.md)
+- [routes/workspace](routes/workspace.md)

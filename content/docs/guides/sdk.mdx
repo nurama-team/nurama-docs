@@ -1,0 +1,65 @@
+---
+title: Using the SDK
+description: Install @nurama/sdk, choose a client, and learn the conventions every method follows.
+---
+
+`@nurama/sdk` is a TypeScript client for the REST API and the Socket.IO layer. It ships ESM and CommonJS builds for Node 18+ and a browser bundle, and depends on `@nurama/types` for every request and response type.
+
+```bash
+pnpm add @nurama/sdk
+```
+
+Source and issues live in the public mirror at [github.com/nurama-team/nurama-sdk](https://github.com/nurama-team/nurama-sdk); the package is Apache-2.0.
+
+## Two clients
+
+| Client | Import | Credential | Reaches |
+| --- | --- | --- | --- |
+| `NuramaClient` | `@nurama/sdk` | User tokens or personal access tokens | The full API |
+| `BotClient` | `@nurama/sdk/bot` | Bot API key | The bot gateway: everything except account, billing, device and bot administration |
+
+```ts
+import NuramaClient from '@nurama/sdk';
+
+const client = new NuramaClient('https://api.nurama.com', {
+  websocketURL: 'https://ws.nurama.com', // optional, defaults to the API host
+});
+await client.auth.login({ login: 'you@example.com', password: '…' });
+```
+
+```ts
+import BotClient from '@nurama/sdk/bot';
+
+const bot = new BotClient(process.env.NURAMA_BOT_API_KEY);
+const memberships = await bot.membership.getMyMemberships();
+```
+
+Both expose the same namespaces (`client.chat`, `bot.chat`, …); `BotClient` simply omits the ones a bot key cannot use.
+
+## Conventions
+
+- **Method names repeat the noun.** `asset.getAsset`, `board.createBoard`, `supportTicket.listSupportTickets`. Methods close over the client rather than `this`, so you can destructure a namespace (`const { getAsset, updateAsset } = client.asset`) and names never collide across namespaces.
+- **Namespaces follow the URL.** `/tasks/{id}/links` is `task.getTaskLinks`; `/public-download/{token}` is `public.resolvePublicDownload`.
+- **Visibility is an argument.** Reads that differ by tier take `visibility: 'creator' | 'reviewer'`, for example `project.getAssets(projectId, 'reviewer')`.
+- **Pagination is a params object.** Methods returning `PaginatedResponse<T>` accept `{ limit, paginate: 'cursor' | 'index', cursor?, page? }`.
+- **Required identifiers throw when missing**, before any request is made.
+
+The [method index](/docs/reference/sdk/method-index) lists every bot-reachable method grouped by namespace with a read/mutate flag, and the [SDK reference](/docs/reference/sdk) has full signatures and types.
+
+## Real-time events
+
+The `socket` namespace manages Socket.IO connections per channel and re-authenticates when a token is refreshed:
+
+```ts
+await client.socket.subscribe(`/project/${projectId}/creator`, 'notification', (event) => {
+  if (event.type === 'chatCreateMessage') {
+    // event.changes.create[0].resource is the message
+  }
+});
+```
+
+Channel names and event payloads are documented under [WebSocket events](/docs/reference/websocket).
+
+## Versioning
+
+The SDK follows semantic versioning. Removed or renamed methods only ship in a major version, and the [changelog](https://github.com/nurama-team/nurama-sdk/releases) on the mirror lists them. Pin a minor range in production.

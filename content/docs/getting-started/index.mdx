@@ -1,0 +1,57 @@
+---
+title: Quick start
+description: Base URLs, a first authenticated request, and the same call through the SDK.
+---
+
+## Base URLs
+
+| Purpose | URL |
+| --- | --- |
+| REST API (users) | `https://api.nurama.com/v1` |
+| REST API (bot API keys) | `https://bot.nurama.com/v1` |
+| WebSocket (users) | `https://ws.nurama.com` (Socket.IO) |
+| WebSocket (bots) | `https://bot-ws.nurama.com` (Socket.IO) |
+
+All REST paths in this documentation are relative to the `/v1` prefix. Requests and responses are JSON unless an operation says otherwise.
+
+## Your first request
+
+Sign in to get a token pair, then call an endpoint with the access token. See [Authentication](/docs/getting-started/authentication) for the other credential types.
+
+```bash
+curl -s https://api.nurama.com/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"login":"you@example.com","password":"…"}'
+```
+
+The response contains `user` and `tokens.access.token`. Use it as a bearer token:
+
+```bash
+curl -s https://api.nurama.com/v1/workspaces \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
+## The same thing with the SDK
+
+```bash
+pnpm add @nurama/sdk
+```
+
+```ts
+import NuramaClient from '@nurama/sdk';
+
+const client = new NuramaClient('https://api.nurama.com');
+await client.auth.login({ login: 'you@example.com', password: '…' });
+
+const workspaces = await client.workspace.listWorkspaces();
+```
+
+The client stores the token pair, refreshes it when it expires, and exposes every endpoint as a method named after its resource. Continue with the [SDK guide](/docs/guides/sdk).
+
+## Where to go next
+
+<Cards>
+  <Card title="Authentication" href="/docs/getting-started/authentication" description="User tokens, personal access tokens and bot API keys." />
+  <Card title="Conventions" href="/docs/getting-started/conventions" description="Pagination, visibility tiers, errors and identifiers." />
+  <Card title="REST reference" href="/docs/reference/api" description="Every endpoint with request and response schemas." />
+</Cards>

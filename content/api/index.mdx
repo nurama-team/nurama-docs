@@ -1,0 +1,15 @@
+---
+title: REST API
+description: Every endpoint under /v1, grouped by resource, generated from the OpenAPI document.
+---
+
+The pages in this section are generated from the platform's OpenAPI 3.0 document, which is itself derived from the API's validation schemas on every release. Each operation page shows the parameters and request body the server accepts, the documented responses, example requests in several languages, and a playground that calls the API with your own credential.
+
+- Base URL: `https://api.nurama.com/v1` (`https://bot.nurama.com/v1` for bot API keys)
+- Authentication: `Authorization: Bearer <token>`; see [Authentication](/docs/getting-started/authentication)
+- Shared behaviour: [Conventions](/docs/getting-started/conventions)
+- Source document: [`/openapi.json`](/openapi.json), [`/openapi.yaml`](/openapi.yaml)
+
+<Callout>
+Only success and route-specific error responses are listed per operation. Any authenticated endpoint may also return `400`, `401` or `403` with the common `Error` body.
+</Callout>

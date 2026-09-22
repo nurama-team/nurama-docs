@@ -1,0 +1,33 @@
+---
+title: Overview
+description: What the Nurama platform exposes to developers and where to find each part.
+---
+
+Nurama is a collaborative asset-review platform: workspaces contain projects, projects contain assets, folders, boards, tasks and chats, and every change fans out to the people watching it in real time. This site documents the four ways you can build on it.
+
+<Cards>
+  <Card title="REST API" href="/docs/reference/api" description="JSON over HTTPS under /v1. Generated from the OpenAPI document, with a playground on every operation." />
+  <Card title="WebSocket events" href="/docs/reference/websocket" description="Socket.IO channels per resource. Every notification type, typing indicator and collab event." />
+  <Card title="SDK" href="/docs/guides/sdk" description="@nurama/sdk wraps the API and the socket layer for Node, browsers and bots." />
+  <Card title="MCP server" href="/docs/guides/mcp" description="Expose Nurama to Claude, Cursor or any MCP client through scoped tools." />
+</Cards>
+
+## How the pieces fit
+
+| Layer | Use it when | Reference |
+| --- | --- | --- |
+| REST API | You need a resource or action and control the HTTP yourself. | [Endpoints](/docs/reference/api) |
+| WebSocket | You need to react to changes without polling. | [Events](/docs/reference/websocket) |
+| SDK | You write JavaScript or TypeScript. It calls the two layers above with typed methods. | [Method index](/docs/reference/sdk/method-index) |
+| MCP | An AI assistant should act on Nurama on a person's or a bot's behalf. | [Tools](/docs/reference/mcp) |
+
+## Machine-readable sources
+
+Everything on this site is generated from documents you can consume directly:
+
+- OpenAPI 3.0: [`/openapi.json`](/openapi.json) or [`/openapi.yaml`](/openapi.yaml)
+- AsyncAPI 3.0: [`/asyncapi.json`](/asyncapi.json) or [`/asyncapi.yaml`](/asyncapi.yaml)
+- MCP tool catalogue: [`/mcp-tools.json`](/mcp-tools.json)
+- This site as text for language models: [`/llms.txt`](/llms.txt) (index) and [`/llms-full.txt`](/llms-full.txt) (everything). Every page also has a Markdown variant, reachable from the copy button at the top of the page.
+
+The [build manifest](/manifest.json) records which platform release the documents were generated from.

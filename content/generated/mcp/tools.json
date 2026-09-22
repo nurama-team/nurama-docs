@@ -1,0 +1,3674 @@
+[
+  {
+    "name": "get_self",
+    "description": "Get the bot's own public profile — id, displayName, avatar, color, accountType. Use this at startup or when the user asks \"who am I?\" / \"what's my user id?\". (Derived from the bot's memberships — the `user` namespace is not bot-reachable.)",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_my_memberships",
+    "description": "List every workspace, project, and chat the bot user is a member of, with the roles granted on each. Call this first when the user asks \"what can you see?\" or you need to discover which projectId / workspaceId to use for a follow-up tool. Returns a flat array; the same bot user can be a member of many resources at different role tiers.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_workspace",
+    "description": "Fetch a single workspace's metadata by id — name, slug, color, description, settings (including AI feature toggles), status. Use this to surface workspace-level info or to inspect which AI features are enabled before attempting AI-gated actions.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "UUID of the workspace."
+        }
+      },
+      "required": [
+        "workspaceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_workspace_projects",
+    "description": "List every project in a workspace the bot can see — name, slug, id, status. Use to discover projects before drilling in with `get_project`, `list_project_assets`, `list_project_tasks`, etc.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "UUID of the workspace."
+        }
+      },
+      "required": [
+        "workspaceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_project",
+    "description": "Fetch a single project's metadata — name, slug, description, logo, workspaceId, status. Use this to resolve a `projectId` (from `list_my_memberships`) into something the human will recognise, or to confirm a project belongs to a specific workspace before acting.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_project_memberships",
+    "description": "List every user who has any membership in this project, with their roles. Use this to answer \"who's on this project?\", to validate an `assignedToId` before `create_task` / `update_task_details`, or to discover userIds for mentions.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_project_mentionable_users",
+    "description": "List users who can be @-mentioned in a project chat at the given visibility tier. Use BEFORE `send_message` when the message should `{{mention:UUID}}` someone — filters out members who cannot see the visibility tier you're writing in.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer",
+            "all"
+          ],
+          "description": "Visibility tier filter. `all` returns every mentionable user across tiers."
+        }
+      },
+      "required": [
+        "projectId",
+        "visibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_project_feed",
+    "description": "List recent assets in a project, scoped to one visibility tier (`creator` or `reviewer`). Use this to answer \"what is happening in project X?\" or to find an asset id to reference in a follow-up tool. Pick the tier matching the user's intent — `creator` for unpublished work-in-progress, `reviewer` for published assets visible to reviewer-tier accounts. Each result includes recent-message metadata when present.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project. Get it from list_my_memberships if unknown."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Which visibility tier of the feed to read."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Number of assets to return (1-20, default 10)."
+        }
+      },
+      "required": [
+        "projectId",
+        "visibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_project_boards",
+    "description": "List the boards in a project, optionally filtered to one visibility tier. Use this to discover boardIds before listing tasks or creating a task in a specific board.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Restrict to one visibility tier. Omit to return all boards visible to the bot."
+        },
+        "search": {
+          "type": "string",
+          "description": "Optional case-insensitive substring match on the board name."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_board",
+    "description": "Fetch a single board with its columns and tasks grouped per column. Use this to discover the `columnId` values you need for `move_task` or `create_task`, or to render a full board state. For just the task list without column structure, use `get_board_tasks`. For the project's board list, use `list_project_boards`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        }
+      },
+      "required": [
+        "boardId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_board_tasks",
+    "description": "List tasks on one specific board, with optional column / status / assignee / tag filters. Use this when you already know the board you care about. For tasks across an entire project, use `list_project_tasks`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "columnId": {
+          "type": "string",
+          "description": "Restrict to one column on the board."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "inProgress",
+            "complete",
+            "closed"
+          ],
+          "description": "Restrict to one task status."
+        },
+        "assignedToId": {
+          "type": "string",
+          "description": "Restrict to tasks assigned to one user."
+        },
+        "search": {
+          "type": "string",
+          "description": "Case-insensitive substring match on the task subject."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Restrict to tasks carrying any of these tag UUIDs."
+        }
+      },
+      "required": [
+        "boardId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_submissions",
+    "description": "List submission packages in a project. Submissions are reviewer-facing virtual folders that bundle published assets for review. Use this to discover `submissionId` values before `get_submission`, or to answer \"what has been sent out for review?\".",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_submission",
+    "description": "Fetch a single submission package by id, including its metadata. Use this after `list_submissions` to drill into one submission's contents.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project the submission belongs to."
+        },
+        "submissionId": {
+          "type": "string",
+          "description": "UUID of the submission."
+        }
+      },
+      "required": [
+        "projectId",
+        "submissionId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_notifications",
+    "description": "List notifications on one or more channels (cursor paginated). `channels` is REQUIRED and uses the same string format as WebSocket subscriptions — `user/<userId>`, `workspace/<workspaceId>`, `project/<projectId>`, `project/<projectId>/<visibility>`, `chat/<chatId>`. Optionally filter by event `types`. Use for \"what's new on these channels?\" sweeps. Limit defaults to 20.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Channel strings to read from. Examples: `user/<userId>` for personal events, `workspace/<workspaceId>` for workspace-wide, `project/<projectId>/<visibility>` for visibility-scoped events."
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional notification type filter (e.g. `chatMention`, `taskAssigned`). Omit for all types on the listed channels."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Opaque cursor from a prior page."
+        }
+      },
+      "required": [
+        "channels"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_new_notifications",
+    "description": "List notifications NEW since the caller's last-seen timestamp on the given channels. Lighter than `list_notifications` for \"what changed since I last looked?\" sweeps. Pass `updateLastSeen: true` to advance the cursor so the next call only returns newer ones; pass false (or omit) to peek without consuming.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Channel strings to read from. Examples: `user/<userId>`, `workspace/<workspaceId>`, `project/<projectId>/<visibility>`."
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional notification type filter."
+        },
+        "updateLastSeen": {
+          "type": "boolean",
+          "description": "When true, advance the last-seen cursor so future calls only return newer items."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Opaque cursor from a prior page."
+        }
+      },
+      "required": [
+        "channels"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_new_notification_count",
+    "description": "Return the count of new (unread) notifications across the given channels — the cheapest probe to decide whether it's worth paging through `list_new_notifications`. Optional type filter narrows the count.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Channel strings to count from. Examples: `user/<userId>`, `workspace/<workspaceId>`, `project/<projectId>/<visibility>`."
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional notification type filter."
+        }
+      },
+      "required": [
+        "channels"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "resolve_shortlink",
+    "description": "Resolve a Nurama short-link code (the trailing segment of a https://nurma.link/... URL) to its target resource (asset / project / task / chat / message) with ids and visibility tier. Use whenever a user pastes a short link — call this first, then drill into the resolved resource id.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The short-link code, e.g. `AbCd1234`."
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "resolve_public_download",
+    "description": "Resolve a public-download token (the 10-character code at the end of a nurma.link download URL) to minimal file metadata — `fileName`, `mediaType`, `status`. Use to inspect what a download link points at before handing it to the user. Public endpoint — no auth required, no charge.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "The 10-character public download token."
+        }
+      },
+      "required": [
+        "token"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_public_download_url",
+    "description": "Return a signed download URL for a public-download token — what a `nurma.link` page actually redirects to when the user clicks Download. Use to fetch the underlying file programmatically when you only have the public token. Public endpoint — no auth required.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "The 10-character public download token."
+        }
+      },
+      "required": [
+        "token"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_unacknowledged_task_count",
+    "description": "Return the count of tasks assigned to the calling identity that have not yet been acknowledged, scoped to a project. Use as a cheap \"anything new for me here?\" probe before paging through `list_my_tasks`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_tags",
+    "description": "List every tag defined for an owner resource — project or workspace. Use this to discover `tagId` values before calling `tag_task`, `tag_board`, or similar — there is no other way to enumerate tags. Tags are scoped to their owner resource: a project's tags only apply to that project, a workspace's tags to that workspace.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ownerResourceType": {
+          "type": "string",
+          "enum": [
+            "project",
+            "workspace"
+          ],
+          "description": "Which resource type owns the tags."
+        },
+        "ownerResourceId": {
+          "type": "string",
+          "description": "UUID of the owner resource."
+        },
+        "search": {
+          "type": "string",
+          "description": "Optional case-insensitive substring match on the tag name."
+        }
+      },
+      "required": [
+        "ownerResourceType",
+        "ownerResourceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_chat",
+    "description": "Fetch the metadata for a single chat: chatType (`topic` / `member` / `submission`), topicType (`project` / `asset` / `task` / etc.), topicId, visibility, and participant ids. Use this when you have a chatId and need to know what the chat is about before reading messages or replying.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_chat_by_topic_id",
+    "description": "Resolve a topic id (asset, project, task, public) + visibility into the chat that hangs off it. Returns the chat with its `chatId`. Use this when you have an asset / task / project id but not the chatId — the inverse of `get_chat`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "topicId": {
+          "type": "string",
+          "description": "UUID of the topic resource (asset / project / task / public)."
+        },
+        "topicType": {
+          "type": "string",
+          "enum": [
+            "project",
+            "asset",
+            "public",
+            "task"
+          ],
+          "description": "What kind of resource the topicId points at."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer",
+            "public"
+          ],
+          "description": "Which visibility tier of the chat to fetch."
+        }
+      },
+      "required": [
+        "topicId",
+        "topicType",
+        "visibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_project_chat",
+    "description": "Resolve the project-level chat for one visibility tier (creator or reviewer). Returns the chat with its `chatId` — needed before `list_chat_messages` or `send_message` against the project chat. Per-project there is one creator chat and one reviewer chat; this single tool covers both.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Which tier of the project chat to fetch."
+        }
+      },
+      "required": [
+        "projectId",
+        "visibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_chat_messages",
+    "description": "List recent messages in a chat, newest first. Use this to read context before composing a reply, to summarise a discussion, or to find the messageId for a follow-up tool. Default cap is 20 messages; raise only when summarising long threads.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat to read."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Number of messages (1-50, default 20)."
+        },
+        "excludeReplies": {
+          "type": "boolean",
+          "description": "When true, skip threaded replies and return only top-level messages. Default true."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_message",
+    "description": "Fetch a single chat message by id, including attachments, mentions, and reply metadata. Use this when a chat / search surfaced a messageId you need full detail on (typical case: looking up the message the user is replying to before crafting a response).",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the chat message."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_replies",
+    "description": "Load the threaded replies under one message. `list_chat_messages` excludes replies by default; use this to drill into a specific thread.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the parent message."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_my_mentions",
+    "description": "List chat messages that mention the calling user, across every chat the user can see. The most natural trigger feed for \"what have I been asked?\". Sorted newest-first by the API. Each result includes the chat + message context.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_mentionable_assets",
+    "description": "List assets that can be referenced via `{{assetMention:UUID}}` tokens in a message in this chat. Use this BEFORE `send_message` when composing a message that should embed asset chips — it filters by what the chat's scope can see, so the resulting message won't reference an asset the readers cannot access.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat the message will be posted in."
+        },
+        "search": {
+          "type": "string",
+          "description": "Case-insensitive substring match on asset name."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_mentionable_folders",
+    "description": "List folders the caller can `{{folderMention:UUID}}` in this chat — already scope-filtered to the chat's visibility tier. Use BEFORE `send_message` / `revise_message` when the message references a folder, so the mention renders as a clickable token instead of plain text.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat the mention will be posted in."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "search": {
+          "type": "string",
+          "description": "Optional substring match on folder name."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_mentionable_tasks",
+    "description": "List tasks that can be referenced via `{{taskMention:UUID}}` tokens in a message in this chat. Use BEFORE `send_message` when composing a message that should embed task cards. Filtered by the chat's scope, so the resulting message won't reference tasks readers cannot access. Requires the Boards add-on on the workspace.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat the message will be posted in."
+        },
+        "search": {
+          "type": "string",
+          "description": "Case-insensitive substring match on task subject."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_ai_chat_topics",
+    "description": "List the caller's AI chat topics (Nu — Nurama's LLM assistant — conversations, separate from project chats). Each topic is scoped: `workspace` topics span every project in the workspace; `project` topics are bound to one project; `social` topics are personal (no resource backing). Topics are private to their creator. Messages inside a topic flow through the regular `list_chat_messages` against `topic.chatId`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "UUID of the workspace. Required for every scope."
+        },
+        "scopeType": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "project",
+            "social"
+          ],
+          "description": "Topic scope."
+        },
+        "scopeId": {
+          "type": "string",
+          "description": "UUID of the workspace or project the topic is scoped to. Required when `scopeType` is `workspace` or `project`; omit for `social`."
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Include archived topics. Defaults to active-only."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "workspaceId",
+        "scopeType"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "send_message",
+    "description": "Post a new chat message as the bot user. WRITE OPERATION — this is visible to every other participant in the chat and appears under the bot's identity in the audit log. For `@mentions` of human users, pass their userIds in `mentions`. For asset references that should render as clickable chips, pass asset UUIDs in `assetMentions` AND embed the literal token `{{assetMention:UUID}}` in the message content where each chip should appear.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the destination chat."
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Message body. Plain text + markdown + `{{assetMention:UUID}}` / `{{mention:USER_UUID}}` tokens."
+        },
+        "mentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "UUIDs of users referenced via `{{mention:UUID}}` tokens in content. Must match what is embedded in the text."
+        },
+        "assetMentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "UUIDs of assets referenced via `{{assetMention:UUID}}` tokens. Required for the chip renderer to find the asset."
+        },
+        "folderMentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "UUIDs of folders referenced via `{{folderMention:UUID}}` tokens in the content. Required for the chip renderer to find the folder."
+        },
+        "taskMentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "UUIDs of board tasks referenced via `{{taskMention:UUID}}` tokens. Requires the Boards add-on on the workspace; without it the BE rejects the message."
+        },
+        "quotes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "UUIDs of prior messages to inline-quote at the top of this one. Renders as a quoted-preview block above the body."
+        },
+        "replyToId": {
+          "type": "string",
+          "description": "UUID of a message this is a threaded reply to. Omit to post as a top-level message."
+        }
+      },
+      "required": [
+        "chatId",
+        "content"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "revise_message",
+    "description": "Edit a chat message. Pass only the fields that change; omit to leave them as-is. `content` accepts the same mention/quote token syntax as `send_message`. Use to fix typos, retract a mistaken claim, or rewrite a bot reply after a tool result lands.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message to revise."
+        },
+        "content": {
+          "type": "string",
+          "description": "New body. Same token syntax as `send_message` (`{{mention:UUID}}`, `{{assetMention:UUID}}`, etc.)."
+        },
+        "mentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "User UUIDs referenced via `{{mention:UUID}}`."
+        },
+        "assetMentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Asset UUIDs referenced via `{{assetMention:UUID}}`."
+        },
+        "folderMentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Folder UUIDs referenced via `{{folderMention:UUID}}`."
+        },
+        "taskMentions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Task UUIDs referenced via `{{taskMention:UUID}}`."
+        },
+        "quotes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Message UUIDs being quoted."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_reaction",
+    "description": "Add an emoji reaction to a message. One reaction per user per message — calling again replaces the previous reaction. Use to acknowledge (\"👍\"), flag for follow-up (\"🔁\"), or signal status quickly without writing a reply.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message to react to."
+        },
+        "emoji": {
+          "type": "string",
+          "description": "Single emoji character or short emoji shortcode."
+        }
+      },
+      "required": [
+        "messageId",
+        "emoji"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "remove_reaction",
+    "description": "Remove the caller's reaction from a message. No-op if the caller hasn't reacted.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "highlight_message",
+    "description": "Pin / highlight a message in its chat — surfaces it in the highlights list and visually flags it in the timeline. Use to mark a decision, an answer, or a key piece of context worth preserving.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message to highlight."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "unhighlight_message",
+    "description": "Remove the highlight / pin from a message. No-op if not currently highlighted.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_message_short_link",
+    "description": "Mint a deep-linkable short URL for a chat message. Returns `{ code, shortUrl }`. Use whenever you need to surface a specific message in another context (a task, an email, another chat) — the link jumps the recipient directly to the message in its chat.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message to link."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_chat_subject",
+    "description": "Rename a chat. Applies to topic chats and member chats alike. Use after a chat has evolved past its original topic, or when its auto-generated subject is too generic.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat."
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The new subject / title."
+        }
+      },
+      "required": [
+        "chatId",
+        "subject"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "follow_chat",
+    "description": "Start following a chat — opts the caller in to real-time notifications for every new message in it. Use when the bot needs to react to ongoing activity in a chat it doesn't already participate in.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "unfollow_chat",
+    "description": "Stop following a chat. No-op if not currently followed.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_project_assets",
+    "description": "Flat list of assets in a project, scoped to one visibility tier. Lighter than `list_project_feed` — no chat metadata, just assets. Use this for inventory queries (\"how many assets?\") or when you need a raw asset list to scan.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Which visibility tier to read."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "search": {
+          "type": "string",
+          "description": "Case-insensitive substring match on asset name."
+        }
+      },
+      "required": [
+        "projectId",
+        "visibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_items_at_path",
+    "description": "List the file-system items (folders and assets, intermingled) at a path in a project's virtual file system. Use this to navigate the project's folder tree. Omit `path` for the root. The path format mirrors `project/{projectId}/{visibility}/folder1/folder2/asset.jpg` — pass the in-project segments only (no leading project/visibility).",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Which visibility tier of the file system to list."
+        },
+        "path": {
+          "type": "string",
+          "description": "Slash-separated path inside the project (omit for root)."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "projectId",
+        "visibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_asset",
+    "description": "Fetch a single asset's metadata by id — name, mediaType, sizeInBytes, status, tags, chats, etc. For just the file URLs (thumbnail / original / media variant), use `get_asset_files`. For multiple assets, use `list_project_assets` or `list_project_feed`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        }
+      },
+      "required": [
+        "assetId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_asset_files",
+    "description": "Get the file records of one functionType for an asset (e.g. `thumbnail`, `original`, `media`, `transcode-*`). Use this to discover the storage path and signed URLs needed to link to or download an asset variant. Different functionTypes return different file shapes.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        },
+        "functionType": {
+          "type": "string",
+          "description": "File function type — typically `thumbnail`, `original`, or `media`. Asset-type-specific values exist too."
+        }
+      },
+      "required": [
+        "assetId",
+        "functionType"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "download_assets",
+    "description": "Mint signed download URLs for one or more assets — the same URLs the FE uses for the \"Download\" affordance. Use when the user asks for downloadable links to share. URLs expire after a few minutes; treat them as ephemeral.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Array of asset UUIDs to mint URLs for."
+        }
+      },
+      "required": [
+        "assetIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_asset_access_activity",
+    "description": "Read play / download access metrics for a single asset (totals + time-series). Use this for \"who has watched / downloaded this?\" or \"how active is this asset?\" Same data the FE Access tab renders.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        }
+      },
+      "required": [
+        "assetId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_folder",
+    "description": "Fetch a single folder's metadata by id — name, parent folderId, path, owner project, etc. For the folder's contents, use `list_folder_assets`. For project-root folder listing, use `list_items_at_path`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "string",
+          "description": "UUID of the folder."
+        }
+      },
+      "required": [
+        "folderId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_folder_assets",
+    "description": "List the assets directly inside a folder. Does not recurse into sub-folders — for hierarchy walks, use `list_items_at_path`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "string",
+          "description": "UUID of the folder."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "folderId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_asset",
+    "description": "Update an asset's name, folder placement, or metadata. Pass only the fields you want to change. Pass `folderId: null` to move the asset to the project root.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        },
+        "name": {
+          "type": "string",
+          "description": "New display name."
+        },
+        "folderId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "New folder UUID, or `null` to move to the project root."
+        },
+        "meta": {
+          "type": "object",
+          "description": "Arbitrary metadata object — merged into existing meta."
+        }
+      },
+      "required": [
+        "assetId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tag_asset",
+    "description": "Apply a tag to an asset. The tag must already exist on the asset's owning resource (typically the project) — see `list_tags` / `create_tag` to look up or mint one.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag to apply."
+        }
+      },
+      "required": [
+        "assetId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "untag_asset",
+    "description": "Remove a tag from an asset. No-op if the tag is not currently applied.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag to remove."
+        }
+      },
+      "required": [
+        "assetId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_asset_short_link",
+    "description": "Mint a deep-linkable short URL for an asset. Returns `{ shortLink, shortUrl }`. Optionally scope to a `creator` or `reviewer` view so the link lands the recipient on the right tier.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Optional visibility scope for the link. Omit to use the default for the asset."
+        }
+      },
+      "required": [
+        "assetId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "repair_assets",
+    "description": "Re-trigger post-processing (thumbnails, transcoding, metadata extraction) for one or more assets. Use when an asset is stuck in a pending state, has a missing thumbnail, or after a Lambda failure. Does not re-upload — the original file is reused.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "One or more asset UUIDs to repair."
+        }
+      },
+      "required": [
+        "assetIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_folder",
+    "description": "Create a folder inside a project. The folder lives under a specific visibility tier and an optional base path; pass `basePath` to nest inside an existing folder hierarchy. Returns the new folder record.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Visibility tier the folder lives under."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Folder name."
+        },
+        "basePath": {
+          "type": "string",
+          "description": "Optional parent path (e.g. `parent/sub`). Omit to create at the visibility root."
+        },
+        "color": {
+          "type": "string",
+          "description": "Optional hex color (e.g. `#FF6B35`)."
+        }
+      },
+      "required": [
+        "projectId",
+        "visibility",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_folder_name",
+    "description": "Rename a folder. The folder's path-based FileSystem entry is updated atomically, so child assets stay reachable under the new name.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "string",
+          "description": "UUID of the folder."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New folder name."
+        }
+      },
+      "required": [
+        "folderId",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tag_folder",
+    "description": "Apply a tag to a folder. The tag must already exist on the folder's owning resource (typically the project).",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "string",
+          "description": "UUID of the folder."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag to apply."
+        }
+      },
+      "required": [
+        "folderId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "untag_folder",
+    "description": "Remove a tag from a folder. No-op if the tag is not currently applied.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "string",
+          "description": "UUID of the folder."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag to remove."
+        }
+      },
+      "required": [
+        "folderId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_tag",
+    "description": "Mint a new tag on a workspace or project. Tags are owned by exactly one resource and visible everywhere it cascades down to. Use BEFORE `tag_task` / `tag_asset` / `tag_folder` / `tag_board` if `list_tags` shows the desired tag does not yet exist. A color is assigned automatically when omitted.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The tag name (e.g. `urgent`, `q3-launch`)."
+        },
+        "ownerResourceType": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "project"
+          ],
+          "description": "The resource that owns this tag — usually `project`."
+        },
+        "ownerResourceId": {
+          "type": "string",
+          "description": "UUID of the owning resource."
+        },
+        "color": {
+          "type": "string",
+          "description": "Optional hex color (e.g. `#FF6B35`). Auto-assigned if omitted."
+        }
+      },
+      "required": [
+        "name",
+        "ownerResourceType",
+        "ownerResourceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_tag",
+    "description": "Rename or recolor a tag. At least one of `name` or `color` must be provided. The change propagates to every resource the tag is applied to.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New tag name."
+        },
+        "color": {
+          "type": "string",
+          "description": "New hex color (e.g. `#FF6B35`)."
+        }
+      },
+      "required": [
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_board",
+    "description": "Create a kanban board in a project. Visibility defaults to creator-only; pass `[\"creator\",\"reviewer\"]` to make it cross-tier. Optionally seed columns inline — otherwise the server creates a default column set you can edit with `add_column` / `update_column`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the owning project."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Board name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description."
+        },
+        "visibility": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "reviewer"
+            ]
+          },
+          "description": "Visibility tiers the board appears in. Defaults to `[\"creator\"]` server-side when omitted."
+        },
+        "columns": {
+          "type": "array",
+          "description": "Optional inline column seed. Omit to let the server create a default set.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "isDefault": {
+                "type": "boolean"
+              },
+              "taskStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "pending",
+                  "inProgress",
+                  "complete",
+                  "closed",
+                  null
+                ]
+              },
+              "sortOrder": {
+                "type": "number"
+              },
+              "reviewersCanContribute": {
+                "type": "boolean",
+                "description": "When true, reviewer-role users may create tasks in this column on a reviewer-visibility board."
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "projectId",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_board",
+    "description": "Rename, redescribe, retier, archive, or reorder a board. Pass only the fields that change. Pass `description: null` to clear it. When narrowing `visibility` would orphan tasks, set `cascade: true` to authorize the cleanup — without it the server returns 409 with `errorData.blockers`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New name."
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "New description, or `null` to clear it."
+        },
+        "visibility": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "reviewer"
+            ]
+          },
+          "description": "New visibility tier set."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived"
+          ],
+          "description": "Lifecycle status."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "New ordering position among project boards."
+        },
+        "cascade": {
+          "type": "boolean",
+          "description": "Authorize automatic cleanup of dependents when narrowing visibility. Default false; the server 409s if cleanup would be required."
+        }
+      },
+      "required": [
+        "boardId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "add_column",
+    "description": "Append a new column to a board. `taskStatus` maps the column to a canonical lifecycle bucket — pass null to leave it unmapped. `reviewersCanContribute` only matters on reviewer-tier boards; safe to omit on creator-only boards.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Column name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description."
+        },
+        "color": {
+          "type": "string",
+          "description": "Optional hex color."
+        },
+        "isDefault": {
+          "type": "boolean",
+          "description": "When true, new tasks land here by default."
+        },
+        "taskStatus": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "pending",
+            "inProgress",
+            "complete",
+            "closed",
+            null
+          ],
+          "description": "Canonical lifecycle bucket this column represents."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Position among columns."
+        },
+        "reviewersCanContribute": {
+          "type": "boolean",
+          "description": "Reviewer-role users may add tasks here on reviewer-visibility boards."
+        }
+      },
+      "required": [
+        "boardId",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_column",
+    "description": "Rename, recolor, retag, or reposition a single board column. Pass only the fields that change. Pass `description: null` / `color: null` to clear them. `taskStatus: null` unmaps the column from a lifecycle bucket.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "columnId": {
+          "type": "string",
+          "description": "UUID of the column."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New name."
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "New description, or `null` to clear."
+        },
+        "color": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "New hex color, or `null` to clear."
+        },
+        "isDefault": {
+          "type": "boolean",
+          "description": "Set true to make this the default landing column."
+        },
+        "taskStatus": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "pending",
+            "inProgress",
+            "complete",
+            "closed",
+            null
+          ]
+        },
+        "sortOrder": {
+          "type": "number"
+        },
+        "reviewersCanContribute": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "boardId",
+        "columnId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "reorder_columns",
+    "description": "Bulk-assign new sort orders to columns on a board. Pass every column you want to position; columns omitted from the array keep their current order. Use after `add_column` when the new column should not land at the end, or when reorganizing a board's flow.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "UUID of the column."
+              },
+              "sortOrder": {
+                "type": "number",
+                "description": "New position (lower = earlier)."
+              }
+            },
+            "required": [
+              "id",
+              "sortOrder"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Columns and their new sort positions."
+        }
+      },
+      "required": [
+        "boardId",
+        "columns"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tag_board",
+    "description": "Apply a tag to a board. The tag must already exist on the board's owning resource (typically the project).",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag."
+        }
+      },
+      "required": [
+        "boardId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "untag_board",
+    "description": "Remove a tag from a board. No-op if the tag is not currently applied.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag."
+        }
+      },
+      "required": [
+        "boardId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_submission",
+    "description": "Bundle a set of items at given creator-tier paths into a submission for reviewer review. Submissions are immutable snapshots — they freeze the included paths at creation time. Optionally start empty and add items later with `add_items_to_submission`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject / title of the submission."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional longer description."
+        },
+        "version": {
+          "type": "string",
+          "description": "Optional version label (e.g. `v1`, `2026.03`)."
+        },
+        "itemPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Project paths to include (e.g. `creator/folder1/asset.jpg`). Omit to start empty."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_submission",
+    "description": "Rename / redescribe / re-version a submission. Pass only the fields that change.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "submissionId": {
+          "type": "string",
+          "description": "UUID of the submission."
+        },
+        "subject": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId",
+        "submissionId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "add_items_to_submission",
+    "description": "Add creator-tier paths to an existing submission. Optionally place them under a destination path within the submission so the receiving reviewers see a consistent folder structure.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "submissionId": {
+          "type": "string",
+          "description": "UUID of the submission."
+        },
+        "itemPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Creator-tier project paths to include."
+        },
+        "destinationPath": {
+          "type": "string",
+          "description": "Optional sub-path within the submission to nest the items under."
+        }
+      },
+      "required": [
+        "projectId",
+        "submissionId",
+        "itemPaths"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tag_submission",
+    "description": "Apply a tag to a submission. The tag must already exist on the project.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "submissionId": {
+          "type": "string",
+          "description": "UUID of the submission."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag."
+        }
+      },
+      "required": [
+        "projectId",
+        "submissionId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "untag_submission",
+    "description": "Remove a tag from a submission. No-op if the tag is not currently applied.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "submissionId": {
+          "type": "string",
+          "description": "UUID of the submission."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag."
+        }
+      },
+      "required": [
+        "projectId",
+        "submissionId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_project",
+    "description": "Rename or redescribe a project. Pass `updateSlug: true` if you want the URL slug to be regenerated from the new name (otherwise it stays the same).",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New project name."
+        },
+        "description": {
+          "type": "string",
+          "description": "New project description."
+        },
+        "updateSlug": {
+          "type": "boolean",
+          "description": "If true, regenerate the URL slug from the new name. Changes external links."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "publish_items",
+    "description": "Publish (creator → reviewer tier) one or more resources by id. Optionally trigger reviewer notification emails. Use to surface a batch of finished assets / folders to the reviewer tier in one go.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "resourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Asset / folder UUIDs to publish."
+        },
+        "basePath": {
+          "type": "string",
+          "description": "Optional reviewer-tier destination path. Defaults to mirroring the creator-tier path."
+        },
+        "sendEmailNotification": {
+          "type": "boolean",
+          "description": "If true, reviewers receive an email notification."
+        }
+      },
+      "required": [
+        "projectId",
+        "resourceIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "unpublish_items",
+    "description": "Unpublish (remove from reviewer tier) one or more resources. The creator-tier originals are untouched.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "resourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Asset / folder UUIDs to unpublish."
+        }
+      },
+      "required": [
+        "projectId",
+        "resourceIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_convo",
+    "description": "Fetch a single live conversation (video / audio huddle) by id. Returns subject, status, host chat reference, participants, recordings / transcripts (asset refs only, no signed URLs), timing. Use this to inspect a finished convo before linking its recording into a chat, or to confirm a convo is still active before joining.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "convoId": {
+          "type": "string",
+          "description": "UUID of the convo."
+        }
+      },
+      "required": [
+        "convoId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_scope_convos",
+    "description": "List live conversations attached to a scope (a project today) at the given visibility tier(s). Filter by status / participant search. Use to answer \"what huddles are running in this project right now?\" or to find a recent completed convo before sharing its recording.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scopeId": {
+          "type": "string",
+          "description": "UUID of the scope resource — typically a projectId."
+        },
+        "visibility": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "reviewer"
+            ]
+          },
+          "minItems": 1,
+          "description": "Visibility tier(s) to include. Must be non-empty."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "completed",
+            "cancelled"
+          ],
+          "description": "Filter by lifecycle status."
+        },
+        "search": {
+          "type": "string",
+          "description": "Filter by participant name."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Opaque cursor from a prior page."
+        },
+        "includeCounts": {
+          "type": "boolean",
+          "description": "When true, include total counts in the response."
+        }
+      },
+      "required": [
+        "scopeId",
+        "visibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "start_convo",
+    "description": "Start a new live conversation (video or audio huddle) anchored in a chat. The chat gets a system message announcing the convo and participants get notified. Use when the bot needs to spin up a real-time room — for ad-hoc reviews, design syncs, or anytime async chat is no longer enough.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat hosting the convo."
+        },
+        "chatType": {
+          "type": "string",
+          "enum": [
+            "topic",
+            "member",
+            "submission"
+          ],
+          "description": "Type of chat the convo is anchored in."
+        },
+        "convoType": {
+          "type": "string",
+          "enum": [
+            "video",
+            "audio"
+          ],
+          "description": "Convo modality."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Optional title for the convo."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional agenda / starting notes."
+        },
+        "sendEmailNotification": {
+          "type": "boolean",
+          "description": "If true, host-chat participants get an email notification in addition to the in-app one."
+        }
+      },
+      "required": [
+        "chatId",
+        "chatType",
+        "convoType"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "join_convo",
+    "description": "Join an active live conversation. Returns the convo + a Daily.co meeting token the client uses to enter the room. Sends \"user joined\" notifications to other participants. Use `rejoin_convo` instead for page-refresh / reconnect flows so notifications are not re-fired.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "convoId": {
+          "type": "string",
+          "description": "UUID of the convo."
+        }
+      },
+      "required": [
+        "convoId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "rejoin_convo",
+    "description": "Re-enter a convo as an already-active participant. Returns a fresh Daily.co meeting token without firing \"user joined\" notifications. Use after a page refresh, network drop, or device switch — never as a substitute for `join_convo` when entering for the first time.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "convoId": {
+          "type": "string",
+          "description": "UUID of the convo."
+        }
+      },
+      "required": [
+        "convoId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "leave_convo",
+    "description": "Leave a convo while it stays active for the other participants. The caller is removed from `activeParticipants` but remains in `allParticipants` for audit. Use to end the bot's presence without ending the call.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "convoId": {
+          "type": "string",
+          "description": "UUID of the convo."
+        }
+      },
+      "required": [
+        "convoId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "complete_convo",
+    "description": "End a live conversation for everyone — closes the Daily.co room, stamps `endedAt`, transitions status to `completed`, and triggers recording / transcript post-processing if those features were enabled. Use when wrapping up a huddle. Not destructive (history + recordings stay); for that, use `delete_convo` (Phase F).",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "convoId": {
+          "type": "string",
+          "description": "UUID of the convo."
+        }
+      },
+      "required": [
+        "convoId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_convo",
+    "description": "Rename a convo or update its notes. Pass only the fields that change. Safe to call on active or completed convos.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "convoId": {
+          "type": "string",
+          "description": "UUID of the convo."
+        },
+        "subject": {
+          "type": "string",
+          "description": "New title."
+        },
+        "notes": {
+          "type": "string",
+          "description": "New notes / agenda / summary text."
+        }
+      },
+      "required": [
+        "convoId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_my_member_chats",
+    "description": "List the caller's member chats — 1:1 DMs and group chats. Cursor paginated. Filter by scope, subject, member name, or archived state. Use to answer \"what private chats am I in?\" or to find a specific DM before posting in it.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scopeId": {
+          "type": "string",
+          "description": "Limit to member chats scoped to this resource (workspace / project / social)."
+        },
+        "subjectSearch": {
+          "type": "string",
+          "description": "Substring match on chat subject."
+        },
+        "memberSearch": {
+          "type": "string",
+          "description": "Substring match on participant names."
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "When true, include archived chats. Defaults to active-only when omitted."
+        },
+        "recentMessages": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Include up to N recent messages per chat (0-50, default 0)."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Opaque cursor from a prior page."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_member_chat",
+    "description": "Fetch a single member chat (DM / group chat) by id. Returns subject, color, scope, members, archived state. Use to verify a member chat exists and the caller participates in it before posting via `send_message`.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_addable_chat_members",
+    "description": "List users who can be invited to a member chat — already filtered by chat scope (workspace / project / social) and excluding current members. Use BEFORE `add_chat_members` so you only pass valid invitee UUIDs and skip a server-side 403.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_member_chat",
+    "description": "Start a private member chat — 1:1 DM (one memberId) or group chat (multiple memberIds). The chat is scoped to a resource (workspace / project / social), which controls who is allowed to participate. The caller is automatically a participant; do not include the caller's own userId in `memberIds`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scopeType": {
+          "type": "string",
+          "enum": [
+            "project",
+            "workspace",
+            "social"
+          ],
+          "description": "What kind of resource scopes the chat."
+        },
+        "scopeId": {
+          "type": "string",
+          "description": "UUID of the scope resource."
+        },
+        "memberIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Invitee UUIDs (do not include the caller). For a 1:1 DM, pass exactly one."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Optional title. Auto-generated from members when omitted."
+        }
+      },
+      "required": [
+        "scopeType",
+        "scopeId",
+        "memberIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_member_chat",
+    "description": "Update a member chat's subject or color. Pass only the fields that change. For topic chats (auto-created project / asset chats) use `update_chat_subject` instead.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New title."
+        },
+        "color": {
+          "type": "string",
+          "description": "New hex color (e.g. `#FF6B35`)."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "archive_member_chat",
+    "description": "Archive a member chat — hides it from the active list without losing history. Use when a DM / group chat has run its course. Recover with `unarchive_member_chat`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "unarchive_member_chat",
+    "description": "Restore an archived member chat to the active list.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "add_chat_members",
+    "description": "Invite users to a member chat — turns a 1:1 DM into a group chat, or grows an existing group. Look up valid invitees first with `get_addable_chat_members` to avoid passing users outside the chat's scope.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        },
+        "memberIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "UUIDs of users to invite."
+        }
+      },
+      "required": [
+        "chatId",
+        "memberIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "remove_chat_members",
+    "description": "Remove users from a member chat. Removed users lose access immediately but message history is preserved for remaining members. To leave a chat yourself, pass the caller's own userId in `memberIds`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        },
+        "memberIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "UUIDs of users to remove."
+        }
+      },
+      "required": [
+        "chatId",
+        "memberIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_ai_chat_topic",
+    "description": "Create a new (empty) AI chat topic — one of Nu's LLM-assistant conversations. After this resolves, post the first user message via `send_message` against the returned `topic.chatId`; the BE detects it's an AI chat and routes to the LLM. Pre-flight: workspace needs the AI add-on and `aiChatEnabled` resolved true; AI calls also charge credits from the workspace pool.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "UUID of the workspace. Required for every scope."
+        },
+        "scopeType": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "project",
+            "social"
+          ],
+          "description": "Topic scope. `workspace` = cross-project; `project` = bound to one project; `social` = personal."
+        },
+        "scopeId": {
+          "type": "string",
+          "description": "UUID of the workspace or project. Required when `scopeType` is `workspace` or `project`; omit for `social`."
+        },
+        "title": {
+          "type": "string",
+          "description": "Optional title. Auto-named from first user message when omitted."
+        }
+      },
+      "required": [
+        "workspaceId",
+        "scopeType"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_ai_chat_topic",
+    "description": "Fetch a single AI chat topic by id. Returns the topic metadata (title, scope, archived state) plus its backing `chatId` — use that chatId with `list_chat_messages` to read the conversation, and with `send_message` to continue it.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "topicId": {
+          "type": "string",
+          "description": "UUID of the AI chat topic."
+        },
+        "workspaceId": {
+          "type": "string",
+          "description": "UUID of the workspace the topic lives under."
+        }
+      },
+      "required": [
+        "topicId",
+        "workspaceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_ai_chat_topic",
+    "description": "Rename an AI chat topic or toggle its archived state. `workspaceId` is required (the BE uses it for scope validation). Pass only the fields that change.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "topicId": {
+          "type": "string",
+          "description": "UUID of the AI chat topic."
+        },
+        "workspaceId": {
+          "type": "string",
+          "description": "UUID of the workspace the topic lives under."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New title."
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Pass true to archive; false to unarchive."
+        }
+      },
+      "required": [
+        "topicId",
+        "workspaceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_project_tasks",
+    "description": "List tasks across a project, with optional filters by board, column, status, assignee, or substring search on the subject. Use this to answer \"what tasks are open?\", to find a taskId for a follow-up tool, or to triage a board.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "boardId": {
+          "type": "string",
+          "description": "Restrict to tasks on a specific board. Pass the string \"unassigned\" for tasks not on any board."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "inProgress",
+            "complete",
+            "closed"
+          ],
+          "description": "Restrict to one task status."
+        },
+        "assignedToId": {
+          "type": "string",
+          "description": "Restrict to tasks assigned to a single user (UUID)."
+        },
+        "search": {
+          "type": "string",
+          "description": "Case-insensitive substring match on the task subject."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_my_tasks",
+    "description": "List tasks assigned to the bot user (or, in DANGEROUSLY_USE_USER_JWT mode, to the human user). Use this to answer \"what do I have to do?\" or to find a taskId before updating status / details. Supports filtering by status, project, board, etc.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "Restrict to one project (UUID)."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "complete",
+            "cancelled"
+          ],
+          "description": "Restrict to one task status."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_task_links",
+    "description": "List every task-link record attached to a single task — i.e. which other tasks it is related to, blocks, is blocked by, or duplicates. Each result includes the link type and the linked task's id. Use this to discover dependency chains before triaging a task or before adding a new link.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task whose links to fetch."
+        }
+      },
+      "required": [
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_task_events",
+    "description": "List the audit / activity events for a single task — status changes, assignments, column moves, comments, etc. Use this to understand the history of a task before acting on it, or to write a summary of recent activity.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task whose events to fetch."
+        },
+        "eventType": {
+          "type": "string",
+          "description": "Optional filter by event type (e.g. \"statusChange\", \"assigned\")."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        }
+      },
+      "required": [
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_task_relations",
+    "description": "List the chat / message relations attached to a task. Each row tells you which chat or chat-message this task was spawned from or links to. Use to answer \"where did this task come from?\" or \"what discussions reference it?\" — complementary to `get_task_links` (task↔task) and `list_task_events` (audit log).",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "page": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Page number (index pagination)."
+        }
+      },
+      "required": [
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_chat_task_relations",
+    "description": "List task relations anchored in a chat — every task that was created from a message in this chat, or otherwise linked to it. Use to answer \"what tasks came out of this chat?\" before reading the message history itself.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the chat."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "page": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Page number (index pagination)."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_message_task_relations",
+    "description": "List task relations attached to one chat message — every task that was created from this message or otherwise linked to it. Use after `get_message` when you need to know whether the message already produced tasks before suggesting `create_task` again.",
+    "mutating": false,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Page size (1-50, default 20)."
+        },
+        "page": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Page number (index pagination)."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_task_relation",
+    "description": "Attach a task to a chat or a chat message — establishes the \"this task came from / belongs to this conversation\" link the FE renders as a task card. Prefer the `create_task` + `announce` flow when creating a brand-new task tied to a message in one shot; reach for this when you need to add another relation to an EXISTING task.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task."
+        },
+        "resourceId": {
+          "type": "string",
+          "description": "UUID of the chat or chat-message to link to."
+        },
+        "resourceType": {
+          "type": "string",
+          "enum": [
+            "chat",
+            "chatMessage"
+          ],
+          "description": "What kind of resource `resourceId` is."
+        }
+      },
+      "required": [
+        "taskId",
+        "resourceId",
+        "resourceType"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_task",
+    "description": "Create a new task on a board. WRITE OPERATION — the task appears under the bot user as creator and is visible to every member who can see the board. If no `columnId` is provided the task lands in the board's default column. Use `list_project_boards` first if you do not know which `boardId` to target. Optional `announce` posts a Nu-style reply in a chat threaded under a referenced message, with the new task rendered as a taskCard and linked via TaskRelation. Use it when the task originated from a specific message and you want the conversation to surface the new task inline.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the destination board."
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280,
+          "description": "Short task title shown on the card (≤ 280 chars)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional longer body. Plain text or markdown."
+        },
+        "columnId": {
+          "type": "string",
+          "description": "Optional UUID of the column to drop the task into. Defaults to the board's default column."
+        },
+        "assignedToId": {
+          "type": "string",
+          "description": "Optional UUID of the user to assign. Must be a member of the project."
+        },
+        "announce": {
+          "type": "object",
+          "description": "Optionally announce the new task back into a chat. When supplied, the BE posts a Nu reply in `chatId` threaded under `messageId`, with the new task as a single taskCard, and creates a TaskRelation linking them. Only set this when both fields are known — the bot must be able to see the chat, and the message must exist in it.",
+          "properties": {
+            "chatId": {
+              "type": "string",
+              "description": "UUID of the chat where the announcement reply should be posted."
+            },
+            "messageId": {
+              "type": "string",
+              "description": "UUID of the message the announcement should thread under (typically the message that motivated the task)."
+            }
+          },
+          "required": [
+            "chatId",
+            "messageId"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "boardId",
+        "subject"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_task_status",
+    "description": "Set a task's top-level status to `pending`, `complete`, or `cancelled`. WRITE OPERATION — visible to every project member and recorded in the task's event log. Use this when the user asks to \"close\", \"complete\", or \"cancel\" a task. To move a task between columns on a board without changing status (e.g. To Do → In Progress, both pending), use `move_task` instead.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to update."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "complete",
+            "cancelled"
+          ],
+          "description": "New top-level status."
+        }
+      },
+      "required": [
+        "taskId",
+        "status"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_task_details",
+    "description": "Update a task's subject, description, or assignee. WRITE OPERATION — every other project member sees the change immediately. Pass only the fields you want to change. To CLEAR a field (description or assignee), pass it as null explicitly — omitting it leaves the current value alone.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to update."
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280,
+          "description": "New task title (≤ 280 chars). Omit to leave unchanged."
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "New description, plain text or markdown. Pass null to clear. Omit to leave unchanged."
+        },
+        "assignedToId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "UUID of the new assignee. Pass null to unassign. Omit to leave unchanged."
+        }
+      },
+      "required": [
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "move_task",
+    "description": "Move a task. For a same-board move, pass `columnId` (the target column on the same board). For a cross-board move, pass `targetBoardId` — `columnId` is then optional (server falls back to the target board's default column). If the resulting column has a `taskStatus` set, the task's top-level status auto-updates to match. At least one of `columnId` or `targetBoardId` is required.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board the task currently belongs to."
+        },
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to move."
+        },
+        "columnId": {
+          "type": "string",
+          "description": "UUID of the target column. Required for same-board moves. Optional when `targetBoardId` is set (server falls back to the target board's default column)."
+        },
+        "targetBoardId": {
+          "type": "string",
+          "description": "When set AND different from `boardId`, the task is moved cross-board. The server updates both board and column atomically."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Optional explicit sort position within the resulting column. Omit to append to the end."
+        }
+      },
+      "required": [
+        "boardId",
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "add_existing_task_to_board",
+    "description": "Attach an existing task to a board (e.g. to move it across boards within the same project, or to re-board a task that was previously unassigned to any board). WRITE OPERATION. The task's board and column references update; its subject/description/assignee stay intact. For moving within the same board's columns, use `move_task` instead.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the destination board."
+        },
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to attach."
+        },
+        "columnId": {
+          "type": "string",
+          "description": "Optional UUID of a specific column on the destination board. Omit to land in the board's default column."
+        }
+      },
+      "required": [
+        "boardId",
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "remove_task_from_board",
+    "description": "Detach a task from its board without deleting the task. WRITE OPERATION. After this call the Task row survives but its boardId/columnId are cleared — it becomes a free-standing task (mention-style). Use this when you want to take a task off a board but keep it around (e.g. for re-boarding later). To actually delete a task, no MCP tool exists yet — do it in the UI.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board the task currently belongs to."
+        },
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to detach."
+        }
+      },
+      "required": [
+        "boardId",
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "link_task",
+    "description": "Create a relationship between two tasks (related, blocks, blockedBy, duplicate). WRITE OPERATION. Both tasks must be visible to the bot. Use this when the user wants to track dependencies between tasks (\"X is blocked by Y\", \"Z duplicates W\").",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the source task — the one the relationship lives on."
+        },
+        "linkedTaskId": {
+          "type": "string",
+          "description": "UUID of the target task being linked."
+        },
+        "linkType": {
+          "type": "string",
+          "enum": [
+            "related",
+            "blocks",
+            "blockedBy",
+            "duplicate"
+          ],
+          "description": "Relationship type. Defaults to `related` if omitted."
+        }
+      },
+      "required": [
+        "taskId",
+        "linkedTaskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "unlink_task",
+    "description": "Remove an existing relationship between two tasks. WRITE OPERATION. The relationship is symmetric — the link is removed regardless of which direction it was originally created in.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of one task in the relationship."
+        },
+        "linkedTaskId": {
+          "type": "string",
+          "description": "UUID of the other task in the relationship."
+        }
+      },
+      "required": [
+        "taskId",
+        "linkedTaskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "tag_task",
+    "description": "Attach a project-scoped tag to a task. WRITE OPERATION. The tag must already exist in the project; this tool does not create new tags. To see what tags exist, fetch the project's tag catalogue via the FE (no dedicated MCP tool yet).",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to tag."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the project-scoped tag to apply."
+        }
+      },
+      "required": [
+        "taskId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "untag_task",
+    "description": "Remove a project-scoped tag from a task. WRITE OPERATION. Tag stays alive in the project — only the association with this task is removed.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to untag."
+        },
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag to detach."
+        }
+      },
+      "required": [
+        "taskId",
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "acknowledge_task",
+    "description": "Toggle the calling user's acknowledgement of a task (mark as seen, or un-mark). WRITE OPERATION but personal — only affects the calling user's view, not visible to others. Use when the user says \"mark this as read\" or \"I've seen this\".",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to acknowledge."
+        }
+      },
+      "required": [
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "follow_task",
+    "description": "Have the calling user follow a task — they will receive notifications about future activity on it. WRITE OPERATION but personal — only affects the calling user's notification subscriptions.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to follow."
+        }
+      },
+      "required": [
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "unfollow_task",
+    "description": "Have the calling user stop following a task — no further notifications about its activity. WRITE OPERATION but personal — only affects the calling user's notification subscriptions.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task to unfollow."
+        }
+      },
+      "required": [
+        "taskId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_message",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Permanently delete a chat message. The BE marks the message as deleted (preserving feed continuity via a placeholder) and emits a `chatDeleteMessage` event. Replies, reactions, and attachments tied to it are unreachable afterwards.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message to delete."
+        }
+      },
+      "required": [
+        "messageId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_chat",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a topic chat (a project chat or asset chat). All messages, attachments, summaries, and follower state go with it. For member chats / DMs use `delete_member_chat` instead. Auto-created topic chats sometimes re-spawn — deleting them is rarely the right move; consider `update_chat_subject` first.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the topic chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_member_chat",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a member chat (DM or group). Every participant loses access; message history goes with it. Prefer `archive_member_chat` for \"hide from the active list but keep the history\" — that's reversible.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "UUID of the member chat."
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_convo",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a live conversation (active or completed). Removes the convo record, its recordings, and transcripts. Prefer `complete_convo` to end a call gracefully — that preserves the recording asset for later review.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "convoId": {
+          "type": "string",
+          "description": "UUID of the convo."
+        }
+      },
+      "required": [
+        "convoId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_board",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a board. `disposition` controls what happens to the board's tasks:\n- `unassign` (BE default): tasks survive, lose their board / column placement.\n- `reassign`: tasks move to `targetBoardId` (required) and optionally `targetColumnId`.\n- `delete`: tasks AND their chats / messages / attachments are cascade-deleted (after a grace window).\nWhen `disposition` is omitted the BE applies its current default — pass it explicitly when you care.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "unassign",
+            "reassign",
+            "delete"
+          ],
+          "description": "What happens to the tasks. See description above."
+        },
+        "targetBoardId": {
+          "type": "string",
+          "description": "Destination board for reassigned tasks. Required when `disposition === \"reassign\"`."
+        },
+        "targetColumnId": {
+          "type": "string",
+          "description": "Destination column on `targetBoardId` for reassigned tasks. Optional; falls back to the board's default column."
+        }
+      },
+      "required": [
+        "boardId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_column",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a column from a board. If the column has tasks, pass `targetColumnId` to move them to another column on the same board; otherwise the BE rejects the delete to avoid orphaning tasks.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "boardId": {
+          "type": "string",
+          "description": "UUID of the board."
+        },
+        "columnId": {
+          "type": "string",
+          "description": "UUID of the column to delete."
+        },
+        "targetColumnId": {
+          "type": "string",
+          "description": "UUID of the column to migrate this column's tasks into. Required when the column has tasks."
+        }
+      },
+      "required": [
+        "boardId",
+        "columnId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_asset",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete an asset and its underlying S3 files (originals + derivatives). The asset is removed from feeds, folders, submissions, and chat attachments.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset."
+        }
+      },
+      "required": [
+        "assetId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_folder",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a folder. The folder's assets and sub-folders are not auto-deleted — they remain in the project but lose their parent reference (i.e. surface at the visibility root). For a full cascade delete, walk the contents first with `list_items_at_path` and delete the assets explicitly.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "string",
+          "description": "UUID of the folder."
+        }
+      },
+      "required": [
+        "folderId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_tag",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a tag from its owning resource (workspace or project). The tag is removed from every asset, folder, task, board, and submission it was applied to in one shot.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tagId": {
+          "type": "string",
+          "description": "UUID of the tag."
+        }
+      },
+      "required": [
+        "tagId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_submission_items",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Remove paths from a submission. The underlying source assets in the creator tier are NOT touched — this only unbinds them from the submission. Returns a count of removed items.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "submissionId": {
+          "type": "string",
+          "description": "UUID of the submission."
+        },
+        "itemPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Submission-relative item paths to remove."
+        }
+      },
+      "required": [
+        "projectId",
+        "submissionId",
+        "itemPaths"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_items_at_path",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete items from a project at the given paths under the given visibility tier. Each path can resolve to an asset or a folder. Returns a count of removed items. Folders may take their contents with them depending on BE policy.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "UUID of the project."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "creator",
+            "reviewer"
+          ],
+          "description": "Which visibility tier the paths live under."
+        },
+        "itemPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Visibility-relative paths to delete (e.g. `folder/asset.jpg`)."
+        }
+      },
+      "required": [
+        "projectId",
+        "visibility",
+        "itemPaths"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_ai_chat_topic",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Soft-delete an AI chat topic. The BE flips the topic + its backing chat + every chat-scoped attachment asset to `pendingDelete`; the file-management sweeper handles S3 + DB cleanup asynchronously. There is no in-app undo — the caller may drop the row from any local list immediately.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "topicId": {
+          "type": "string",
+          "description": "UUID of the AI chat topic."
+        },
+        "workspaceId": {
+          "type": "string",
+          "description": "UUID of the workspace the topic lives under."
+        }
+      },
+      "required": [
+        "topicId",
+        "workspaceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_task_relation",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Remove a task↔chat or task↔message relation. The task itself and the linked chat / message survive — only the link goes away. Look the relation up first with `list_task_relations` to get its `relationId`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "UUID of the task."
+        },
+        "relationId": {
+          "type": "string",
+          "description": "UUID of the relation row to delete (from `list_task_relations`)."
+        }
+      },
+      "required": [
+        "taskId",
+        "relationId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "remove_attachment",
+    "description": "Remove a single asset attachment from a chat message. The asset itself is NOT deleted — only its link to the message. Use to detach the wrong file after a misclick / wrong reference; for a full asset purge use `delete_asset`.",
+    "mutating": true,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "UUID of the message."
+        },
+        "assetId": {
+          "type": "string",
+          "description": "UUID of the asset to detach from the message."
+        }
+      },
+      "required": [
+        "messageId",
+        "assetId"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

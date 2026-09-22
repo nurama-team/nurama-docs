@@ -1,0 +1,39 @@
+name: Verify
+
+on:
+  pull_request:
+
+jobs:
+  generated-content:
+    name: Generated content is bot-owned
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Fail if the PR edits content/generated
+        run: |
+          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- content/generated || true)
+          if [ -n "$changed" ]; then
+            echo "::error::content/generated is written by the nurama monorepo's publish-docs-content workflow. Change the source there instead."
+            echo "$changed"
+            exit 1
+          fi
+
+  build:
+    name: Lint, typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate
+      - run: pnpm lint
+      - run: pnpm types:check
+      - run: pnpm build

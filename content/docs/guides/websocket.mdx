@@ -1,0 +1,58 @@
+---
+title: Real-time events
+description: How to connect to the Socket.IO server, which channel to join, and how notifications are shaped.
+---
+
+The WebSocket server is a separate Socket.IO deployment. Connect with a Socket.IO client (the SDK's `socket` namespace, or `socket.io-client` directly), never with a raw WebSocket.
+
+## Channels
+
+A channel is a Socket.IO namespace named after the resource you want to watch:
+
+| Address | Delivers |
+| --- | --- |
+| `/user/{userId}` | Everything addressed to one user: mentions, member chats, task assignments. You may only join your own. |
+| `/workspace/{workspaceId}` | Workspace-level changes. |
+| `/project/{projectId}` | Project-level changes for the default audience. |
+| `/project/{projectId}/{visibility}` | Changes scoped to `creator`, `reviewer` or `public`. Join both `creator` and `reviewer` if your role spans both. |
+| `/chat/{chatId}` | One chat's stream, plus the collab relay (cursors, drawing, presenter control). |
+| `/asset/{assetId}`, `/task/{taskId}`, `/submission/{submissionId}` | One resource's stream. |
+| `/public/{token}` | A public release, authenticated by the token in the address. |
+
+Joining requires the matching `canGet…Notifications` permission, direct or inherited; a refused handshake surfaces as `connect_error` with the message `forbidden`.
+
+## Handshake
+
+Pass your credential as `token` in the handshake query. User JWTs, personal access tokens and bot API keys are all accepted; bot keys must connect through `bot-ws.nurama.com`. Public channels need no token.
+
+```ts
+import { io } from 'socket.io-client';
+
+const socket = io(`https://ws.nurama.com/project/${projectId}/creator`, {
+  query: { token: accessToken },
+});
+socket.on('notification', (event) => console.log(event.type, event));
+```
+
+When a JWT expires or is revoked the server emits `tokenEvent` and disconnects shortly after. Reconnect with a fresh token; the SDK does this automatically.
+
+## The notification envelope
+
+Almost everything arrives as a single event named `notification`. Its `type` field names one of the [notification types](/docs/reference/websocket/notifications); `tokens` carries the identifiers the type documents, and `changes` lists created, updated and deleted resources:
+
+```json
+{
+  "type": "chatCreateMessage",
+  "initiatorId": "…",
+  "tokens": { "chatId": "…", "messageId": "…" },
+  "changes": { "create": [{ "resourceType": "chatMessage", "resource": { "…": "…" } }] }
+}
+```
+
+Switch on `type` and read the documented payload. Fields marked deprecated in a type's schema will disappear; prefer the `changes` array over legacy token fields.
+
+## Other events
+
+Typing indicators (`typing:start`, `typing:stop`) are emitted by clients and relayed by the server, `ws:probe` checks liveness, and the `collab:*` family relays live-collaboration state on `/chat/{chatId}` namespaces. Each is documented under [Events](/docs/reference/websocket/events) with its direction and payload.
+
+The complete machine-readable description is the AsyncAPI document at [`/asyncapi.json`](/asyncapi.json).

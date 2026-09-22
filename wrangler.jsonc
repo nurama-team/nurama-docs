@@ -1,0 +1,15 @@
+{
+  // Static hosting on Cloudflare Workers (static assets). `pnpm build` writes the Next.js
+  // static export to ./out; `pnpm deploy` uploads it as an atomic new version.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nurama-docs",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./out",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+  // Once the nurama.com zone is in this Cloudflare account, attach the hostname here
+  // (or under the Worker's Settings > Domains & Routes in the dashboard):
+  // "routes": [{ "pattern": "docs.nurama.com", "custom_domain": true }]
+}
