@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete items from a project at the given paths under the given visibility tier. Each path can resolve to an asset or a folder. Returns a count of removed items. Folders may take their contents with them depending on BE policy.
+DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete items from a project at the given paths under the given visibility tier. Each path can resolve to an asset or a folder. Returns a count of removed items. Deleting a folder may also delete everything inside it.
 
 ## Input
 

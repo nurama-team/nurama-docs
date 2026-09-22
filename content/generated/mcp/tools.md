@@ -50,7 +50,7 @@
 | [list_items_at_path](tools/list_items_at_path.md) | no | List the file-system items (folders and assets, intermingled) at a path in a project's virtual file system |
 | [get_asset](tools/get_asset.md) | no | Fetch a single asset's metadata by id — name, mediaType, sizeInBytes, status, tags, chats, etc |
 | [get_asset_files](tools/get_asset_files.md) | no | Get the file records of one functionType for an asset (e.g |
-| [download_assets](tools/download_assets.md) | no | Mint signed download URLs for one or more assets — the same URLs the FE uses for the "Download" affordance |
+| [download_assets](tools/download_assets.md) | no | Mint signed download URLs for one or more assets — the same URLs the Nurama web app's "Download" button uses |
 | [get_asset_access_activity](tools/get_asset_access_activity.md) | no | Read play / download access metrics for a single asset (totals + time-series) |
 | [get_folder](tools/get_folder.md) | no | Fetch a single folder's metadata by id — name, parent folderId, path, owner project, etc |
 | [list_folder_assets](tools/list_folder_assets.md) | no | List the assets directly inside a folder |
@@ -107,7 +107,7 @@
 | [list_task_relations](tools/list_task_relations.md) | no | List the chat / message relations attached to a task |
 | [list_chat_task_relations](tools/list_chat_task_relations.md) | no | List task relations anchored in a chat — every task that was created from a message in this chat, or otherwise linked to it |
 | [list_message_task_relations](tools/list_message_task_relations.md) | no | List task relations attached to one chat message — every task that was created from this message or otherwise linked to it |
-| [create_task_relation](tools/create_task_relation.md) | yes | Attach a task to a chat or a chat message — establishes the "this task came from / belongs to this conversation" link the FE renders as a task card |
+| [create_task_relation](tools/create_task_relation.md) | yes | Attach a task to a chat or a chat message — establishes the "this task came from / belongs to this conversation" link that the Nurama web app renders as a task card in the conversation |
 | [create_task](tools/create_task.md) | yes | Create a new task on a board |
 | [update_task_status](tools/update_task_status.md) | yes | Set a task's top-level status to `pending`, `complete`, or `cancelled` |
 | [update_task_details](tools/update_task_details.md) | yes | Update a task's subject, description, or assignee |

@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-Rename an AI chat topic or toggle its archived state. `workspaceId` is required (the BE uses it for scope validation). Pass only the fields that change.
+Rename an AI chat topic or toggle its archived state. `workspaceId` is required — the request is rejected if the topic does not belong to that workspace. Pass only the fields that change.
 
 ## Input
 

@@ -2,7 +2,7 @@
 
 > Read-only.
 
-Mint signed download URLs for one or more assets — the same URLs the FE uses for the "Download" affordance. Use when the user asks for downloadable links to share. URLs expire after a few minutes; treat them as ephemeral.
+Mint signed download URLs for one or more assets — the same URLs the Nurama web app's "Download" button uses. Use when the user asks for downloadable links to share. URLs expire after a few minutes; treat them as ephemeral.
 
 ## Input
 

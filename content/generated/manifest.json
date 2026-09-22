@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-22T16:10:23.412Z",
+  "generatedAt": "2026-09-22T16:15:10.168Z",
   "source": {
     "repository": "nurama-team/nurama",
-    "commit": "e56d04f9796baac02c03a6cf84cf0d63a48646c0",
+    "commit": "c04a6338fe8dff902df92f1abb2ffb75dcdecaea",
     "ref": "claude/openapi-docs-audit-sxknz2"
   },
   "versions": {

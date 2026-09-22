@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-Attach a project-scoped tag to a task. WRITE OPERATION. The tag must already exist in the project; this tool does not create new tags. To see what tags exist, fetch the project's tag catalogue via the FE (no dedicated MCP tool yet).
+Attach a project-scoped tag to a task. WRITE OPERATION. The tag must already exist in the project; this tool does not create new tags. To see what tags exist, call `list_tags` for the project first.
 
 ## Input
 

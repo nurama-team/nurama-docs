@@ -2,7 +2,7 @@
 
 > Read-only.
 
-Read play / download access metrics for a single asset (totals + time-series). Use this for "who has watched / downloaded this?" or "how active is this asset?" Same data the FE Access tab renders.
+Read play / download access metrics for a single asset (totals + time-series). Use this for "who has watched / downloaded this?" or "how active is this asset?" This is the same data shown on the asset's Access tab in the Nurama web app.
 
 ## Input
 

@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a column from a board. If the column has tasks, pass `targetColumnId` to move them to another column on the same board; otherwise the BE rejects the delete to avoid orphaning tasks.
+DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a column from a board. If the column has tasks, pass `targetColumnId` to move them to another column on the same board; otherwise the delete is rejected so that no task is left without a column.
 
 ## Input
 

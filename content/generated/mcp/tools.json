@@ -1,7 +1,7 @@
 [
   {
     "name": "get_self",
-    "description": "Get the bot's own public profile — id, displayName, avatar, color, accountType. Use this at startup or when the user asks \"who am I?\" / \"what's my user id?\". (Derived from the bot's memberships — the `user` namespace is not bot-reachable.)",
+    "description": "Get the bot's own public profile — id, displayName, avatar, color, accountType. Use this at startup or when the user asks \"who am I?\" / \"what's my user id?\". (Resolved from the bot's own memberships — bot credentials have no direct self-profile endpoint.)",
     "mutating": false,
     "inputSchema": {
       "type": "object",
@@ -853,7 +853,7 @@
           "items": {
             "type": "string"
           },
-          "description": "UUIDs of board tasks referenced via `{{taskMention:UUID}}` tokens. Requires the Boards add-on on the workspace; without it the BE rejects the message."
+          "description": "UUIDs of board tasks referenced via `{{taskMention:UUID}}` tokens. Requires the Boards add-on on the workspace; without it the message is rejected."
         },
         "quotes": {
           "type": "array",
@@ -1203,7 +1203,7 @@
   },
   {
     "name": "download_assets",
-    "description": "Mint signed download URLs for one or more assets — the same URLs the FE uses for the \"Download\" affordance. Use when the user asks for downloadable links to share. URLs expire after a few minutes; treat them as ephemeral.",
+    "description": "Mint signed download URLs for one or more assets — the same URLs the Nurama web app's \"Download\" button uses. Use when the user asks for downloadable links to share. URLs expire after a few minutes; treat them as ephemeral.",
     "mutating": false,
     "inputSchema": {
       "type": "object",
@@ -1225,7 +1225,7 @@
   },
   {
     "name": "get_asset_access_activity",
-    "description": "Read play / download access metrics for a single asset (totals + time-series). Use this for \"who has watched / downloaded this?\" or \"how active is this asset?\" Same data the FE Access tab renders.",
+    "description": "Read play / download access metrics for a single asset (totals + time-series). Use this for \"who has watched / downloaded this?\" or \"how active is this asset?\" This is the same data shown on the asset's Access tab in the Nurama web app.",
     "mutating": false,
     "inputSchema": {
       "type": "object",
@@ -1390,7 +1390,7 @@
   },
   {
     "name": "repair_assets",
-    "description": "Re-trigger post-processing (thumbnails, transcoding, metadata extraction) for one or more assets. Use when an asset is stuck in a pending state, has a missing thumbnail, or after a Lambda failure. Does not re-upload — the original file is reused.",
+    "description": "Re-trigger post-processing (thumbnails, transcoding, metadata extraction) for one or more assets. Use when an asset is stuck in a pending state, has a missing thumbnail, or its post-processing previously failed. Does not re-upload — the original file is reused.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -2653,7 +2653,7 @@
   },
   {
     "name": "create_ai_chat_topic",
-    "description": "Create a new (empty) AI chat topic — one of Nu's LLM-assistant conversations. After this resolves, post the first user message via `send_message` against the returned `topic.chatId`; the BE detects it's an AI chat and routes to the LLM. Pre-flight: workspace needs the AI add-on and `aiChatEnabled` resolved true; AI calls also charge credits from the workspace pool.",
+    "description": "Create a new (empty) AI chat topic — one of Nu's LLM-assistant conversations. After this resolves, post the first user message via `send_message` against the returned `topic.chatId`; Nurama recognises the chat as an AI chat and routes the message to the assistant. Pre-flight: workspace needs the AI add-on and `aiChatEnabled` resolved true; AI calls also charge credits from the workspace pool.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -2712,7 +2712,7 @@
   },
   {
     "name": "update_ai_chat_topic",
-    "description": "Rename an AI chat topic or toggle its archived state. `workspaceId` is required (the BE uses it for scope validation). Pass only the fields that change.",
+    "description": "Rename an AI chat topic or toggle its archived state. `workspaceId` is required — the request is rejected if the topic does not belong to that workspace. Pass only the fields that change.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -2953,7 +2953,7 @@
   },
   {
     "name": "create_task_relation",
-    "description": "Attach a task to a chat or a chat message — establishes the \"this task came from / belongs to this conversation\" link the FE renders as a task card. Prefer the `create_task` + `announce` flow when creating a brand-new task tied to a message in one shot; reach for this when you need to add another relation to an EXISTING task.",
+    "description": "Attach a task to a chat or a chat message — establishes the \"this task came from / belongs to this conversation\" link that the Nurama web app renders as a task card in the conversation. Prefer the `create_task` + `announce` flow when creating a brand-new task tied to a message in one shot; reach for this when you need to add another relation to an EXISTING task.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -2985,7 +2985,7 @@
   },
   {
     "name": "create_task",
-    "description": "Create a new task on a board. WRITE OPERATION — the task appears under the bot user as creator and is visible to every member who can see the board. If no `columnId` is provided the task lands in the board's default column. Use `list_project_boards` first if you do not know which `boardId` to target. Optional `announce` posts a Nu-style reply in a chat threaded under a referenced message, with the new task rendered as a taskCard and linked via TaskRelation. Use it when the task originated from a specific message and you want the conversation to surface the new task inline.",
+    "description": "Create a new task on a board. WRITE OPERATION — the task appears under the bot user as creator and is visible to every member who can see the board. If no `columnId` is provided the task lands in the board's default column. Use `list_project_boards` first if you do not know which `boardId` to target. Optional `announce` posts a Nu-style reply in a chat threaded under a referenced message, with the new task rendered as a task card and a task relation created between the task and that message. Use it when the task originated from a specific message and you want the conversation to surface the new task inline.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -3014,7 +3014,7 @@
         },
         "announce": {
           "type": "object",
-          "description": "Optionally announce the new task back into a chat. When supplied, the BE posts a Nu reply in `chatId` threaded under `messageId`, with the new task as a single taskCard, and creates a TaskRelation linking them. Only set this when both fields are known — the bot must be able to see the chat, and the message must exist in it.",
+          "description": "Optionally announce the new task back into a chat. When supplied, Nu posts a reply in `chatId` threaded under `messageId`, with the new task as a single task card, and a task relation is created linking the task to that message. Only set this when both fields are known — the bot must be able to see the chat, and the message must exist in it.",
           "properties": {
             "chatId": {
               "type": "string",
@@ -3248,7 +3248,7 @@
   },
   {
     "name": "tag_task",
-    "description": "Attach a project-scoped tag to a task. WRITE OPERATION. The tag must already exist in the project; this tool does not create new tags. To see what tags exist, fetch the project's tag catalogue via the FE (no dedicated MCP tool yet).",
+    "description": "Attach a project-scoped tag to a task. WRITE OPERATION. The tag must already exist in the project; this tool does not create new tags. To see what tags exist, call `list_tags` for the project first.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -3348,7 +3348,7 @@
   },
   {
     "name": "delete_message",
-    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Permanently delete a chat message. The BE marks the message as deleted (preserving feed continuity via a placeholder) and emits a `chatDeleteMessage` event. Replies, reactions, and attachments tied to it are unreachable afterwards.",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Permanently delete a chat message. The message is marked as deleted and a placeholder remains in the feed so the conversation stays readable; connected clients receive a `chatDeleteMessage` event. Replies, reactions, and attachments tied to it are unreachable afterwards.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -3420,7 +3420,7 @@
   },
   {
     "name": "delete_board",
-    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a board. `disposition` controls what happens to the board's tasks:\n- `unassign` (BE default): tasks survive, lose their board / column placement.\n- `reassign`: tasks move to `targetBoardId` (required) and optionally `targetColumnId`.\n- `delete`: tasks AND their chats / messages / attachments are cascade-deleted (after a grace window).\nWhen `disposition` is omitted the BE applies its current default — pass it explicitly when you care.",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a board. `disposition` controls what happens to the board's tasks:\n- `unassign` (the server default): tasks survive, lose their board / column placement.\n- `reassign`: tasks move to `targetBoardId` (required) and optionally `targetColumnId`.\n- `delete`: tasks AND their chats / messages / attachments are cascade-deleted (after a grace window).\nWhen `disposition` is omitted the server applies its current default — pass it explicitly when you care.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -3455,7 +3455,7 @@
   },
   {
     "name": "delete_column",
-    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a column from a board. If the column has tasks, pass `targetColumnId` to move them to another column on the same board; otherwise the BE rejects the delete to avoid orphaning tasks.",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a column from a board. If the column has tasks, pass `targetColumnId` to move them to another column on the same board; otherwise the delete is rejected so that no task is left without a column.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -3482,7 +3482,7 @@
   },
   {
     "name": "delete_asset",
-    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete an asset and its underlying S3 files (originals + derivatives). The asset is removed from feeds, folders, submissions, and chat attachments.",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete an asset and its stored files (the original upload and every derivative such as thumbnails and transcodes). The asset is removed from feeds, folders, submissions, and chat attachments.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -3568,7 +3568,7 @@
   },
   {
     "name": "delete_items_at_path",
-    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete items from a project at the given paths under the given visibility tier. Each path can resolve to an asset or a folder. Returns a count of removed items. Folders may take their contents with them depending on BE policy.",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete items from a project at the given paths under the given visibility tier. Each path can resolve to an asset or a folder. Returns a count of removed items. Deleting a folder may also delete everything inside it.",
     "mutating": true,
     "inputSchema": {
       "type": "object",
@@ -3604,7 +3604,7 @@
   },
   {
     "name": "delete_ai_chat_topic",
-    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Soft-delete an AI chat topic. The BE flips the topic + its backing chat + every chat-scoped attachment asset to `pendingDelete`; the file-management sweeper handles S3 + DB cleanup asynchronously. There is no in-app undo — the caller may drop the row from any local list immediately.",
+    "description": "DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Soft-delete an AI chat topic. The topic, its underlying chat, and every attachment asset scoped to that chat are marked `pendingDelete` immediately and disappear from listings; the stored files and records are then removed asynchronously. There is no in-app undo — the caller may remove the topic from any local list immediately.",
     "mutating": true,
     "inputSchema": {
       "type": "object",

@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Soft-delete an AI chat topic. The BE flips the topic + its backing chat + every chat-scoped attachment asset to `pendingDelete`; the file-management sweeper handles S3 + DB cleanup asynchronously. There is no in-app undo — the caller may drop the row from any local list immediately.
+DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Soft-delete an AI chat topic. The topic, its underlying chat, and every attachment asset scoped to that chat are marked `pendingDelete` immediately and disappear from listings; the stored files and records are then removed asynchronously. There is no in-app undo — the caller may remove the topic from any local list immediately.
 
 ## Input
 

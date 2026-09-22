@@ -13,7 +13,7 @@ Post a new chat message as the bot user. WRITE OPERATION — this is visible to 
 | `mentions` | array of string | no | UUIDs of users referenced via `{{mention:UUID}}` tokens in content. Must match what is embedded in the text. |
 | `assetMentions` | array of string | no | UUIDs of assets referenced via `{{assetMention:UUID}}` tokens. Required for the chip renderer to find the asset. |
 | `folderMentions` | array of string | no | UUIDs of folders referenced via `{{folderMention:UUID}}` tokens in the content. Required for the chip renderer to find the folder. |
-| `taskMentions` | array of string | no | UUIDs of board tasks referenced via `{{taskMention:UUID}}` tokens. Requires the Boards add-on on the workspace; without it the BE rejects the message. |
+| `taskMentions` | array of string | no | UUIDs of board tasks referenced via `{{taskMention:UUID}}` tokens. Requires the Boards add-on on the workspace; without it the message is rejected. |
 | `quotes` | array of string | no | UUIDs of prior messages to inline-quote at the top of this one. Renders as a quoted-preview block above the body. |
 | `replyToId` | string | no | UUID of a message this is a threaded reply to. Omit to post as a top-level message. |
 
@@ -58,7 +58,7 @@ Post a new chat message as the bot user. WRITE OPERATION — this is visible to 
       "items": {
         "type": "string"
       },
-      "description": "UUIDs of board tasks referenced via `{{taskMention:UUID}}` tokens. Requires the Boards add-on on the workspace; without it the BE rejects the message."
+      "description": "UUIDs of board tasks referenced via `{{taskMention:UUID}}` tokens. Requires the Boards add-on on the workspace; without it the message is rejected."
     },
     "quotes": {
       "type": "array",

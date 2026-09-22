@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-Re-trigger post-processing (thumbnails, transcoding, metadata extraction) for one or more assets. Use when an asset is stuck in a pending state, has a missing thumbnail, or after a Lambda failure. Does not re-upload — the original file is reused.
+Re-trigger post-processing (thumbnails, transcoding, metadata extraction) for one or more assets. Use when an asset is stuck in a pending state, has a missing thumbnail, or its post-processing previously failed. Does not re-upload — the original file is reused.
 
 ## Input
 

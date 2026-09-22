@@ -3,10 +3,10 @@
 > **Mutating** — this tool writes to Nurama.
 
 DESTRUCTIVE — confirm with the user before calling. Restate the target (id + a human descriptor) and wait for explicit approval; do not invoke from inferred intent. No undo. Delete a board. `disposition` controls what happens to the board's tasks:
-- `unassign` (BE default): tasks survive, lose their board / column placement.
+- `unassign` (the server default): tasks survive, lose their board / column placement.
 - `reassign`: tasks move to `targetBoardId` (required) and optionally `targetColumnId`.
 - `delete`: tasks AND their chats / messages / attachments are cascade-deleted (after a grace window).
-When `disposition` is omitted the BE applies its current default — pass it explicitly when you care.
+When `disposition` is omitted the server applies its current default — pass it explicitly when you care.
 
 ## Input
 

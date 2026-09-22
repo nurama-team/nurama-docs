@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-Attach a task to a chat or a chat message — establishes the "this task came from / belongs to this conversation" link the FE renders as a task card. Prefer the `create_task` + `announce` flow when creating a brand-new task tied to a message in one shot; reach for this when you need to add another relation to an EXISTING task.
+Attach a task to a chat or a chat message — establishes the "this task came from / belongs to this conversation" link that the Nurama web app renders as a task card in the conversation. Prefer the `create_task` + `announce` flow when creating a brand-new task tied to a message in one shot; reach for this when you need to add another relation to an EXISTING task.
 
 ## Input
 

@@ -2,7 +2,7 @@
 
 > **Mutating** — this tool writes to Nurama.
 
-Create a new (empty) AI chat topic — one of Nu's LLM-assistant conversations. After this resolves, post the first user message via `send_message` against the returned `topic.chatId`; the BE detects it's an AI chat and routes to the LLM. Pre-flight: workspace needs the AI add-on and `aiChatEnabled` resolved true; AI calls also charge credits from the workspace pool.
+Create a new (empty) AI chat topic — one of Nu's LLM-assistant conversations. After this resolves, post the first user message via `send_message` against the returned `topic.chatId`; Nurama recognises the chat as an AI chat and routes the message to the assistant. Pre-flight: workspace needs the AI add-on and `aiChatEnabled` resolved true; AI calls also charge credits from the workspace pool.
 
 ## Input
 
