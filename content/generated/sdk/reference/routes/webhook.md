@@ -173,10 +173,9 @@ type WebhookEvent =
   | "webhook.test";
 ```
 
-Wire-format webhook event names. Mirrors the backend's
-`@config/webhookEvents` registry. New events land here and on the
-backend together; the additive-only payload contract means receivers
-pinned to a specific event name keep working as fields are added.
+Wire-format webhook event names. New events are added over time, and
+payloads only ever gain fields, so receivers pinned to a specific event
+name keep working as the contract grows.
 
 ***
 

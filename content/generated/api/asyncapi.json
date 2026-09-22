@@ -3,31 +3,26 @@
   "info": {
     "title": "Nurama WebSocket API",
     "version": "0.3.3",
-    "description": "Socket.IO events of the Nurama websocket server. Generated from `src/docs/websocket.yml` and `src/config/notifications.js` by `src/docs/buildAsyncApi.js`; edit those sources, not this document.\n\nWebsocket (Socket.io) events emitted by the websocket server (started with `pnpm ws`, hosted separately from the REST API). \n\n**Connecting / channels.** Every channel is a Socket.io namespace named `/{resourceType}/{resourceId}[/{visibility}]`, where resourceType is one of workspace, project, user, chat, asset, submission, task or public, resourceId is a UUID (or legacy 24-char hex id) and the optional visibility is creator, reviewer or public. Public release channels are `/public/{token}` (10-character public token, no visibility suffix). Any other namespace is refused. Authenticate by passing `query: { token }` on the handshake: a user JWT, a personal access token or a bot API key (bot keys must connect through a configured bot gateway hostname). `/public/{token}` namespaces need no handshake token (the token in the namespace is validated instead); authenticated users may also join them. Failures surface as `connect_error` with message `forbidden` (invalid credentials or no permission) or `badRequest` (malformed channel / permission lookup error). \n\n**Permissions.** A user may only join their own `/user/{userId}`. `/project/{id}/creator`, `/reviewer` and `/public` require canGetProjectCreatorNotifications, canGetProjectReviewerNotifications and canGetProjectPublicNotifications respectively; every other channel requires canGet{ResourceType}Notifications (direct or inherited). \n\n**Server -> client events:** `notification` (every notification event documented below, emitted on each channel in the notification's channels list; the payload `type` selects the schema), `tokenEvent`, `typing:start` / `typing:stop` and the `collab:*` events (only on `/chat/{chatId}` namespaces). **Client -> server events:** `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Notifications are delivered via PostgreSQL LISTEN/NOTIFY with a polling fallback; sockets whose JWT expired or was blacklisted, or whose bot key was revoked, receive `tokenEvent` and are disconnected shortly after. \n\nEach event type below is documented using 'get' to represent the emitted event payload under the '200' response schema. **Keys marked with (*) will be deprecated in a future release and should not be used for new development and should be replaced with values and objects in the changes key in existing implementations.**"
+    "description": "Websocket (Socket.io) events emitted by the websocket server (hosted separately from the REST API). \n\n**Connecting / channels.** Every channel is a Socket.io namespace named `/{resourceType}/{resourceId}[/{visibility}]`, where resourceType is one of workspace, project, user, chat, asset, submission, task or public, resourceId is a UUID (or legacy 24-char hex id) and the optional visibility is creator, reviewer or public. Public release channels are `/public/{token}` (10-character public token, no visibility suffix). Any other namespace is refused. Authenticate by passing `query: { token }` on the handshake: a user JWT, a personal access token or a bot API key (bot keys must connect through a configured bot gateway hostname). `/public/{token}` namespaces need no handshake token (the token in the namespace is validated instead); authenticated users may also join them. Failures surface as `connect_error` with message `forbidden` (invalid credentials or no permission) or `badRequest` (malformed channel / permission lookup error). \n\n**Permissions.** A user may only join their own `/user/{userId}`. `/project/{id}/creator`, `/reviewer` and `/public` require canGetProjectCreatorNotifications, canGetProjectReviewerNotifications and canGetProjectPublicNotifications respectively; every other channel requires canGet{ResourceType}Notifications (direct or inherited). \n\n**Server -> client events:** `notification` (every notification event documented below, emitted on each channel in the notification's channels list; the payload `type` selects the schema), `tokenEvent`, `typing:start` / `typing:stop` and the `collab:*` events (only on `/chat/{chatId}` namespaces). **Client -> server events:** `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Sockets whose JWT expired or was blacklisted, or whose bot key was revoked, receive `tokenEvent` and are disconnected shortly after. \n\nEach event type below is documented using 'get' to represent the emitted event payload under the '200' response schema. **Keys marked with (*) will be deprecated in a future release and should not be used for new development and should be replaced with values and objects in the changes key in existing implementations.**"
   },
   "defaultContentType": "application/json",
   "servers": {
-    "local": {
-      "host": "localhost:4000",
-      "protocol": "ws",
+    "production": {
+      "host": "ws.nurama.com",
+      "protocol": "wss",
       "pathname": "/socket.io",
-      "description": "Local websocket server started with `pnpm ws` (port from WS_PORT). Socket.IO transport: connect with a Socket.IO client to the namespace (channel) address, not with a raw WebSocket.",
+      "description": "WebSocket server for user credentials (JWT or personal access token). Socket.IO transport: connect a Socket.IO client to the channel address, not a raw WebSocket.",
       "security": [
         {
           "$ref": "#/components/securitySchemes/handshakeToken"
         }
       ]
     },
-    "hosted": {
-      "host": "{host}",
+    "bots": {
+      "host": "bot-ws.nurama.com",
       "protocol": "wss",
       "pathname": "/socket.io",
-      "description": "Staging / production websocket server over TLS (Socket.IO), hosted separately from the REST API.",
-      "variables": {
-        "host": {
-          "description": "Hostname of the staging or production websocket server. It is not part of the API configuration, so it is left as a variable."
-        }
-      },
+      "description": "WebSocket server for bot API keys.",
       "security": [
         {
           "$ref": "#/components/securitySchemes/handshakeToken"
@@ -3190,7 +3185,7 @@
       "projectAssetsPublish": {
         "name": "projectAssetsPublish",
         "title": "projectAssetsPublish",
-        "summary": "CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired when assets within a project are published.",
+        "summary": "CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when assets within a project are published.",
         "description": "Fired when assets within a project are published.\n\nPayload for the project assets publish event.\n\nDelivered as the `notification` socket event with `type` set to `projectAssetsPublish`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
         "payload": {
           "description": "Fired when assets within a project are published.",
@@ -3270,7 +3265,7 @@
       "projectAssetsUnpublish": {
         "name": "projectAssetsUnpublish",
         "title": "projectAssetsUnpublish",
-        "summary": "CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired when assets within a project are unpublished.",
+        "summary": "CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when assets within a project are unpublished.",
         "description": "Fired when assets within a project are unpublished.\n\nPayload for the project assets unpublish event.\n\nDelivered as the `notification` socket event with `type` set to `projectAssetsUnpublish`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
         "payload": {
           "description": "Fired when assets within a project are unpublished.",
@@ -3945,7 +3940,7 @@
                     },
                     "keyPath": {
                       "type": "string",
-                      "description": "The S3 key path of the new/updated file."
+                      "description": "The storage key of the new/updated file."
                     },
                     "functionType": {
                       "type": "string",
@@ -5407,7 +5402,7 @@
       "folderCreate": {
         "name": "folderCreate",
         "title": "folderCreate",
-        "summary": "CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired when a new folder is created.",
+        "summary": "CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a new folder is created.",
         "description": "Fired when a new folder is created.\n\nPayload for the folder create event.\n\nDelivered as the `notification` socket event with `type` set to `folderCreate`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
         "payload": {
           "description": "Fired when a new folder is created.",
@@ -5481,7 +5476,7 @@
       "folderUpdate": {
         "name": "folderUpdate",
         "title": "folderUpdate",
-        "summary": "CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired when a folder is updated.",
+        "summary": "CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a folder is updated.",
         "description": "Fired when a folder is updated (name, color, etc.).\n\nPayload for the folder update event.\n\nDelivered as the `notification` socket event with `type` set to `folderUpdate`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
         "payload": {
           "description": "Fired when a folder is updated (name, color, etc.).",
@@ -5561,7 +5556,7 @@
       "folderDelete": {
         "name": "folderDelete",
         "title": "folderDelete",
-        "summary": "CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired when a folder is deleted.",
+        "summary": "CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a folder is deleted.",
         "description": "Fired when a folder is deleted.\n\nPayload for the folder delete event.\n\nDelivered as the `notification` socket event with `type` set to `folderDelete`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
         "payload": {
           "description": "Fired when a folder is deleted.",
@@ -7778,9 +7773,9 @@
         "name": "fileSystemCreate",
         "title": "fileSystemCreate",
         "summary": "Fired when items are created at a file system path (folder created, single uploaded asset activated, or items copied into a public release).",
-        "description": "Signals the FE to refresh the destination path. The changes object is usually absent; it is populated only for the single-asset activation (create asset) and public release (update public) cases.\n\nPayload for the fileSystemCreate event.\n\nDelivered as the `notification` socket event with `type` set to `fileSystemCreate`.",
+        "description": "Signals clients to refresh the destination path. The changes object is usually absent; it is populated only for the single-asset activation (create asset) and public release (update public) cases.\n\nPayload for the fileSystemCreate event.\n\nDelivered as the `notification` socket event with `type` set to `fileSystemCreate`.",
         "payload": {
-          "description": "Signals the FE to refresh the destination path. The changes object is usually absent; it is populated only for the single-asset activation (create asset) and public release (update public) cases.",
+          "description": "Signals clients to refresh the destination path. The changes object is usually absent; it is populated only for the single-asset activation (create asset) and public release (update public) cases.",
           "allOf": [
             {
               "$ref": "#/components/schemas/BaseNotificationEvent"
@@ -8473,7 +8468,7 @@
       "uploadPushSummary": {
         "name": "uploadPushSummary",
         "title": "uploadPushSummary",
-        "summary": "Delayed push-notification summary of assets uploaded to a project by one user. Primarily consumed by the push worker (sent after scheduledSendAt) but also broadcast on the project visibility channels when created.",
+        "summary": "Delayed push-notification summary of assets uploaded to a project by one user. Primarily used to send a push notification after scheduledSendAt, but also broadcast on the project visibility channels when created.",
         "description": "Created directly (bypasses template validation) and grouped per creator/project while pushStatus is pending; later uploads are appended to tokens.assets and the timer is reset. Not intended for UI rendering.\n\nPayload for the uploadPushSummary event.\n\nDelivered as the `notification` socket event with `type` set to `uploadPushSummary`.",
         "payload": {
           "description": "Created directly (bypasses template validation) and grouped per creator/project while pushStatus is pending; later uploads are appended to tokens.assets and the timer is reset. Not intended for UI rendering.",
@@ -8539,7 +8534,7 @@
       "publishPushSummary": {
         "name": "publishPushSummary",
         "title": "publishPushSummary",
-        "summary": "Push-notification summary of items published to reviewers. Consumed by the push worker; broadcast on project/{projectId}/reviewer.",
+        "summary": "Push-notification summary of items published to reviewers. Used to send a push notification; broadcast on project/{projectId}/reviewer.",
         "description": "Created directly (bypasses template validation). Not intended for UI rendering.\n\nPayload for the publishPushSummary event.\n\nDelivered as the `notification` socket event with `type` set to `publishPushSummary`.",
         "payload": {
           "description": "Created directly (bypasses template validation). Not intended for UI rendering.",
@@ -8600,7 +8595,7 @@
       "submissionPushSummary": {
         "name": "submissionPushSummary",
         "title": "submissionPushSummary",
-        "summary": "Push-notification summary for a newly created submission. Consumed by the push worker; broadcast on project/{projectId}.",
+        "summary": "Push-notification summary for a newly created submission. Used to send a push notification; broadcast on project/{projectId}.",
         "description": "Created directly (bypasses template validation). Not intended for UI rendering.\n\nPayload for the submissionPushSummary event.\n\nDelivered as the `notification` socket event with `type` set to `submissionPushSummary`.",
         "payload": {
           "description": "Created directly (bypasses template validation). Not intended for UI rendering.",
@@ -8668,7 +8663,7 @@
       "memberJoinPush": {
         "name": "memberJoinPush",
         "title": "memberJoinPush",
-        "summary": "Push-notification record created when a user joins a workspace or project. Consumed by the push worker; broadcast on {resourceType}/{resourceId}.",
+        "summary": "Push-notification record created when a user joins a workspace or project. Used to send a push notification; broadcast on {resourceType}/{resourceId}.",
         "description": "Created directly (bypasses template validation). Not intended for UI rendering.\n\nPayload for the memberJoinPush event.\n\nDelivered as the `notification` socket event with `type` set to `memberJoinPush`.",
         "payload": {
           "description": "Created directly (bypasses template validation). Not intended for UI rendering.",
@@ -13906,7 +13901,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "description": "The specific type of notification event (matches the top-level key, e.g., 'workspaceCreate'). Every value in notificationTemplates (config/notifications.js) is documented in this tag."
+            "description": "The specific type of notification event (matches the top-level key, e.g., 'workspaceCreate'). Every notification type is documented as its own event in this reference."
           },
           "initiatorId": {
             "type": "string",

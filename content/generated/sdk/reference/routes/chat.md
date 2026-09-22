@@ -108,7 +108,7 @@ caller uses to PUT the bytes, or a per-file failure (`status: 'fail'` with `erro
 | <a id="foldermentions"></a> `folderMentions?` | `string`[] | - | [`CreateMessageData`](#createmessagedata).[`folderMentions`](#foldermentions-1) |
 | <a id="linkpreviews"></a> `linkPreviews?` | `LinkPreview`[] | - | [`CreateMessageData`](#createmessagedata).[`linkPreviews`](#linkpreviews-1) |
 | <a id="mentions"></a> `mentions?` | `string`[] | - | [`CreateMessageData`](#createmessagedata).[`mentions`](#mentions-1) |
-| <a id="pagecontext"></a> `pageContext?` | \{ `pageTitle?`: `string`; `path?`: `string`; `visibleAssetIds?`: `string`[]; \} | AI-chat only. Sent on the regular chat endpoint when the target chat is an AI topic so the orchestrator gets the page snapshot the user was looking at. Regular chats ignore this field. | [`CreateMessageData`](#createmessagedata).[`pageContext`](#pagecontext-1) |
+| <a id="pagecontext"></a> `pageContext?` | \{ `pageTitle?`: `string`; `path?`: `string`; `visibleAssetIds?`: `string`[]; \} | AI-chat only. Sent on the regular chat endpoint when the target chat is an AI topic so the assistant sees a snapshot of the page the user was looking at. Regular chats ignore this field. | [`CreateMessageData`](#createmessagedata).[`pageContext`](#pagecontext-1) |
 | `pageContext.pageTitle?` | `string` | - | - |
 | `pageContext.path?` | `string` | - | - |
 | `pageContext.visibleAssetIds?` | `string`[] | - | - |
@@ -167,7 +167,7 @@ caller uses to PUT the bytes, or a per-file failure (`status: 'fail'` with `erro
 | <a id="foldermentions-1"></a> `folderMentions?` | `string`[] | - |
 | <a id="linkpreviews-1"></a> `linkPreviews?` | `LinkPreview`[] | - |
 | <a id="mentions-1"></a> `mentions?` | `string`[] | - |
-| <a id="pagecontext-1"></a> `pageContext?` | \{ `pageTitle?`: `string`; `path?`: `string`; `visibleAssetIds?`: `string`[]; \} | AI-chat only. Sent on the regular chat endpoint when the target chat is an AI topic so the orchestrator gets the page snapshot the user was looking at. Regular chats ignore this field. |
+| <a id="pagecontext-1"></a> `pageContext?` | \{ `pageTitle?`: `string`; `path?`: `string`; `visibleAssetIds?`: `string`[]; \} | AI-chat only. Sent on the regular chat endpoint when the target chat is an AI topic so the assistant sees a snapshot of the page the user was looking at. Regular chats ignore this field. |
 | `pageContext.pageTitle?` | `string` | - |
 | `pageContext.path?` | `string` | - |
 | `pageContext.visibleAssetIds?` | `string`[] | - |
@@ -978,12 +978,12 @@ Mentionable submission entry returned by
 
 ### ScratchAttachmentRef
 
-Scratch-shape attachment ref — points at bytes already uploaded to a
-Scratch row. Used by AI Revision (Attach to chat) and the Nurama
+Scratch-shape attachment ref — points at bytes already uploaded as a
+scratch upload. Used by AI Revision (Attach to chat) and the Nurama
 Support chat (image attachments). The chat-send endpoint accepts
 either this shape OR the upload-shape (`FileAttachmentData`) in the
-same `attachments[]` array; `chat.service.createMessage` partitions
-and routes per-item.
+same `attachments[]` array; the server handles each item according
+to its shape.
 
 #### Properties
 

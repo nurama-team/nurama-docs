@@ -15,7 +15,7 @@
 | Property | Type | Description |
 | ------ | ------ | ------ |
 | <a id="balance"></a> `balance` | `number` | Total spendable balance — sum of planBalance + purchasedBalance. |
-| <a id="haspriortopup"></a> `hasPriorTopUp?` | `boolean` | True when the workspace has at least one prior manual top-up (`subscriptionGrant` order). Powers the FE auto-top-up enable gate — users must top up manually once before auto top-up can be enabled. |
+| <a id="haspriortopup"></a> `hasPriorTopUp?` | `boolean` | True when the workspace has at least one prior manual top-up (a `subscriptionGrant` order). Auto top-up can only be enabled once this is true — users must top up manually once first. |
 | <a id="planbalance"></a> `planBalance` | `number` | Plan-granted credits for the current billing cycle. Refreshed (SET, not added) on every Stripe renewal. Unspent plan credits do NOT carry over. |
 | <a id="purchasedbalance"></a> `purchasedBalance` | `number` | Purchased credits — accumulated from one-off top-ups, auto-top-ups, admin grants. Carries over indefinitely. |
 

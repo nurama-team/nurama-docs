@@ -51,12 +51,13 @@ One turn of the drafting conversation, as sent back on each request.
 
 ### CreateRevisionSourceUploadRequest
 
-Source-upload mint request. Returns a multipart upload bundle the
-FE drives like any other scratch / asset upload (PUT each `urls[i]`
-with the corresponding part, collect the ETags, call complete-
-upload). Server hardcodes mime to `image/jpeg` — the only producer
-is the captured video frame, which is always JPEG. Size cap
-(matches OpenAI's images/edits per-image limit): 25 MB.
+Source-upload mint request. Returns a multipart upload bundle that
+the caller drives like any other scratch / asset upload (PUT each
+`urls[i]` with the corresponding part, collect the ETags, then call
+`nuramaClient.scratch.completeUpload`). The server always records
+the upload as `image/jpeg` — the only supported source is a captured
+video frame, which is always JPEG. Size cap: 25 MB (the image
+provider's per-image limit).
 
 #### Properties
 
@@ -75,10 +76,10 @@ is the captured video frame, which is always JPEG. Size cap
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="expires"></a> `expires` | `string` | ISO-string TTL — the row is reaped after this. |
-| <a id="key"></a> `key` | `string` | Bucket-side keyPath. Pass to `nuramaClient.asset.multipartUpload` which threads it through into its session-progress + result shape. |
+| <a id="expires"></a> `expires` | `string` | ISO timestamp. The scratch upload expires and is removed after this. |
+| <a id="key"></a> `key` | `string` | Storage key for the upload. Pass to `nuramaClient.asset.multipartUpload`, which echoes it in its progress and result shapes. |
 | <a id="scratchid"></a> `scratchId` | `string` | Use as `source.scratchId` on the subsequent `generateRevision` call. |
-| <a id="uploadid"></a> `uploadId` | `string` | Pass back to `POST /v1/scratch/:id/complete-upload` along with parts. |
+| <a id="uploadid"></a> `uploadId` | `string` | Pass to `nuramaClient.scratch.completeUpload` along with the parts. |
 | <a id="urls"></a> `urls` | `string`[] | One signed PUT URL per multipart part. Single-element array for sub-chunk-size payloads (1080p JPEG frames are well under). |
 
 ***
@@ -124,8 +125,8 @@ is the captured video frame, which is always JPEG. Size cap
 | <a id="eventid-1"></a> `eventId` | `string` \| `null` | - |
 | <a id="model"></a> `model` | `string` | - |
 | <a id="quality"></a> `quality` | `string` | - |
-| <a id="revisionid"></a> `revisionId` | `string` | Scratch id. The FE forwards this in one of two outcomes: - "Upload to project" → call `promoteRevision` (this SDK module) to materialise as a project-scoped Asset. - "Attach to chat" → pass `{ scratchId }` as a chat-message attachment item; the chat-send endpoint promotes it to a chat-scoped Asset at send time. |
-| <a id="revisionurl"></a> `revisionUrl` | `string` \| `null` | Public URL the FE can render directly. |
+| <a id="revisionid"></a> `revisionId` | `string` | Scratch id of the generated revision. Use it in one of two ways: - "Upload to project" → call `nuramaClient.scratch.promote(id)` to materialise it as a project-scoped Asset. - "Attach to chat" → pass `{ scratchId }` as a chat-message attachment item; the chat-send endpoint promotes it to a chat-scoped Asset at send time. |
+| <a id="revisionurl"></a> `revisionUrl` | `string` \| `null` | Public URL of the revision, ready to render directly. |
 
 ***
 
@@ -251,15 +252,14 @@ type ImageRevisionSource =
 
 Source for an image revision call. Exactly one of:
   - `url`       — public media URL (typical for image assets).
-  - `scratchId` — id of a Scratch row the FE uploaded via
+  - `scratchId` — id of a scratch upload created via
                   `createRevisionSourceUpload`. Preferred for
-                  captured video frames so bytes never transit the
-                  API node.
-  - `dataUrl`   — DEPRECATED legacy path: FE-captured video frame
-                  serialised as a base64 data URL inline in the
-                  request body. Kept here for back-compat during
-                  FE rollout; new code should always use the
-                  `scratchId` flow.
+                  captured video frames: the bytes go straight to
+                  storage instead of through the request body.
+  - `dataUrl`   — DEPRECATED: a captured video frame serialised as
+                  a base64 data URL inline in the request body. Kept
+                  for backward compatibility only; new code should
+                  always use the `scratchId` flow.
 
 ## Functions
 
@@ -300,8 +300,8 @@ composer to rewrite a draft message in a selected tone.
 | ------ | ------ | ------ |
 | `composeWithNu()` | (`data`) => `Promise`\<[`ComposeWithNuResponse`](#composewithnuresponse)\> | One turn of a Compose-with-Nu drafting conversation. Send only the drafting thread — the chat being written into is read server-side from `chatId`, under the caller's own permissions. The result is Nu's commentary plus, when it has one, a proposed message. Nothing is posted: the proposal is the user's to take or discard. |
 | `createRevisionSourceUpload()` | (`data`) => `Promise`\<[`CreateRevisionSourceUploadResponse`](#createrevisionsourceuploadresponse)\> | Mint a signed-URL bundle for uploading a source image (typically a captured video frame) into Scratch BEFORE calling `generateRevision`. Use the resulting `scratchId` as the `source.scratchId` on the generate call. Why this exists: video frames are captured client-side and need to reach OpenAI as a public media URL. Posting the bytes inline (as `dataUrl`) makes the API node a pass-through for multi-MB payloads; staging on Scratch first keeps the node out of the byte path entirely. |
-| `generateRevision()` | (`data`) => `Promise`\<[`GenerateImageRevisionResponse`](#generateimagerevisionresponse)\> | Generate one image revision (prompt-driven variant of a source image or video frame). The result is staged on Scratch — the FE then chooses one of two outcomes: - "Add to project" → call `nuramaClient.scratch.promote(id)` to create a project-scoped Asset immediately. - "Attach to chat" → leave the scratch id in the chat composer's pending attachments; the chat-send endpoint accepts `{ scratchId, name? }` items in `attachments[]` and promotes each to a chat-scoped Asset at send time. |
-| `generateTasks()` | (`data`) => `Promise`\<[`GenerateTasksResponse`](#generatetasksresponse)\> | Convert a chat message into one or more board-task drafts. The frontend opens the EnhancedTaskCreatorModal in a loading state, calls this method, and seeds the modal's draft list from the response's `tasks` array. Requires both the AI add-on AND the Boards add-on on the workspace; the server returns `productNotActive` if either is missing. |
-| `listTones()` | () => `Promise`\<[`ListTonesResponse`](#listtonesresponse)\> | Returns the catalogue of polish tones the platform supports. The FE uses this to populate the tone dropdown without hard-coding the IDs. |
+| `generateRevision()` | (`data`) => `Promise`\<[`GenerateImageRevisionResponse`](#generateimagerevisionresponse)\> | Generate one image revision (prompt-driven variant of a source image or video frame). The result is staged as a scratch upload — the caller then chooses one of two outcomes: - "Add to project" → call `nuramaClient.scratch.promote(id)` to create a project-scoped Asset immediately. - "Attach to chat" → pass `{ scratchId, name? }` as an item in the chat message's `attachments[]`; the server promotes each one to a chat-scoped Asset at send time. |
+| `generateTasks()` | (`data`) => `Promise`\<[`GenerateTasksResponse`](#generatetasksresponse)\> | Convert a chat message into one or more board-task drafts. The response's `tasks` array holds the drafts for the user to review and edit before creating them (for example with `nuramaClient.task.bulkCreate`). Requires both the AI add-on AND the Boards add-on on the workspace; the server returns `productNotActive` if either is missing. |
+| `listTones()` | () => `Promise`\<[`ListTonesResponse`](#listtonesresponse)\> | Returns the catalogue of polish tones the platform supports. Use it to populate a tone picker instead of hard-coding the ids. |
 | `polish()` | (`data`) => `Promise`\<[`PolishResponse`](#polishresponse)\> | - |
 | `submitFeedback()` | (`data`) => `Promise`\<\{ `id`: `string`; \}\> | Record a thumbs-up / thumbs-down on one assistant reply. `chatId` is required because it is what the server authorises against — a user can only rate a reply in a chat they can already read — and it is what the stored transcript snapshot is built from. |

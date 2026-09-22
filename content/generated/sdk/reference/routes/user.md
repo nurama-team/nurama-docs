@@ -24,20 +24,22 @@
 
 #### Properties
 
-| Property | Type |
-| ------ | ------ |
-| <a id="dailytips"></a> `dailyTips?` | \{ `disabled?`: `boolean`; `lastShownDate?`: `string`; \} |
-| `dailyTips.disabled?` | `boolean` |
-| `dailyTips.lastShownDate?` | `string` |
-| <a id="dateformat"></a> `dateFormat?` | `"european"` \| `"american"` \| `"iso"` |
-| <a id="dismissed"></a> `dismissed?` | \{ `todos?`: `string`[]; \} |
-| `dismissed.todos?` | `string`[] |
-| <a id="featureintros"></a> `featureIntros?` | `Record`\<`string`, `string`[]\> |
-| <a id="hide"></a> `hide?` | `string`[] |
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="dailytips"></a> `dailyTips?` | \{ `disabled?`: `boolean`; `lastShownDate?`: `string`; \} | Daily-tips carousel state. `disabled` opts out entirely; `lastShownDate` (local `YYYY-MM-DD`) gates the once-per-day rule cumulatively across workspaces and devices. Merged one level deep by the server. |
+| `dailyTips.disabled?` | `boolean` | - |
+| `dailyTips.lastShownDate?` | `string` | - |
+| <a id="dateformat"></a> `dateFormat?` | `"european"` \| `"american"` \| `"iso"` | Preferred date display format. Seeded at registration from the registrant's country (European unless month-first, e.g. the US → american); European is the fallback when unset. User-overridable, incl. ISO (YYYY-MM-DD). |
+| <a id="dismissed"></a> `dismissed?` | \{ `todos?`: `string`[]; \} | Per-user UX dismissals — anything the user has explicitly opted out of seeing again. The server merges this object one level deep, so a write to one `dismissed.*` key preserves its siblings. For each inner array the server treats the value as the full list — callers should merge the new id into the existing array before sending. |
+| `dismissed.todos?` | `string`[] | - |
+| <a id="featureintros"></a> `featureIntros?` | `Record`\<`string`, `string`[]\> | Per-project feature-intro tutorials the user has seen, keyed by project id. Merged one level deep by the server. |
+| <a id="hide"></a> `hide?` | `string`[] | - |
 
 ***
 
 ### UpdateUserData
+
+Fields accepted when updating the current user's profile.
 
 #### Properties
 
@@ -57,6 +59,10 @@
 ***
 
 ### UserTodo
+
+Structural shape only — the response carries no display strings. Map
+`id` to your own localized title, description and action label; the
+API stays language-agnostic.
 
 #### Properties
 

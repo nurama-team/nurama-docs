@@ -14,7 +14,7 @@
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="aigenerated"></a> `aiGenerated?` | `boolean` | `true` when the ticket was drafted by Nu via the `create_support_ticket` chat tool and submitted by the user from the pre-populated SupportTicketCreateModal. Stamped onto the `SupportTicket` row for ops analytics; the FE sets this when the modal was opened by an AI-draft CTA. |
+| <a id="aigenerated"></a> `aiGenerated?` | `boolean` | `true` when the ticket was drafted by Nu via the `create_support_ticket` chat tool and submitted by the user from the pre-populated draft. Recorded on the ticket for analytics; set it when the ticket form was opened from an AI-draft action. |
 | <a id="body"></a> `body` | `string` | - |
 | <a id="deviceinfo"></a> `deviceInfo?` | `Record`\<`string`, `unknown`\> | Browser/app/device snapshot collected at submit time. |
 | <a id="scopeid"></a> `scopeId?` | `string` | Required for workspace/project scope; ignored for user scope. |

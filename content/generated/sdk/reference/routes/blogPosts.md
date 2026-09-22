@@ -16,14 +16,12 @@ function default(client): {
 };
 ```
 
-Read-only blog feed (Nurama News on the /news page) sourced via the
-backend's Ghost Content API proxy. Auth: any signed-in user. No
-workspace coupling — the feed is platform-level, identical for every
-user.
+Read-only blog feed (Nurama News, shown on the web app's /news page).
+Auth: any signed-in user. No workspace coupling — the feed is
+platform-level, identical for every user.
 
-The proxy normalises Ghost's payload and sanitises post HTML
-server-side, so the returned `bodyHtml` is safe to render via the
-FE's controlled HTML primitive inside a modal.
+The server normalises the post payload and sanitises post HTML, so
+the returned `bodyHtml` is safe to render directly.
 
 #### Parameters
 

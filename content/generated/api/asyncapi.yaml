@@ -3,12 +3,7 @@ info:
   title: Nurama WebSocket API
   version: 0.3.3
   description: >-
-    Socket.IO events of the Nurama websocket server. Generated from `src/docs/websocket.yml` and
-    `src/config/notifications.js` by `src/docs/buildAsyncApi.js`; edit those sources, not this document.
-
-
-    Websocket (Socket.io) events emitted by the websocket server (started with `pnpm ws`, hosted separately from the
-    REST API). 
+    Websocket (Socket.io) events emitted by the websocket server (hosted separately from the REST API). 
 
 
     **Connecting / channels.** Every channel is a Socket.io namespace named
@@ -30,9 +25,8 @@ info:
     **Server -> client events:** `notification` (every notification event documented below, emitted on each channel in
     the notification's channels list; the payload `type` selects the schema), `tokenEvent`, `typing:start` /
     `typing:stop` and the `collab:*` events (only on `/chat/{chatId}` namespaces). **Client -> server events:**
-    `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Notifications are delivered via PostgreSQL LISTEN/NOTIFY
-    with a polling fallback; sockets whose JWT expired or was blacklisted, or whose bot key was revoked, receive
-    `tokenEvent` and are disconnected shortly after. 
+    `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Sockets whose JWT expired or was blacklisted, or whose bot
+    key was revoked, receive `tokenEvent` and are disconnected shortly after. 
 
 
     Each event type below is documented using 'get' to represent the emitted event payload under the '200' response
@@ -40,25 +34,20 @@ info:
     should be replaced with values and objects in the changes key in existing implementations.**
 defaultContentType: application/json
 servers:
-  local:
-    host: localhost:4000
-    protocol: ws
-    pathname: /socket.io
-    description: >-
-      Local websocket server started with `pnpm ws` (port from WS_PORT). Socket.IO transport: connect with a Socket.IO
-      client to the namespace (channel) address, not with a raw WebSocket.
-    security:
-      - $ref: '#/components/securitySchemes/handshakeToken'
-  hosted:
-    host: '{host}'
+  production:
+    host: ws.nurama.com
     protocol: wss
     pathname: /socket.io
-    description: Staging / production websocket server over TLS (Socket.IO), hosted separately from the REST API.
-    variables:
-      host:
-        description: >-
-          Hostname of the staging or production websocket server. It is not part of the API configuration, so it is left
-          as a variable.
+    description: >-
+      WebSocket server for user credentials (JWT or personal access token). Socket.IO transport: connect a Socket.IO
+      client to the channel address, not a raw WebSocket.
+    security:
+      - $ref: '#/components/securitySchemes/handshakeToken'
+  bots:
+    host: bot-ws.nurama.com
+    protocol: wss
+    pathname: /socket.io
+    description: WebSocket server for bot API keys.
     security:
       - $ref: '#/components/securitySchemes/handshakeToken'
 channels:
@@ -2207,8 +2196,8 @@ components:
       name: projectAssetsPublish
       title: projectAssetsPublish
       summary: >-
-        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
-        when assets within a project are published.
+        CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when assets within a project
+        are published.
       description: >-
         Fired when assets within a project are published.
 
@@ -2272,8 +2261,8 @@ components:
       name: projectAssetsUnpublish
       title: projectAssetsUnpublish
       summary: >-
-        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
-        when assets within a project are unpublished.
+        CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when assets within a project
+        are unpublished.
       description: >-
         Fired when assets within a project are unpublished.
 
@@ -2810,7 +2799,7 @@ components:
                     type: string
                   keyPath:
                     type: string
-                    description: The S3 key path of the new/updated file.
+                    description: The storage key of the new/updated file.
                   functionType:
                     type: string
                     description: The role of the file (e.g., 'original', 'thumbnail', 'stream').
@@ -3984,9 +3973,7 @@ components:
     folderCreate:
       name: folderCreate
       title: folderCreate
-      summary: >-
-        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
-        when a new folder is created.
+      summary: CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a new folder is created.
       description: >-
         Fired when a new folder is created.
 
@@ -4045,9 +4032,7 @@ components:
     folderUpdate:
       name: folderUpdate
       title: folderUpdate
-      summary: >-
-        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
-        when a folder is updated.
+      summary: CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a folder is updated.
       description: >-
         Fired when a folder is updated (name, color, etc.).
 
@@ -4111,9 +4096,7 @@ components:
     folderDelete:
       name: folderDelete
       title: folderDelete
-      summary: >-
-        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
-        when a folder is deleted.
+      summary: CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a folder is deleted.
       description: >-
         Fired when a folder is deleted.
 
@@ -5869,7 +5852,7 @@ components:
         Fired when items are created at a file system path (folder created, single uploaded asset activated, or items
         copied into a public release).
       description: >-
-        Signals the FE to refresh the destination path. The changes object is usually absent; it is populated only for
+        Signals clients to refresh the destination path. The changes object is usually absent; it is populated only for
         the single-asset activation (create asset) and public release (update public) cases.
 
 
@@ -5879,8 +5862,8 @@ components:
         Delivered as the `notification` socket event with `type` set to `fileSystemCreate`.
       payload:
         description: >-
-          Signals the FE to refresh the destination path. The changes object is usually absent; it is populated only for
-          the single-asset activation (create asset) and public release (update public) cases.
+          Signals clients to refresh the destination path. The changes object is usually absent; it is populated only
+          for the single-asset activation (create asset) and public release (update public) cases.
         allOf:
           - $ref: '#/components/schemas/BaseNotificationEvent'
           - type: object
@@ -6423,8 +6406,8 @@ components:
       name: uploadPushSummary
       title: uploadPushSummary
       summary: >-
-        Delayed push-notification summary of assets uploaded to a project by one user. Primarily consumed by the push
-        worker (sent after scheduledSendAt) but also broadcast on the project visibility channels when created.
+        Delayed push-notification summary of assets uploaded to a project by one user. Primarily used to send a push
+        notification after scheduledSendAt, but also broadcast on the project visibility channels when created.
       description: >-
         Created directly (bypasses template validation) and grouped per creator/project while pushStatus is pending;
         later uploads are appended to tokens.assets and the timer is reset. Not intended for UI rendering.
@@ -6479,7 +6462,7 @@ components:
       name: publishPushSummary
       title: publishPushSummary
       summary: >-
-        Push-notification summary of items published to reviewers. Consumed by the push worker; broadcast on
+        Push-notification summary of items published to reviewers. Used to send a push notification; broadcast on
         project/{projectId}/reviewer.
       description: |-
         Created directly (bypasses template validation). Not intended for UI rendering.
@@ -6526,7 +6509,7 @@ components:
       name: submissionPushSummary
       title: submissionPushSummary
       summary: >-
-        Push-notification summary for a newly created submission. Consumed by the push worker; broadcast on
+        Push-notification summary for a newly created submission. Used to send a push notification; broadcast on
         project/{projectId}.
       description: |-
         Created directly (bypasses template validation). Not intended for UI rendering.
@@ -6579,7 +6562,7 @@ components:
       name: memberJoinPush
       title: memberJoinPush
       summary: >-
-        Push-notification record created when a user joins a workspace or project. Consumed by the push worker;
+        Push-notification record created when a user joins a workspace or project. Used to send a push notification;
         broadcast on {resourceType}/{resourceId}.
       description: |-
         Created directly (bypasses template validation). Not intended for UI rendering.
@@ -10923,8 +10906,8 @@ components:
         type:
           type: string
           description: >-
-            The specific type of notification event (matches the top-level key, e.g., 'workspaceCreate'). Every value in
-            notificationTemplates (config/notifications.js) is documented in this tag.
+            The specific type of notification event (matches the top-level key, e.g., 'workspaceCreate'). Every
+            notification type is documented as its own event in this reference.
         initiatorId:
           type: string
           format: uuid

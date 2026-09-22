@@ -140,7 +140,7 @@ type PlanChangeWarning =
 ```
 
 Soft warnings returned by a plan swap / dry-run. STRUCTURED (not localized
-strings) so the multi-lingual FE renders the copy from these values.
+strings) so your app can render localized copy from these values.
 
 ***
 
@@ -210,4 +210,4 @@ An object containing the subscription-related methods.
 | `getWorkspaceSubscription()` | (`workspaceId`) => `Promise`\<`Subscription`\> | Retrieves the active subscription for a specific workspace. Requires authentication and permission. |
 | `getWorkspaceUsageSummary()` | (`workspaceId`) => `Promise`\<\{ `billableSeatCount`: `number`; `storageUsedInBytes`: `number`; \}\> | Retrieves the workspace usage summary (billable seats and storage used). Requires authentication and subscription management permission. |
 | `resumeWorkspaceSubscription()` | (`workspaceId`) => `Promise`\<`any`\> | Reverse a scheduled (period-end) cancellation, keeping the workspace's subscription on its normal renewal cycle. Only valid while the subscription is still active with a pending cancellation; a fully lapsed subscription can't be resumed (the owner must re-subscribe). Requires authentication and permission. |
-| `swapWorkspacePlan()` | (`workspaceId`, `params`) => `Promise`\<\{ `subscription`: `Subscription` \| `null`; `warnings`: [`PlanChangeWarning`](#planchangewarning)[]; \}\> | Swap the workspace's active basePlan line for a different basePlan product. Same code path both upgrades and downgrades; the API's pre-flight capacity check is what distinguishes a permitted change from a refused one. Pass `dryRun: true` to get the pre-flight verdict without mutating. On over-allocation the API returns 400 `planCapacityInsufficient` with `errorData.violations: [{ resource, current, newLimit }]`, surfaced via the SDK's normal error path. On success, returns the updated subscription plus a `warnings[]` array of feature-gate capabilities the destination plan does NOT include (the FE renders these as a confirmation notice). |
+| `swapWorkspacePlan()` | (`workspaceId`, `params`) => `Promise`\<\{ `subscription`: `Subscription` \| `null`; `warnings`: [`PlanChangeWarning`](#planchangewarning)[]; \}\> | Swap the workspace's active basePlan line for a different basePlan product. Same code path both upgrades and downgrades; the API's pre-flight capacity check is what distinguishes a permitted change from a refused one. Pass `dryRun: true` to get the pre-flight verdict without mutating. On over-allocation the API returns 400 `planCapacityInsufficient` with `errorData.violations: [{ resource, current, newLimit }]`, surfaced via the SDK's normal error path. On success, returns the updated subscription plus a `warnings[]` array of feature-gate capabilities the destination plan does NOT include (suitable for showing as a confirmation notice). |

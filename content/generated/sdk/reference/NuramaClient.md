@@ -235,7 +235,7 @@ Creates an instance of NuramaClient.
 | `socket.disconnect` | `public` | (`channel`) => `Promise`\<`void`\> | `undefined` | Disconnect from a socket channel |
 | `socket.disconnectAll` | `public` | () => `Promise`\<`void`\> | `undefined` | Disconnect from all channels |
 | `socket.emit` | `public` | (`channel`, `event`, `data?`) => `void` | `undefined` | Emit an event to a connected channel |
-| `socket.emitWithAck` | `public` | (`channel`, `event`, `data`, `timeoutMs`) => `Promise`\<`boolean`\> | `undefined` | Emit an event with a timeout-bounded server acknowledgement. Resolves `true` if the server acks within `timeoutMs`, `false` on timeout or transport error. Used by the FE WS layer (`WebSocketManager.probeChannel`) to actively verify a channel's liveness when `socket.connected` may be stale — most notably after a backgrounded tab returns to focus, where the flag can remain `true` for up to socket.io's own heartbeat window (~25–45s) even after the underlying TCP transport has died. Relies on socket.io v4's `socket.timeout(ms).emit(ev, data, cb)` pattern: the BE handler invokes `ack()` (its trailing callback arg); if no ack arrives within `timeoutMs` the cb is invoked with an Error. |
+| `socket.emitWithAck` | `public` | (`channel`, `event`, `data`, `timeoutMs`) => `Promise`\<`boolean`\> | `undefined` | Emit an event with a timeout-bounded server acknowledgement. Resolves `true` if the server acks within `timeoutMs`, `false` on timeout or transport error. Use it to actively verify a channel's liveness when `socket.connected` may be stale — most notably after a backgrounded tab returns to focus, where the flag can remain `true` for up to socket.io's own heartbeat window (~25–45s) even after the underlying TCP transport has died. Relies on socket.io v4's `socket.timeout(ms).emit(ev, data, cb)` pattern: the server acknowledges the event via its trailing callback; if no ack arrives within `timeoutMs` the callback receives an Error. |
 | `socket.isConnected` | `public` | (`channel`) => `boolean` | `undefined` | Check if connected to a channel |
 | `socket.onReconnect` | `public` | (`channel`, `callback`) => `void` | `undefined` | Register a callback for when the channel reconnects — a socket.io transport-level reconnect, or the token-refresh reconnect. Use it to recover any gap of server->client messages missed while the connection was down; socket.io does not replay those. Dispatched from the 'reconnect' handler in connect() and from the token-refresh path. |
 | `socket.onReconnectFailed` | `public` | (`channel`, `callback`) => `void` | `undefined` | Register a callback for when Socket.IO exhausts all reconnection attempts |
@@ -514,8 +514,9 @@ completeCustomThumbnailUpload(assetId, data): Promise<{
 }>;
 ```
 
-Finalize the multipart S3 upload for a custom thumbnail. Triggers the
-post-processing Lambda by committing the S3 object.
+Finalize the multipart upload for a custom thumbnail. Committing the
+upload starts the background processing that generates the thumbnail
+outputs.
 
 ###### Parameters
 
@@ -548,9 +549,8 @@ completeUpload(uploadData): Promise<any>;
 
 Complete a multipart upload initiated by `createAssets`.
 
-Matches the route (`POST /v1/assets/complete-upload`) and mirrors
-`nuramaClient.scratch.completeUpload`, so moving between the asset
-and scratch namespaces uses the same verb.
+Takes the same `{ uploadId, parts }` shape as
+`nuramaClient.scratch.completeUpload`, plus the `key` and `assetId`.
 
 ###### Parameters
 
@@ -562,7 +562,7 @@ and scratch namespaces uses the same verb.
 
 `Promise`\<`any`\>
 
-S3 completion response.
+Upload completion response from the server.
 
 ###### Inherited from
 
@@ -901,10 +901,10 @@ getCustomThumbnailUploadUrl(assetId, data): Promise<{
 }>;
 ```
 
-Mint a signed multipart upload URL for a user-supplied custom thumbnail
-image. The upload lands in the originals bucket tagged so the
-post-processing Lambda generates the customThumbnail outputs and
-registers them on the asset via the file-update callback.
+Mint signed multipart upload URLs for a user-supplied custom thumbnail
+image. Once the upload is completed, background processing generates
+the custom-thumbnail outputs and attaches them to the asset; the
+`assetFileUpdate` websocket event fires when they are ready.
 
 Caller flow:
   1. multipartUpload(file, response.urls, response.key, response.uploadId)
@@ -948,9 +948,9 @@ getDocumentViewUrl(assetId): Promise<DocumentViewUrlResponse>;
 
 Mints a short-lived signed URL for rendering a document inline.
 
-Documents keep their `media` PDF in the private bucket, so unlike images
-and video it cannot be addressed by keyPath through the file CDN. Fetch
-this per document open; do not cache it past `expires`.
+A document's `media` PDF is kept in private storage, so unlike images
+and video it cannot be addressed by keyPath through the public file URL.
+Fetch this each time a document is opened; do not cache it past `expires`.
 
 ###### Parameters
 
@@ -1156,8 +1156,8 @@ Uploads a file using multipart upload with the provided signed URLs
 | ------ | ------ | ------ |
 | `file` | `string` \| `File` \| `Blob` \| `Buffer`\<`ArrayBufferLike`\> | The file to upload (File/Blob in browser, Buffer/string path in Node.js) |
 | `signedUrls` | `string`[] | Array of signed URLs for each part |
-| `key` | `string` | The S3 key for the upload |
-| `uploadId` | `string` | The S3 uploadId for the multipart upload |
+| `key` | `string` | The storage key returned alongside the signed URLs |
+| `uploadId` | `string` | The multipart upload id returned alongside the signed URLs |
 | `options` | [`MultipartUploadOptions`](routes/asset.md#multipartuploadoptions) | Upload options |
 
 ###### Returns
@@ -2148,8 +2148,8 @@ ReturnType.verifyMfa
 | <a id="enablecache-1"></a> `enableCache?` | `boolean` | Enable response caching. Default: true |
 | <a id="fetch-1"></a> `fetch?` | (`input`, `init?`) => `Promise`\<`Response`\> | Custom fetch implementation. If not provided, will use global fetch |
 | <a id="invalidatecacheonmutation-1"></a> `invalidateCacheOnMutation?` | `boolean` | After a successful write (POST/PUT/PATCH/DELETE) to a resource, evict cached GET responses for that resource so the next read returns fresh data (read-after-write consistency). Default: true. |
-| <a id="onmaintenance"></a> `onMaintenance?` | () => `void` | Invoked when the API returns a `{ error: 'maintenance' }` body on a 418 or 503 — i.e. the site is in a maintenance window (the edge rule returns this to non-allowlisted clients; a Cloudflare WAF block can only be a 4xx, so 418 — a guaranteed-unused sentinel — is used there, while a Worker/origin can return 503). Lets an already-loaded (cached) SPA surface a maintenance message instead of failing silently. |
-| <a id="onunauthorized"></a> `onUnauthorized?` | (`reason?`) => `void` | Callback invoked when authentication fails and re-login is required (e.g., refresh token expired/missing). `reason.type` carries the backend error type when available — notably `emailVerificationRequired` when the refresh was rejected because the user's email-verification grace period has expired, so callers can prompt verification instead of a plain logout. |
+| <a id="onmaintenance"></a> `onMaintenance?` | () => `void` | Invoked when the API returns a `{ error: 'maintenance' }` body with a 418 or 503 status — i.e. the site is in a maintenance window. Lets an already-loaded (cached) app surface a maintenance message instead of failing silently. |
+| <a id="onunauthorized"></a> `onUnauthorized?` | (`reason?`) => `void` | Callback invoked when authentication fails and re-login is required (e.g., refresh token expired/missing). `reason.type` carries the API's error type when available — notably `emailVerificationRequired` when the refresh was rejected because the user's email-verification grace period has expired, so callers can prompt verification instead of a plain logout. |
 | <a id="refreshlocktimeoutms-1"></a> `refreshLockTimeoutMs?` | `number` | Timeout in ms for the refresh lock to prevent multiple simultaneous refreshes. Default: 5000 |
 | <a id="refreshtokenstoragekey-1"></a> `refreshTokenStorageKey?` | `string` | Key used to store the refresh token in storage. Default: 'nurama_refresh_token' |
 | <a id="tokenexpirybufferseconds-1"></a> `tokenExpiryBufferSeconds?` | `number` | Number of seconds before token expiry to trigger refresh. Default: 300 (5 minutes) |
@@ -3967,7 +3967,7 @@ ReturnType.updateSubmission
 
 SDK Version Information
 AUTO-GENERATED - DO NOT EDIT MANUALLY
-Generated at: 2026-09-22T12:15:55.662Z
+Generated at: 2026-09-22T16:09:58.836Z
 
 #### Properties
 
@@ -4316,8 +4316,8 @@ On over-allocation the API returns 400 `planCapacityInsufficient` with
 the SDK's normal error path.
 
 On success, returns the updated subscription plus a `warnings[]` array
-of feature-gate capabilities the destination plan does NOT include (the
-FE renders these as a confirmation notice).
+of feature-gate capabilities the destination plan does NOT include
+(suitable for showing as a confirmation notice).
 
 ###### Parameters
 
@@ -4489,7 +4489,7 @@ video, tutorial coachmark). Idempotent. Returns the updated user.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `element` | `string` | one-time element key (see backend oneTimeElements). |
+| `element` | `string` | one-time element key (must be one of the element keys the server recognises). |
 
 ###### Returns
 

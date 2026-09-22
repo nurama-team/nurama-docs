@@ -35,7 +35,7 @@
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="additionalroles"></a> `additionalRoles?` | `string`[] | Optional workspace-level roles granted alongside the primary role (subset of the backend `additionalRoles`, e.g. workspaceChatMember, workspaceAdmin). Applied to the workspace membership on accept. |
+| <a id="additionalroles"></a> `additionalRoles?` | `string`[] | Optional workspace-level roles granted alongside the primary role (must be roles the server allows as additional roles, e.g. workspaceChatMember, workspaceAdmin). Applied to the workspace membership on accept. |
 | <a id="inviteeemail"></a> `inviteeEmail` | `string` | - |
 | <a id="resourceid"></a> `resourceId` | `string` | - |
 | <a id="resourcetype"></a> `resourceType` | `string` | - |

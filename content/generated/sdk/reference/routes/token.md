@@ -16,7 +16,7 @@
 | ------ | ------ | ------ |
 | <a id="expiresat"></a> `expiresAt?` | `string` \| `null` | Optional ISO date. Null / omitted = non-expiring. |
 | <a id="name"></a> `name` | `string` | Customer-facing label. 1–80 characters. |
-| <a id="scopes"></a> `scopes` | [`TokenScope`](#tokenscope)[] | At least one scope. Validated against the backend registry. |
+| <a id="scopes"></a> `scopes` | [`TokenScope`](#tokenscope)[] | At least one scope. The server rejects unknown scopes. |
 
 ***
 
@@ -81,8 +81,7 @@ type TokenKind = "pat" | "oauthAccess" | "oauthRefresh" | "botAccess";
 
 Personal Access Token kinds. v1 only mints `pat`; the rest are
 reserved for the future OAuth grant flow and are listed here so
-downstream code can switch on the kind without importing a server-
-side enum.
+callers can switch on the kind.
 
 ***
 
@@ -100,10 +99,9 @@ type TokenScope =
   | "workspaces:read";
 ```
 
-Granted action verbs on a token. Mirrors the backend's
-`@config/tokenScopes` registry; adding a scope on the BE means
-adding it here too (or callers fall back to `string` when they
-accept arbitrary scopes from configuration).
+Granted action verbs on a token. The server validates requested scopes
+against this set. Fall back to `string` in your own code if it accepts
+arbitrary scopes from configuration.
 
 ## Functions
 

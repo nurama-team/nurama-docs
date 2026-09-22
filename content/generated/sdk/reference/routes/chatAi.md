@@ -26,10 +26,10 @@ the regular chat endpoints on `nuramaClient.chat`:
   - send:  `nuramaClient.chat.createMessage(topic.chatId, …)`
   - list:  `nuramaClient.chat.getMessages(topic.chatId, …)`
 
-The backend's `chat.service.createMessage` detects `chatType === 'ai'`
-and fires the AI orchestrator as a tail call so the same path that
-powers every other chat surface (attachments, mentions, link previews,
-link‐preview generation, notifications) carries AI chat too.
+When a message is sent to a chat whose `chatType` is `'ai'`, the server
+generates the AI reply after storing the message, so attachments,
+mentions, link previews and notifications behave exactly as in every
+other chat.
 
 Each topic is private to its creator. Topic scope is one of:
   - 'workspace' → cross-project chat in the workspace
@@ -55,7 +55,7 @@ Credit-balance gating happens server-side on the regular chat
 | Name | Type | Description |
 | ------ | ------ | ------ |
 | `createTopic()` | (`data`) => `Promise`\<`AiChatCreateTopicResponse`\> | Create a new (empty) topic. After this resolves, send the first message through `nuramaClient.chat.createMessage(topic.chatId, …)`. |
-| `deleteTopic()` | (`topicId`, `params`) => `Promise`\<`AiChatGetTopicResponse`\> | Soft-delete a topic. The backend flips the topic + its backing chat + every chat-scoped attachment asset to `pendingDelete`; the file-management sweeper handles the actual S3 + DB cleanup asynchronously. The caller can drop the row from their local list immediately — there's no "undo" surface for this. |
+| `deleteTopic()` | (`topicId`, `params`) => `Promise`\<`AiChatGetTopicResponse`\> | Soft-delete a topic. The topic, its chat and every attachment asset in that chat are marked `pendingDelete` and cleaned up by background processing. The caller can drop the topic from their local list immediately — there is no "undo" for this. |
 | `getTopic()` | (`topicId`, `params`) => `Promise`\<`AiChatGetTopicResponse`\> | - |
 | `listTopics()` | (`params`) => `Promise`\<`AiChatListTopicsResponse`\> | List the caller's topics for a scope (workspace, project, or social). |
 | `updateTopic()` | (`topicId`, `data`) => `Promise`\<`AiChatGetTopicResponse`\> | - |

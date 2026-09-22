@@ -63,13 +63,7 @@
 
 ### BulkTaskDraft
 
-Defines task-related methods for the NuramaClient.
-
-#### Param
-
-**client**
-
-The NuramaClient instance.
+One task draft in a `bulkCreate` request.
 
 #### Properties
 
@@ -77,7 +71,7 @@ The NuramaClient instance.
 | ------ | ------ | ------ |
 | <a id="assignedtoid"></a> `assignedToId?` | `string` | - |
 | <a id="boardid"></a> `boardId` | `string` | - |
-| <a id="clientid-1"></a> `clientId` | `string` | FE-assigned id; echoed back in `results` so the caller can map a per-task outcome onto the originating draft. |
+| <a id="clientid-1"></a> `clientId` | `string` | Caller-assigned id; echoed back in `results` so the caller can map a per-task outcome onto the originating draft. |
 | <a id="columnid"></a> `columnId?` | `string` | - |
 | <a id="description"></a> `description?` | `string` \| `null` | - |
 | <a id="subject"></a> `subject` | `string` | - |
@@ -328,19 +322,23 @@ function default(client): {
 };
 ```
 
+Defines task-related methods for the NuramaClient.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `client` | [`default`](../NuramaClient.md#default) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `client` | [`default`](../NuramaClient.md#default) | The NuramaClient instance. |
 
 #### Returns
+
+An object containing the task-related methods.
 
 | Name | Type | Description |
 | ------ | ------ | ------ |
 | `acknowledgeAllTasks()` | (`projectId`) => `Promise`\<[`AcknowledgeAllTasksResponse`](#acknowledgealltasksresponse)\> | Acknowledge every unacknowledged mention-task the current user has in a project. Idempotent server-side. |
 | `acknowledgeTask()` | (`taskId`) => `Promise`\<`Task`\> | Toggles the acknowledgement status of a specific task. Requires authentication and permission. |
-| `bulkCreate()` | (`data`) => `Promise`\<[`BulkCreateTasksResponse`](#bulkcreatetasksresponse)\> | Bulk-create one or more tasks under a single project — single round-trip replacement for the per-draft create loop the EnhancedTaskCreatorModal used to drive. Per-task partial success is returned in `results[]`; if `announce` is set and at least one task creates, the server also posts a Nu reply linking the new tasks back to the source message and rendering them as inline taskCards. |
+| `bulkCreate()` | (`data`) => `Promise`\<[`BulkCreateTasksResponse`](#bulkcreatetasksresponse)\> | Bulk-create one or more tasks under a single project in a single round-trip. Per-task partial success is returned in `results[]`; if `announce` is set and at least one task creates, the server also posts a Nu reply linking the new tasks back to the source message and rendering them as inline taskCards. |
 | `deleteTask()` | (`taskId`) => `Promise`\<`void`\> | Permanently delete a task. Gated server-side by `canRemove{Visibility}BoardTask` for at least one of the parent board's visibility tiers (see `boardPermission('Remove', 'BoardTask')`). Returns void; the server responds with 204 No Content. |
 | `followTask()` | (`taskId`) => `Promise`\<`Task`\> | Add the calling user to a task's `followers` list. Idempotent server-side — following an already-followed task is a no-op and still returns the current task. |
 | `getMyTasks()` | (`params?`) => `Promise`\<[`GetTasksResponse`](#gettasksresponse)\> | Retrieves tasks assigned to the currently authenticated user. Supports filtering, sorting, and both index and cursor pagination. |
