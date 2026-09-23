@@ -1,4 +1,4 @@
 {
   "title": "REST API",
-  "pages": ["index", "..."]
+  "pages": ["index", "webhook-events", "..."]
 }

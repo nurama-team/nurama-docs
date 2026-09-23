@@ -1,0 +1,55 @@
+{
+  "versioning": "Event names are not versioned. Payloads are additive-only: fields may be added, never removed or renamed. Receivers should ignore unknown fields.",
+  "events": [
+    {
+      "event": "task.created",
+      "notificationTypes": [
+        "boardTaskCreate"
+      ],
+      "filtered": false,
+      "note": ""
+    },
+    {
+      "event": "task.updated",
+      "notificationTypes": [
+        "boardTaskUpdate",
+        "boardTaskMove",
+        "boardTaskAssign"
+      ],
+      "filtered": false,
+      "note": "Covers moves between columns, assignment changes and edits to the subject or description."
+    },
+    {
+      "event": "task.deleted",
+      "notificationTypes": [
+        "boardTaskRemove"
+      ],
+      "filtered": false,
+      "note": ""
+    },
+    {
+      "event": "chat.message.created",
+      "notificationTypes": [
+        "chatCreateMessage"
+      ],
+      "filtered": false,
+      "note": ""
+    },
+    {
+      "event": "asset.published",
+      "notificationTypes": [
+        "assetStatusUpdate"
+      ],
+      "filtered": true,
+      "note": "Fires only when an asset becomes active; other status changes are not delivered."
+    },
+    {
+      "event": "webhook.test",
+      "notificationTypes": [
+        "webhookTest"
+      ],
+      "filtered": false,
+      "note": "Synthetic event sent by the test endpoint to one subscription, regardless of its event list."
+    }
+  ]
+}

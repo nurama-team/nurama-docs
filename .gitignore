@@ -27,6 +27,8 @@ next-env.d.ts
 # derived by scripts/generate.mjs from content/generated (run `pnpm generate`)
 /.generated
 /content/api/*/
+/content/api/webhook-events.mdx
+/public/webhook-events.json
 /content/websocket
 /content/sdk
 /content/mcp

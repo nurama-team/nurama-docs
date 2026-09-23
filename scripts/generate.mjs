@@ -288,6 +288,32 @@ const splitOpenApi = (doc) => {
   return files;
 };
 
+// ---------------------------------------------------------------- Webhook events -> MDX
+
+/**
+ * One page in the REST section listing the outbound webhook events. The payload of
+ * each event is the notification it is built from, so each row links to the matching
+ * notification pages of the WebSocket reference.
+ */
+const generateWebhookEvents = (catalogue, asyncapi) => {
+  const known = new Set(Object.keys((asyncapi.components && asyncapi.components.messages) || {}));
+  const link = (t) => (known.has(t) ? `[\`${t}\`](${BASE}/websocket/notifications/${slug(t)})` : `\`${t}\``);
+  const body = [
+    frontmatter({ title: 'Webhook events', description: 'Every event an outbound webhook subscription can receive, with the payload each one carries.' }),
+    GENERATED_NOTE,
+    'Subscribe to these event names with the [Webhook Subscriptions](/docs/reference/api/webhook-subscriptions) endpoints. Each delivery is a `{ workspace, type, data… }` envelope around the same notification the WebSocket API emits, so the payload fields are documented on the linked notification pages. See the [webhooks guide](/docs/guides/webhooks) for delivery, signatures and retries.',
+    '',
+    escMarkdown(catalogue.versioning || ''),
+    '',
+    '| Event | Built from notification | Notes |',
+    '| --- | --- | --- |',
+    ...catalogue.events.map((e) => `| \`${e.event}\` | ${e.notificationTypes.map(link).join(', ')} | ${cell(e.note)} |`),
+    '',
+  ].join('\n');
+  write(path.join(CONTENT, 'api', 'webhook-events.mdx'), body);
+  return catalogue.events.length;
+};
+
 // ---------------------------------------------------------------- AsyncAPI -> MDX
 
 const generateWebsocket = (a) => {
@@ -580,9 +606,12 @@ const main = () => {
   fs.mkdirSync(PUBLIC, { recursive: true });
   for (const f of ['openapi.json', 'openapi.yaml', 'asyncapi.json', 'asyncapi.yaml']) fs.copyFileSync(path.join(GEN, 'api', f), path.join(PUBLIC, f));
   fs.copyFileSync(path.join(GEN, 'mcp/tools.json'), path.join(PUBLIC, 'mcp-tools.json'));
+  if (fs.existsSync(path.join(GEN, 'api/webhook-events.json'))) fs.copyFileSync(path.join(GEN, 'api/webhook-events.json'), path.join(PUBLIC, 'webhook-events.json'));
   write(path.join(PUBLIC, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
   const tags = splitOpenApi(openapi);
+  const webhookCatalogue = fs.existsSync(path.join(GEN, 'api/webhook-events.json')) ? readJson(path.join(GEN, 'api/webhook-events.json')) : { events: [] };
+  const webhookEvents = generateWebhookEvents(webhookCatalogue, asyncapi);
   const ws = generateWebsocket(asyncapi);
   const sdk = generateSdk();
   const mcp = generateMcp(tools);
@@ -590,6 +619,7 @@ const main = () => {
   console.log(
     [
       `openapi: ${tags.length} operation documents (largest ${largest.file}: ${Math.round(largest.bytes / 1024)} KB)`,
+      `webhooks: ${webhookEvents} events`,
       `websocket: ${ws.events} events, ${ws.notifications} notification types`,
       `sdk: ${sdk.modules} modules`,
       `mcp: ${mcp.tools} tools (${mcp.mutating} mutating)`,

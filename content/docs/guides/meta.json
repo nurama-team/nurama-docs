@@ -1,4 +1,4 @@
 {
   "title": "Guides",
-  "pages": ["sdk", "websocket", "bots", "mcp"]
+  "pages": ["sdk", "websocket", "webhooks", "bots", "mcp"]
 }

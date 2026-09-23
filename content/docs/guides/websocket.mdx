@@ -3,7 +3,7 @@ title: Real-time events
 description: How to connect to the Socket.IO server, which channel to join, and how notifications are shaped.
 ---
 
-The WebSocket server is a separate Socket.IO deployment. Connect with a Socket.IO client (the SDK's `socket` namespace, or `socket.io-client` directly), never with a raw WebSocket.
+The WebSocket server is a separate Socket.IO deployment. If a server you run needs to react to changes without holding a connection open, use [webhooks](/docs/guides/webhooks) instead. Connect with a Socket.IO client (the SDK's `socket` namespace, or `socket.io-client` directly), never with a raw WebSocket.
 
 ## Channels
 
