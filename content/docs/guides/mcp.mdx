@@ -41,7 +41,7 @@ The connection then acts as the token's owner within the token's scopes. Bot API
 
 ## What the assistant can do
 
-Read tools cover memberships, project feeds, chats, messages, boards and tasks. Write tools, such as sending a message or creating a task, are flagged as mutating in the catalogue and only work under a read-and-write grant or a token with the matching write scopes. Nothing the assistant does can reach billing, account security or token management, whatever it is asked.
+Read tools cover memberships, project feeds, chats, messages, boards and tasks. Write tools, such as sending a message or creating a task, are flagged as mutating in the catalogue and only work under a read-and-write grant or a token with the matching write scopes. Nothing the assistant does can reach billing, account security, token management or webhook subscriptions, whatever it is asked.
 
 Grant the narrowest access that does the job: a read-only connection cannot be talked into writing, whatever the prompt says.
 

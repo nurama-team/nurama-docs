@@ -37,7 +37,7 @@ When an MCP client such as Claude connects to `https://mcp.nurama.com/mcp`, it i
 
 ## Scopes
 
-Personal access tokens and bot keys carry scopes from this list. An MCP grant maps `nurama.read` to the read scopes and `nurama.write` to all of them.
+Personal access tokens and bot keys carry scopes from this list. An MCP grant maps `nurama.read` to the read scopes and `nurama.write` to all of them except `webhooks:manage`, which only a personal access token can carry.
 
 | Scope | Allows |
 | --- | --- |
@@ -49,6 +49,7 @@ Personal access tokens and bot keys carry scopes from this list. An MCP grant ma
 | `chat:write` | Post messages, edit your own messages, attach files |
 | `tasks:read` | Read boards, tasks, task events and task relations |
 | `tasks:write` | Create, update, move, assign and link tasks |
+| `webhooks:manage` | Create, update, pause and delete webhook subscriptions, rotate their secrets, test and replay deliveries. Personal access tokens only, and the token's owner must be a workspace admin. |
 
 A request to a scope-gated endpoint without the matching scope fails with `403`, even when the underlying user has permission. Scopes are fixed when the credential is created; make a new one to change them. Whatever the scopes, none of the three credentials can reach billing, subscriptions, credits, account security or token management. Those surfaces are reserved for the Nurama apps.
 

@@ -7,7 +7,7 @@ A webhook subscription tells Nurama to `POST` a signed JSON payload to a URL you
 
 ## Create a subscription
 
-Workspace admins create subscriptions from the workspace's **Webhooks** tab in the Nurama web app, or over the API with a personal access token that belongs to an admin:
+Workspace admins create subscriptions from the workspace's **Webhooks** tab in the Nurama web app, or over the API with a personal access token that belongs to an admin and carries the `webhooks:manage` scope:
 
 ```bash
 curl -s https://api.nurama.com/v1/workspaces/$WORKSPACE_ID/webhooks \
@@ -25,7 +25,7 @@ The response includes `signingSecret`. It is shown once, so store it with your o
 - The URL must be HTTPS and publicly reachable. Private and loopback addresses are refused.
 - Choose events from the [event catalogue](/docs/reference/api/webhook-events). Unknown names are rejected.
 - A workspace can hold 25 subscriptions that are not failed out.
-- Bot API keys cannot manage subscriptions; use the app or an admin's personal access token.
+- Only the app or a personal access token with `webhooks:manage` can manage subscriptions. Bot API keys and MCP connections cannot, so a compromised bot or a misled assistant can never register a receiver for your events.
 - Set `expiresAt` for a temporary integration and the subscription stops delivering after that time.
 
 The same operations are available in the SDK under `client.webhook`: `createWebhook`, `listWebhooks`, `updateWebhook`, `rotateWebhookSecret`, `testWebhook`, `listWebhookDeliveries` and `replayWebhookDelivery`.

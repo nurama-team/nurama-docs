@@ -29429,7 +29429,8 @@ tags:
     description: >-
       Outbound webhook subscriptions. A workspace admin registers an HTTPS URL plus the event names it wants; Nurama
       POSTs a signed JSON envelope to that URL whenever a matching notification is written. All endpoints require
-      `canManageWebhooks` on the workspace and session (JWT) auth — bot API keys are denied. A workspace may hold at
+      `canManageWebhooks` on the workspace and either a Nurama app session or a personal access token carrying the
+      `webhooks:manage` scope. Bot API keys and MCP connections cannot manage subscriptions. A workspace may hold at
       most 25 subscriptions that are not `failedOut`.
 
 
