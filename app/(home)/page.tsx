@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Cards, Card } from 'fumadocs-ui/components/card';
+import { NuramaWordmark } from '@/components/brand';
 
 const sections = [
   { title: 'Getting started', href: '/docs/getting-started', description: 'Create a token, make your first request, pick the right credential.' },
@@ -14,6 +15,7 @@ export default function HomePage() {
   return (
     <main className="flex flex-col flex-1 items-center px-4 py-16">
       <div className="max-w-3xl w-full">
+        <NuramaWordmark className="h-9 w-auto mb-8 text-fd-foreground" />
         <h1 className="text-4xl font-bold mb-4">Build on Nurama</h1>
         <p className="text-fd-muted-foreground text-lg mb-8">
           Reference and guides for the Nurama platform: a REST API, real-time Socket.IO events, a TypeScript SDK and an MCP

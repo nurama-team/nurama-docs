@@ -14,4 +14,17 @@ html > body[data-scroll-locked] {
 
 :root {
   --fd-layout-width: 1600px;
+
+  /* Nurama brand blue (the app icon background) as the accent. */
+  --brand: #1e31ff;
+  --color-fd-primary: var(--brand);
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-ring: var(--brand);
+}
+
+.dark {
+  /* Lifted for contrast on dark surfaces; keeps the same hue. */
+  --color-fd-primary: #7a86ff;
+  --color-fd-primary-foreground: #0a0a0a;
+  --color-fd-ring: #7a86ff;
 }

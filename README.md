@@ -13,6 +13,10 @@ Source for [docs.nurama.com](https://docs.nurama.com): guides and generated refe
 
 Each section (guides, REST API, WebSocket, SDK, MCP) is its own Fumadocs loader and route under `app/docs/`, so a page only ships its own section's navigation. The REST reference has no MDX files at all: Fumadocs renders it as virtual pages from `.generated/openapi/<tag>/<operation>.json` (one small document per operation, see `lib/source.ts`).
 
+## Branding
+
+Favicon, icons, the emblem and the wordmark come from the Nurama web app (`apps/web/public/` and `apps/web/src/assets/images/` in the monorepo). `public/` holds the favicon, the PNG icons at 32, 192, 512 and 180 px (resized from `nurama-logo.png`), `og.png` and `site.webmanifest`; `components/brand.tsx` holds the emblem and wordmark as React components with `currentColor` fills. The accent colour is the app icon's blue, `#1e31ff`, set on the Fumadocs primary variables in `app/global.css`. If the brand changes in the app, regenerate these from the same sources.
+
 ## Develop
 
 ```bash
