@@ -2,7 +2,7 @@
   "name": "Nurama Developers",
   "short_name": "Nurama Docs",
   "start_url": "/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#1e31ff",
   "theme_color": "#1e31ff",
   "icons": [
