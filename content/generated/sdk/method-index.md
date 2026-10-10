@@ -357,16 +357,6 @@ For when bots interact with publicly shared content via tokens.
 
 ---
 
-## How this SDK is documented and published
-
-This file is the curated index; the rest of the SDK documentation is generated, so keep the generator inputs correct rather than writing prose elsewhere.
-
-- **Reference pages come from JSDoc.** `pnpm --filter=@nurama/sdk docs:typedoc` runs TypeDoc with the markdown plugin (`typedoc.json`, entry points `NuramaClient.ts`, `BotClient.ts` and `src/routes/*.ts`) into the gitignored `docs/reference/`, which the developer portal ingests. Every public method needs a JSDoc block: one-line summary, `@param` for each argument (say which IDs are required and which visibility tier applies), `@returns` naming the response type, and `@example` for anything non-obvious. Mark helpers that should not appear with `@internal`.
-- **Names are checked against the API.** `apps/api/tests/unit/docs/sdk-endpoint-coverage.test.js` parses every `_request({ method, endpoint })` call in `src/routes/*.ts` and fails when the endpoint or HTTP method does not match a mounted backend route. Run `cd apps/api && pnpm exec jest tests/unit/docs` after touching a route module.
-- **Adding a method**: put it in the namespace of the resource in the URL, name it `<verb><Noun>` per the conventions above, write the JSDoc, export any new param/response types from `@nurama/types`, and add a line to the matching namespace section of this file. Do not add short aliases (`asset.get`) — they were removed in 1.4.0 and the naming convention exists so namespaces can be destructured without collisions.
-- **Publishing is automatic and one-way.** `.github/workflows/sync-sdk-mirror.yml` squashes `packages/sdk` and `packages/types` into the public Apache-2.0 mirror (`vars.SDK_MIRROR_REPO`, default `nurama-team/nurama-sdk`) on each push to `release/production` that touches them, tags `v<version>` and publishes both packages to npm when `secrets.NPM_TOKEN` is set. The `repository`, `homepage` and `bugs` fields in both `package.json` files point at the public mirror and portal, not the monorepo; keep them that way. The workflow fails if the source changed without a version bump, so **bump `package.json` `version` in the same change** (patch for fixes, minor for new methods, major for removals or signature changes). The mirror is read-only; never commit to it directly. Because the mirror is public, the SDK and types packages may only depend on each other and on published npm packages, never on other monorepo code.
-- `CONTRIBUTING.md`, `LICENSE` and `NOTICE` in this folder are shipped verbatim to the mirror; edit them here.
-
 ## When this doc disagrees with the code
 
 The code wins. This file is hand-curated and drifts. If you find a discrepancy, fix the file — and add the missing method to its namespace section so the next AI assistant doesn't have to re-discover it.

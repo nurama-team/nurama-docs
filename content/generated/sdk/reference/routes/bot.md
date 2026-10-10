@@ -44,7 +44,7 @@
 | <a id="kind"></a> `kind?` | `"botAccess"` \| `"pat"` \| `"oauthAccess"` \| `"oauthRefresh"` \| `null` | Discriminator. Bot keys mint as 'botAccess'. |
 | <a id="lastused"></a> `lastUsed?` | `string` \| `null` | - |
 | <a id="name"></a> `name` | `string` | - |
-| <a id="scopes"></a> `scopes?` | `string`[] | Granted action verbs. Empty array = unscoped (legacy). |
+| <a id="scopes"></a> `scopes?` | `string`[] | Granted scopes. A bot key is minted with the full registry when none are chosen. |
 | <a id="status-1"></a> `status` | `"active"` \| `"revoked"` | - |
 
 ***
@@ -71,7 +71,30 @@
 | <a id="color-1"></a> `color?` | `string` | Optional hex color from the approved palette. Auto-assigned if omitted. |
 | <a id="name-1"></a> `name` | `string` | Display name for the bot. 1–50 characters. |
 | <a id="roles-2"></a> `roles` | (`"workspaceAdmin"` \| `"workspaceMember"` \| `"workspaceChatMember"`)[] | Workspace roles to grant the bot. Must be one or more of: workspaceAdmin, workspaceMember, workspaceChatMember. |
-| <a id="scopes-1"></a> `scopes?` | `string`[] | Optional API-key scopes. Defaults to [] (legacy — bot key can call any route that isn't yet scope-gated). Once a route is gated by `requireTokenScope` the bot needs the matching scope here for that route to work. |
+| <a id="scopes-1"></a> `scopes?` | `string`[] | Optional API-key scopes. Omit (or pass an empty array) to mint the key with the full scope registry, which is what the bot's roles already allow — every route declares a scope now, so a genuinely empty set would leave the key unable to call anything. Pass a subset to narrow it. |
+
+***
+
+### CreateBotKeyData
+
+#### Properties
+
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="expiresat-1"></a> `expiresAt?` | `string` | Optional expiry, ISO 8601. Must be in the future. |
+| <a id="name-2"></a> `name` | `string` | Label shown in the bot's key list. |
+| <a id="scopes-2"></a> `scopes?` | `string`[] | Validated server-side against the token-scope registry. Omit for the full set. |
+
+***
+
+### CreateBotKeyResponse
+
+#### Properties
+
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="apikey-1"></a> `apiKey` | [`BotApiKeySummary`](#botapikeysummary) | - |
+| <a id="rawkey"></a> `rawKey` | `string` | Raw API key. Returned once and not recoverable afterwards. |
 
 ***
 
@@ -82,7 +105,7 @@
 | Property | Type | Description |
 | ------ | ------ | ------ |
 | <a id="bot-1"></a> `bot` | [`Bot`](#bot) | - |
-| <a id="rawkey"></a> `rawKey` | `string` | Raw API key, returned ONCE at creation time. Store it immediately — it cannot be retrieved again. |
+| <a id="rawkey-1"></a> `rawKey` | `string` | Raw API key, returned ONCE at creation time. Store it immediately — it cannot be retrieved again. |
 
 ***
 
@@ -92,8 +115,8 @@
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="apikey-1"></a> `apiKey` | [`BotApiKeySummary`](#botapikeysummary) | - |
-| <a id="rawkey-1"></a> `rawKey` | `string` | New raw API key. Returned once. |
+| <a id="apikey-2"></a> `apiKey` | [`BotApiKeySummary`](#botapikeysummary) | - |
+| <a id="rawkey-2"></a> `rawKey` | `string` | New raw API key. Returned once. |
 
 ***
 
@@ -104,7 +127,7 @@
 | Property | Type |
 | ------ | ------ |
 | <a id="checksum"></a> `checksum` | `string` |
-| <a id="name-2"></a> `name` | `string` |
+| <a id="name-3"></a> `name` | `string` |
 | <a id="sizeinmb"></a> `sizeInMB` | `number` |
 
 ***
@@ -140,7 +163,17 @@
 | Property | Type |
 | ------ | ------ |
 | <a id="color-2"></a> `color?` | `string` |
-| <a id="name-3"></a> `name?` | `string` |
+| <a id="name-4"></a> `name?` | `string` |
+
+***
+
+### UpdateBotKeyScopesData
+
+#### Properties
+
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="scopes-3"></a> `scopes` | `string`[] | The COMPLETE new scope set, not a delta — the same shape `createBotKey` takes. At least one scope; a scopeless key authenticates and is then refused by every gated route, so revoke it instead of emptying it. |
 
 ## Type Aliases
 
@@ -157,15 +190,18 @@ type BotProjectRole = "creator" | "reviewer" | "projectAdmin";
 ```ts
 function default(client): {
   createBot: Promise<CreateBotResponse>;
+  createBotKey: Promise<CreateBotKeyResponse>;
   deleteBot: Promise<void>;
   getBot: Promise<Bot>;
   listBots: Promise<Bot[]>;
   listProjectMemberships: Promise<BotProjectMembership[]>;
   removeProjectMembership: Promise<void>;
+  revokeBotKey: Promise<void>;
   rotateBotKey: Promise<RotateBotKeyResponse>;
   setProjectMembership: Promise<BotProjectMembership>;
   updateBot: Promise<Bot>;
   updateBotAvatar: Promise<UpdateBotAvatarResponse>;
+  updateBotKeyScopes: Promise<BotApiKeySummary>;
 };
 ```
 
@@ -184,12 +220,15 @@ call these endpoints — bot administration is restricted server-side.
 | Name | Type | Description |
 | ------ | ------ | ------ |
 | `createBot()` | (`workspaceId`, `data`) => `Promise`\<[`CreateBotResponse`](#createbotresponse)\> | Create a bot user in a workspace. Returns the new bot and the raw API key (shown only once). |
+| `createBotKey()` | ( `workspaceId`, `botId`, `keyData` ) => `Promise`\<[`CreateBotKeyResponse`](#createbotkeyresponse)\> | Mint an ADDITIONAL API key for the bot, up to 5 live keys. Unlike `rotateBotKey`, the bot's existing keys keep working — which is what makes a zero-downtime changeover possible: mint, move traffic over, then revoke the old key. The raw key is returned once. |
 | `deleteBot()` | (`workspaceId`, `botId`) => `Promise`\<`void`\> | Delete a bot user. Revokes all API keys, removes the workspace membership, and marks the user inactive. |
 | `getBot()` | (`workspaceId`, `botId`) => `Promise`\<[`Bot`](#bot)\> | Get a single bot's details, including all of its API key metadata (no secrets). |
 | `listBots()` | (`workspaceId`) => `Promise`\<[`Bot`](#bot)[]\> | List bot users in a workspace. |
 | `listProjectMemberships()` | (`workspaceId`, `botId`) => `Promise`\<[`BotProjectMembership`](#botprojectmembership)[]\> | List the bot's project memberships within the workspace. |
 | `removeProjectMembership()` | ( `workspaceId`, `botId`, `projectId` ) => `Promise`\<`void`\> | Remove the bot's membership on a project. Idempotent. |
-| `rotateBotKey()` | (`workspaceId`, `botId`) => `Promise`\<[`RotateBotKeyResponse`](#rotatebotkeyresponse)\> | Revoke the bot's current API key and issue a new one. The new raw key is returned once. |
+| `revokeBotKey()` | ( `workspaceId`, `botId`, `keyId` ) => `Promise`\<`void`\> | Revoke one of the bot's API keys, leaving its others working. A revoked key stops authenticating immediately and frees a slot against the 5-key cap. |
+| `rotateBotKey()` | (`workspaceId`, `botId`) => `Promise`\<[`RotateBotKeyResponse`](#rotatebotkeyresponse)\> | Revoke the bot's current API key and issue a new one. The new raw key is returned once. The replacement carries the old key's scopes verbatim, so this is not a way to pick up scopes added to the registry since the key was minted — `updateBotKeyScopes` is. |
 | `setProjectMembership()` | ( `workspaceId`, `botId`, `projectId`, `data` ) => `Promise`\<[`BotProjectMembership`](#botprojectmembership)\> | Upsert the bot's membership on a project. Replaces roles if a membership already exists; creates one otherwise. Idempotent. |
 | `updateBot()` | ( `workspaceId`, `botId`, `data` ) => `Promise`\<[`Bot`](#bot)\> | Update a bot's display name and/or color. |
-| `updateBotAvatar()` | ( `workspaceId`, `botId`, `fileData` ) => `Promise`\<[`UpdateBotAvatarResponse`](#updatebotavatarresponse)\> | Request signed URL data to upload a new avatar for the bot. Upload the file with `client.asset.multipartUpload(...)` using the returned `signedUrlData`, then call `client.asset.completeUpload(...)` to finalize. |
+| `updateBotAvatar()` | ( `workspaceId`, `botId`, `fileData` ) => `Promise`\<[`UpdateBotAvatarResponse`](#updatebotavatarresponse)\> | Request signed URL data to upload a new avatar for the bot. Caller multipart-uploads the file to S3 using the returned `signedUrlData`, then calls `client.asset.completeUpload(...)` to finalize. |
+| `updateBotKeyScopes()` | ( `workspaceId`, `botId`, `keyId`, `data` ) => `Promise`\<[`BotApiKeySummary`](#botapikeysummary)\> | Replace the scopes on one of the bot's API keys, in place. A key's scopes are a snapshot taken when it was minted, and the registry grows — a key created before a scope existed cannot hold it. Rotation is not a substitute: `rotateBotKey` copies the old scope set onto the replacement, so a stale key stays stale through every rotation. This matters most for keys minted with `scopes` omitted, which means "the full registry" as it stood that day, not "whatever the full registry becomes". The secret is unchanged — every caller configured with this key keeps working, which is the whole point. Requires `canManageBots`. |

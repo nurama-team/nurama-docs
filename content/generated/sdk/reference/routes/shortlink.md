@@ -32,6 +32,8 @@
 | <a id="mediatype"></a> `mediaType` | `string` | - |
 | <a id="mode"></a> `mode?` | `"embed"` \| `"embed-download"` | Mode of the underlying public link: 'embed' (no download) or 'embed-download' (download allowed alongside embed). 'download' never appears — that mode blocks the embed-files endpoint entirely. Optional for backward compatibility with older API versions; treat absence as 'embed-download'. |
 | <a id="posterkeypath"></a> `posterKeyPath` | `string` \| `null` | Poster image keyPath for video assets (explicit poster, falling back to largest thumbnail). Null when none exists. |
+| <a id="storyboard"></a> `storyboard?` | `Record`\<`string`, `unknown`\> \| `null` | Timeline-thumbnail geometry (`asset.meta.storyboard`) for a video's filmstrip and hover preview. Null for non-video assets or video without storyboard sheets. Optional for backward compatibility with older API versions. |
+| <a id="storyboardfiles"></a> `storyboardFiles?` | \{ `keyPath`: `string`; `name?`: `string`; \}[] | The storyboard sheet files matching `storyboard.sheets`. Empty when there's no storyboard. |
 | <a id="streamkeypath"></a> `streamKeyPath` | `string` \| `null` | HLS manifest keyPath (e.g. "workspaces/.../stream/index.m3u8"), null if not yet processed. |
 | <a id="waveformkeypath"></a> `waveformKeyPath?` | `string` \| `null` | Pre-computed waveform peaks JSON keyPath for audio assets. Null for video / when no peaks file exists. |
 

@@ -16,7 +16,7 @@
 | ------ | ------ | ------ |
 | <a id="expiresat"></a> `expiresAt?` | `string` \| `null` | Optional ISO date. Null / omitted = non-expiring. |
 | <a id="name"></a> `name` | `string` | Customer-facing label. 1–80 characters. |
-| <a id="scopes"></a> `scopes` | [`TokenScope`](#tokenscope)[] | At least one scope. The server rejects unknown scopes. |
+| <a id="scopes"></a> `scopes` | [`TokenScope`](#tokenscope)[] | At least one scope. Validated against the backend registry. |
 
 ***
 
@@ -71,6 +71,16 @@ responsibility to capture.
 | <a id="prefix-1"></a> `prefix` | `string` |
 | <a id="scopes-2"></a> `scopes` | [`TokenScope`](#tokenscope)[] |
 
+***
+
+### UpdateTokenScopesData
+
+#### Properties
+
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="scopes-3"></a> `scopes` | [`TokenScope`](#tokenscope)[] | The COMPLETE new scope set, not a delta — the same shape `createToken` takes, so what a token may do is always stated in full rather than accumulated through edits nobody can review. At least one scope. |
+
 ## Type Aliases
 
 ### TokenKind
@@ -81,7 +91,8 @@ type TokenKind = "pat" | "oauthAccess" | "oauthRefresh" | "botAccess";
 
 Personal Access Token kinds. v1 only mints `pat`; the rest are
 reserved for the future OAuth grant flow and are listed here so
-callers can switch on the kind.
+downstream code can switch on the kind without importing a server-
+side enum.
 
 ***
 
@@ -96,12 +107,20 @@ type TokenScope =
   | "assets:read"
   | "assets:write"
   | "projects:read"
-  | "workspaces:read";
+  | "projects:write"
+  | "workspaces:read"
+  | "workspaces:write"
+  | "convos:read"
+  | "convos:write"
+  | "notifications:read"
+  | "notifications:write"
+  | "ai:use";
 ```
 
-Granted action verbs on a token. The server validates requested scopes
-against this set. Fall back to `string` in your own code if it accepts
-arbitrary scopes from configuration.
+Granted action verbs on a token. Mirrors the backend's
+`@config/tokenScopes` registry; adding a scope on the BE means
+adding it here too (or callers fall back to `string` when they
+accept arbitrary scopes from configuration).
 
 ## Functions
 
@@ -112,6 +131,7 @@ function default(client): {
   createToken: Promise<CreateTokenResponse>;
   deleteToken: Promise<void>;
   listTokens: Promise<TokenSummary[]>;
+  updateTokenScopes: Promise<TokenSummary>;
 };
 ```
 
@@ -133,3 +153,4 @@ that via the `bot` methods).
 | `createToken()` | (`data`) => `Promise`\<[`CreateTokenResponse`](#createtokenresponse)\> | Mint a new Personal Access Token for the calling user. The raw secret is in the response's `token` field — store it immediately, it cannot be retrieved again. |
 | `deleteToken()` | (`tokenId`) => `Promise`\<`void`\> | Revoke one of the caller's Personal Access Tokens. The revocation is immediate — the token will return 401 on the very next request. |
 | `listTokens()` | () => `Promise`\<[`TokenSummary`](#tokensummary)[]\> | List the caller's Personal Access Tokens. Bot-access keys held by the same user (rare but possible — admin who's also a bot owner) are filtered out server-side and surface via the bot management screens instead. |
+| `updateTokenScopes()` | (`tokenId`, `data`) => `Promise`\<[`TokenSummary`](#tokensummary)\> | Replace the scopes on one of the caller's Personal Access Tokens. `scopes` is the complete new set, not a delta. This exists because the scope registry grows over time: a token minted before a scope existed cannot hold it, and without this the only remedy is minting a replacement and reconfiguring everywhere the old one is used. The change takes effect on the token's very next request. Scopes remain a ceiling, never a floor — widening a token never lets it do anything its owner cannot already do. |

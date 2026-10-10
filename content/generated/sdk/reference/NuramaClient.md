@@ -76,17 +76,20 @@ Creates an instance of NuramaClient.
 | `board.untagBoard` | `public` | `Promise`\<`Board`\> | `undefined` | - |
 | `board.updateBoard` | `public` | `Promise`\<`Board`\> | `undefined` | - |
 | `board.updateColumn` | `public` | `Promise`\<`BoardColumn`\> | `undefined` | - |
-| <a id="bot"></a> `bot` | `public` | \{ `createBot`: `Promise`\<[`CreateBotResponse`](routes/bot.md#createbotresponse)\>; `deleteBot`: `Promise`\<`void`\>; `getBot`: `Promise`\<[`Bot`](routes/bot.md#bot)\>; `listBots`: `Promise`\<[`Bot`](routes/bot.md#bot)[]\>; `listProjectMemberships`: `Promise`\<[`BotProjectMembership`](routes/bot.md#botprojectmembership)[]\>; `removeProjectMembership`: `Promise`\<`void`\>; `rotateBotKey`: `Promise`\<[`RotateBotKeyResponse`](routes/bot.md#rotatebotkeyresponse)\>; `setProjectMembership`: `Promise`\<[`BotProjectMembership`](routes/bot.md#botprojectmembership)\>; `updateBot`: `Promise`\<[`Bot`](routes/bot.md#bot)\>; `updateBotAvatar`: `Promise`\<[`UpdateBotAvatarResponse`](routes/bot.md#updatebotavatarresponse)\>; \} | `undefined` | - |
+| <a id="bot"></a> `bot` | `public` | \{ `createBot`: `Promise`\<[`CreateBotResponse`](routes/bot.md#createbotresponse)\>; `createBotKey`: `Promise`\<[`CreateBotKeyResponse`](routes/bot.md#createbotkeyresponse)\>; `deleteBot`: `Promise`\<`void`\>; `getBot`: `Promise`\<[`Bot`](routes/bot.md#bot)\>; `listBots`: `Promise`\<[`Bot`](routes/bot.md#bot)[]\>; `listProjectMemberships`: `Promise`\<[`BotProjectMembership`](routes/bot.md#botprojectmembership)[]\>; `removeProjectMembership`: `Promise`\<`void`\>; `revokeBotKey`: `Promise`\<`void`\>; `rotateBotKey`: `Promise`\<[`RotateBotKeyResponse`](routes/bot.md#rotatebotkeyresponse)\>; `setProjectMembership`: `Promise`\<[`BotProjectMembership`](routes/bot.md#botprojectmembership)\>; `updateBot`: `Promise`\<[`Bot`](routes/bot.md#bot)\>; `updateBotAvatar`: `Promise`\<[`UpdateBotAvatarResponse`](routes/bot.md#updatebotavatarresponse)\>; `updateBotKeyScopes`: `Promise`\<[`BotApiKeySummary`](routes/bot.md#botapikeysummary)\>; \} | `undefined` | - |
 | `bot.createBot` | `public` | `Promise`\<[`CreateBotResponse`](routes/bot.md#createbotresponse)\> | `undefined` | - |
+| `bot.createBotKey` | `public` | `Promise`\<[`CreateBotKeyResponse`](routes/bot.md#createbotkeyresponse)\> | `undefined` | - |
 | `bot.deleteBot` | `public` | `Promise`\<`void`\> | `undefined` | - |
 | `bot.getBot` | `public` | `Promise`\<[`Bot`](routes/bot.md#bot)\> | `undefined` | - |
 | `bot.listBots` | `public` | `Promise`\<[`Bot`](routes/bot.md#bot)[]\> | `undefined` | - |
 | `bot.listProjectMemberships` | `public` | `Promise`\<[`BotProjectMembership`](routes/bot.md#botprojectmembership)[]\> | `undefined` | - |
 | `bot.removeProjectMembership` | `public` | `Promise`\<`void`\> | `undefined` | - |
+| `bot.revokeBotKey` | `public` | `Promise`\<`void`\> | `undefined` | - |
 | `bot.rotateBotKey` | `public` | `Promise`\<[`RotateBotKeyResponse`](routes/bot.md#rotatebotkeyresponse)\> | `undefined` | - |
 | `bot.setProjectMembership` | `public` | `Promise`\<[`BotProjectMembership`](routes/bot.md#botprojectmembership)\> | `undefined` | - |
 | `bot.updateBot` | `public` | `Promise`\<[`Bot`](routes/bot.md#bot)\> | `undefined` | - |
 | `bot.updateBotAvatar` | `public` | `Promise`\<[`UpdateBotAvatarResponse`](routes/bot.md#updatebotavatarresponse)\> | `undefined` | - |
+| `bot.updateBotKeyScopes` | `public` | `Promise`\<[`BotApiKeySummary`](routes/bot.md#botapikeysummary)\> | `undefined` | - |
 | <a id="browsermode"></a> `browserMode` | `readonly` | `boolean` | `false` | - |
 | <a id="cachedurationseconds"></a> `cacheDurationSeconds` | `readonly` | `number` | `undefined` | - |
 | <a id="chat"></a> `chat` | `public` | \{ `addAttachments`: `Promise`\<[`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)[]\>; `addMembers`: `Promise`\<`ChatMember`\>; `archiveMemberChat`: `Promise`\<`ChatMember`\>; `createAssetChatAndMessage`: `Promise`\<`any`\>; `createMemberChat`: `Promise`\<`ChatMember`\>; `createMessage`: `Promise`\<`ChatMessage`\>; `createMessageShortLink`: `Promise`\<\{ `code`: `string`; `shortUrl`: `string`; \}\>; `createReaction`: `Promise`\<`ChatMessage`\>; `createTopicChat`: `Promise`\<`Chat`\>; `deleteChat`: `Promise`\<`void`\>; `deleteMemberChat`: `Promise`\<`void`\>; `deleteMessage`: `Promise`\<`ChatMessage`\>; `fetchLinkPreviews`: `Promise`\<[`LinkPreviewResponse`](routes/chat.md#linkpreviewresponse)\>; `followChat`: `Promise`\<`void`\>; `getAddableMembers`: `Promise`\< \| [`AddableMembersByScope`](routes/chat.md#addablemembersbyscope) \| `Membership`[]\>; `getChat`: `Promise`\<`Chat`\>; `getChatByTopicId`: `Promise`\<`Chat`\>; `getMemberChat`: `Promise`\<`ChatMember`\>; `getMentionableAssets`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Asset`\>\>; `getMentionableFolders`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Folder`\>\>; `getMentionablePublics`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<[`MentionablePublic`](routes/chat.md#mentionablepublic)\>\>; `getMentionableSubmissions`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<[`MentionableSubmission`](routes/chat.md#mentionablesubmission)\>\>; `getMentionableTasks`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`any`\>\>; `getMentions`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getMessage`: `Promise`\<`ChatMessage`\>; `getMessages`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getReplies`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getScopeAddableMembers`: `Promise`\< \| [`AddableMembersByScope`](routes/chat.md#addablemembersbyscope) \| `Membership`[]\>; `getUsersMemberChats`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMember`\>\>; `getWorkspaceProjectChats`: `Promise`\<`any`[]\>; `highlightMessage`: `Promise`\<`ChatMessage`\>; `removeAttachment`: `Promise`\<`ChatMessage`\>; `removeMembers`: `Promise`\<`ChatMember`\>; `removeReaction`: `Promise`\<`ChatMessage`\>; `reviseMessage`: `Promise`\<`ChatMessage`\>; `unarchiveMemberChat`: `Promise`\<`ChatMember`\>; `unfollowChat`: `Promise`\<`void`\>; `unhighlightMessage`: `Promise`\<`ChatMessage`\>; `updateChatSubject`: `Promise`\<`Chat`\>; `updateMemberChat`: `Promise`\<`ChatMember`\>; `updateMemberChatIcon`: `Promise`\<\{ `chat`: `ChatMember`; \} & [`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)\>; \} | `undefined` | - |
@@ -132,7 +135,7 @@ Creates an instance of NuramaClient.
 | `chat.updateMemberChat` | `public` | `Promise`\<`ChatMember`\> | `undefined` | - |
 | `chat.updateMemberChatIcon` | `public` | `Promise`\<\{ `chat`: `ChatMember`; \} & [`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)\> | `undefined` | - |
 | <a id="config"></a> `config` | `readonly` | [`ConfigMethods`](routes/config.md#configmethods) | `undefined` | - |
-| <a id="convo"></a> `convo` | `public` | \{ `completeConvo`: `Promise`\<`CompleteConvoResponse`\>; `deleteConvo`: `Promise`\<`void`\>; `getChatConvos`: `Promise`\<`Convo`[]\>; `getConvo`: `Promise`\<`GetConvoResponse`\>; `getProjectConvos`: `Promise`\<`Convo`[]\>; `getScopeConvos`: `Promise`\<`GetScopeConvosResponse`\>; `joinConvo`: `Promise`\<`JoinConvoResponse`\>; `leaveConvo`: `Promise`\<`LeaveConvoResponse`\>; `rejoinConvo`: `Promise`\<`JoinConvoResponse`\>; `startConvo`: `Promise`\<`StartConvoResponse`\>; `updateConvo`: `Promise`\<`UpdateConvoResponse`\>; \} | `undefined` | - |
+| <a id="convo"></a> `convo` | `public` | \{ `completeConvo`: `Promise`\<`CompleteConvoResponse`\>; `deleteConvo`: `Promise`\<`void`\>; `getChatConvos`: `Promise`\<`Convo`[]\>; `getConvo`: `Promise`\<`GetConvoResponse`\>; `getProjectConvos`: `Promise`\<`Convo`[]\>; `getScopeConvos`: `Promise`\<`GetScopeConvosResponse`\>; `joinConvo`: `Promise`\<`JoinConvoResponse`\>; `leaveConvo`: `Promise`\<`LeaveConvoResponse`\>; `promoteConvoArtifact`: `Promise`\<`PromoteConvoArtifactResponse`\>; `rejoinConvo`: `Promise`\<`JoinConvoResponse`\>; `startConvo`: `Promise`\<`StartConvoResponse`\>; `updateConvo`: `Promise`\<`UpdateConvoResponse`\>; \} | `undefined` | - |
 | `convo.completeConvo` | `public` | `Promise`\<`CompleteConvoResponse`\> | `undefined` | - |
 | `convo.deleteConvo` | `public` | `Promise`\<`void`\> | `undefined` | - |
 | `convo.getChatConvos` | `public` | `Promise`\<`Convo`[]\> | `undefined` | - |
@@ -141,6 +144,7 @@ Creates an instance of NuramaClient.
 | `convo.getScopeConvos` | `public` | `Promise`\<`GetScopeConvosResponse`\> | `undefined` | - |
 | `convo.joinConvo` | `public` | `Promise`\<`JoinConvoResponse`\> | `undefined` | - |
 | `convo.leaveConvo` | `public` | `Promise`\<`LeaveConvoResponse`\> | `undefined` | - |
+| `convo.promoteConvoArtifact` | `public` | `Promise`\<`PromoteConvoArtifactResponse`\> | `undefined` | - |
 | `convo.rejoinConvo` | `public` | `Promise`\<`JoinConvoResponse`\> | `undefined` | - |
 | `convo.startConvo` | `public` | `Promise`\<`StartConvoResponse`\> | `undefined` | - |
 | `convo.updateConvo` | `public` | `Promise`\<`UpdateConvoResponse`\> | `undefined` | - |
@@ -172,6 +176,21 @@ Creates an instance of NuramaClient.
 | `invite.getInvitesForResource` | `public` | `Promise`\<`Invite`[]\> | `undefined` | - |
 | `invite.inviteUser` | `public` | `Promise`\<`Invite`\> | `undefined` | - |
 | `invite.resendInvite` | `public` | `Promise`\<`Invite`\> | `undefined` | - |
+| <a id="joinlink"></a> `joinLink` | `public` | \{ `approveJoinRequest`: `Promise`\<`ApproveJoinRequestResponse`\>; `createJoinLink`: `Promise`\<`JoinLink`\>; `createResourceBan`: `Promise`\<`ResourceBan`\>; `getJoinByToken`: `Promise`\<`JoinLinkPreview`\>; `getJoinLinks`: `Promise`\<[`JoinLinksListResponse`](routes/joinLink.md#joinlinkslistresponse)\>; `getJoinRequests`: `Promise`\<`ListJoinRequestsResponse`\>; `getMyJoinRequests`: `Promise`\<`ListMyJoinRequestsResponse`\>; `getResourceBans`: `Promise`\<`ListBansResponse`\>; `joinByToken`: `Promise`\<`RedeemJoinLinkResult`\>; `liftResourceBan`: `Promise`\<`ResourceBan`\>; `rejectJoinRequest`: `Promise`\<`RejectJoinRequestResponse`\>; `rollJoinLink`: `Promise`\<`JoinLink`\>; `updateJoinLink`: `Promise`\<`JoinLink`\>; `updateJoinRequestCooldown`: `Promise`\<`ProjectJoinRequest`\>; \} | `undefined` | - |
+| `joinLink.approveJoinRequest` | `public` | `Promise`\<`ApproveJoinRequestResponse`\> | `undefined` | - |
+| `joinLink.createJoinLink` | `public` | `Promise`\<`JoinLink`\> | `undefined` | - |
+| `joinLink.createResourceBan` | `public` | `Promise`\<`ResourceBan`\> | `undefined` | - |
+| `joinLink.getJoinByToken` | `public` | `Promise`\<`JoinLinkPreview`\> | `undefined` | - |
+| `joinLink.getJoinLinks` | `public` | `Promise`\<[`JoinLinksListResponse`](routes/joinLink.md#joinlinkslistresponse)\> | `undefined` | - |
+| `joinLink.getJoinRequests` | `public` | `Promise`\<`ListJoinRequestsResponse`\> | `undefined` | - |
+| `joinLink.getMyJoinRequests` | `public` | `Promise`\<`ListMyJoinRequestsResponse`\> | `undefined` | - |
+| `joinLink.getResourceBans` | `public` | `Promise`\<`ListBansResponse`\> | `undefined` | - |
+| `joinLink.joinByToken` | `public` | `Promise`\<`RedeemJoinLinkResult`\> | `undefined` | - |
+| `joinLink.liftResourceBan` | `public` | `Promise`\<`ResourceBan`\> | `undefined` | - |
+| `joinLink.rejectJoinRequest` | `public` | `Promise`\<`RejectJoinRequestResponse`\> | `undefined` | - |
+| `joinLink.rollJoinLink` | `public` | `Promise`\<`JoinLink`\> | `undefined` | - |
+| `joinLink.updateJoinLink` | `public` | `Promise`\<`JoinLink`\> | `undefined` | - |
+| `joinLink.updateJoinRequestCooldown` | `public` | `Promise`\<`ProjectJoinRequest`\> | `undefined` | - |
 | <a id="membership"></a> `membership` | `public` | \{ `addRole`: `Promise`\<`Membership`\>; `deleteMembership`: `Promise`\<`void`\>; `getMyMemberships`: `Promise`\<`Membership`[]\>; `getProjectLastSeen`: `Promise`\<[`GetLastSeenResponse`](routes/membership.md#getlastseenresponse)\>; `getProjectMemberships`: `Promise`\<`MembershipReport`\>; `getProjectMentionableUsers`: `Promise`\<`Mentionable`[]\>; `getWorkspaceLastSeen`: `Promise`\<[`GetLastSeenResponse`](routes/membership.md#getlastseenresponse)\>; `getWorkspaceMemberships`: `Promise`\<`MembershipReport`\>; `leaveResource`: `Promise`\<`void`\>; `removeRole`: `Promise`\<`Membership`\>; \} | `undefined` | - |
 | `membership.addRole` | `public` | `Promise`\<`Membership`\> | `undefined` | - |
 | `membership.deleteMembership` | `public` | `Promise`\<`void`\> | `undefined` | - |
@@ -190,6 +209,9 @@ Creates an instance of NuramaClient.
 | `notification.getNotifications` | `public` | `Promise`\<[`PaginatedNotificationResponse`](routes/notification.md#paginatednotificationresponse)\> | `undefined` | - |
 | `notification.getUsersLastNotificationsSeen` | `public` | `Promise`\<[`LastSeenResponse`](routes/notification.md#lastseenresponse)\> | `undefined` | - |
 | `notification.updateUsersLastSeen` | `public` | `Promise`\<[`LastSeenResponse`](routes/notification.md#lastseenresponse)\> | `undefined` | - |
+| <a id="oauthgrant"></a> `oauthGrant` | `public` | \{ `listGrants`: `Promise`\<[`OAuthGrantSummary`](routes/oauthGrant.md#oauthgrantsummary)[]\>; `revokeGrant`: `Promise`\<`void`\>; \} | `undefined` | Connected applications: what the user has authorised over OAuth. |
+| `oauthGrant.listGrants` | `public` | `Promise`\<[`OAuthGrantSummary`](routes/oauthGrant.md#oauthgrantsummary)[]\> | `undefined` | - |
+| `oauthGrant.revokeGrant` | `public` | `Promise`\<`void`\> | `undefined` | - |
 | <a id="payment"></a> `payment` | `public` | \{ `createManualCheckout`: `Promise`\<`any`\>; `createStripeCheckout`: `Promise`\<[`StripeCheckoutResponse`](routes/payment.md#stripecheckoutresponse)\>; `createStripeCustomer`: `Promise`\<[`StripeCustomerResponse`](routes/payment.md#stripecustomerresponse)\>; `getStripePortalUrl`: `Promise`\<[`StripePortalResponse`](routes/payment.md#stripeportalresponse)\>; \} | `undefined` | - |
 | `payment.createManualCheckout` | `public` | `Promise`\<`any`\> | `undefined` | - |
 | `payment.createStripeCheckout` | `public` | `Promise`\<[`StripeCheckoutResponse`](routes/payment.md#stripecheckoutresponse)\> | `undefined` | - |
@@ -235,7 +257,7 @@ Creates an instance of NuramaClient.
 | `socket.disconnect` | `public` | (`channel`) => `Promise`\<`void`\> | `undefined` | Disconnect from a socket channel |
 | `socket.disconnectAll` | `public` | () => `Promise`\<`void`\> | `undefined` | Disconnect from all channels |
 | `socket.emit` | `public` | (`channel`, `event`, `data?`) => `void` | `undefined` | Emit an event to a connected channel |
-| `socket.emitWithAck` | `public` | (`channel`, `event`, `data`, `timeoutMs`) => `Promise`\<`boolean`\> | `undefined` | Emit an event with a timeout-bounded server acknowledgement. Resolves `true` if the server acks within `timeoutMs`, `false` on timeout or transport error. Use it to actively verify a channel's liveness when `socket.connected` may be stale — most notably after a backgrounded tab returns to focus, where the flag can remain `true` for up to socket.io's own heartbeat window (~25–45s) even after the underlying TCP transport has died. Relies on socket.io v4's `socket.timeout(ms).emit(ev, data, cb)` pattern: the server acknowledges the event via its trailing callback; if no ack arrives within `timeoutMs` the callback receives an Error. |
+| `socket.emitWithAck` | `public` | (`channel`, `event`, `data`, `timeoutMs`) => `Promise`\<`boolean`\> | `undefined` | Emit an event with a timeout-bounded server acknowledgement. Resolves `true` if the server acks within `timeoutMs`, `false` on timeout or transport error. Used by the FE WS layer (`WebSocketManager.probeChannel`) to actively verify a channel's liveness when `socket.connected` may be stale — most notably after a backgrounded tab returns to focus, where the flag can remain `true` for up to socket.io's own heartbeat window (~25–45s) even after the underlying TCP transport has died. Relies on socket.io v4's `socket.timeout(ms).emit(ev, data, cb)` pattern: the BE handler invokes `ack()` (its trailing callback arg); if no ack arrives within `timeoutMs` the cb is invoked with an Error. |
 | `socket.isConnected` | `public` | (`channel`) => `boolean` | `undefined` | Check if connected to a channel |
 | `socket.onReconnect` | `public` | (`channel`, `callback`) => `void` | `undefined` | Register a callback for when the channel reconnects — a socket.io transport-level reconnect, or the token-refresh reconnect. Use it to recover any gap of server->client messages missed while the connection was down; socket.io does not replay those. Dispatched from the 'reconnect' handler in connect() and from the token-refresh path. |
 | `socket.onReconnectFailed` | `public` | (`channel`, `callback`) => `void` | `undefined` | Register a callback for when Socket.IO exhausts all reconnection attempts |
@@ -282,10 +304,11 @@ Creates an instance of NuramaClient.
 | `taskRelation.getRelationsForChat` | `public` | `Promise`\<[`PaginatedTaskRelations`](routes/taskRelation.md#paginatedtaskrelations)\> | `undefined` | - |
 | `taskRelation.getRelationsForMessage` | `public` | `Promise`\<[`PaginatedTaskRelations`](routes/taskRelation.md#paginatedtaskrelations)\> | `undefined` | - |
 | `taskRelation.getTaskRelations` | `public` | `Promise`\<[`PaginatedTaskRelations`](routes/taskRelation.md#paginatedtaskrelations)\> | `undefined` | - |
-| <a id="token"></a> `token` | `public` | \{ `createToken`: `Promise`\<[`CreateTokenResponse`](routes/token.md#createtokenresponse)\>; `deleteToken`: `Promise`\<`void`\>; `listTokens`: `Promise`\<[`TokenSummary`](routes/token.md#tokensummary)[]\>; \} | `undefined` | - |
+| <a id="token"></a> `token` | `public` | \{ `createToken`: `Promise`\<[`CreateTokenResponse`](routes/token.md#createtokenresponse)\>; `deleteToken`: `Promise`\<`void`\>; `listTokens`: `Promise`\<[`TokenSummary`](routes/token.md#tokensummary)[]\>; `updateTokenScopes`: `Promise`\<[`TokenSummary`](routes/token.md#tokensummary)\>; \} | `undefined` | - |
 | `token.createToken` | `public` | `Promise`\<[`CreateTokenResponse`](routes/token.md#createtokenresponse)\> | `undefined` | - |
 | `token.deleteToken` | `public` | `Promise`\<`void`\> | `undefined` | - |
 | `token.listTokens` | `public` | `Promise`\<[`TokenSummary`](routes/token.md#tokensummary)[]\> | `undefined` | - |
+| `token.updateTokenScopes` | `public` | `Promise`\<[`TokenSummary`](routes/token.md#tokensummary)\> | `undefined` | - |
 | <a id="tokenexpirybufferseconds"></a> `tokenExpiryBufferSeconds` | `readonly` | `number` | `undefined` | - |
 | <a id="tokenrefreshmaxwaitms"></a> `tokenRefreshMaxWaitMs` | `readonly` | `number` | `undefined` | - |
 | <a id="tokenrefreshretrydelayms"></a> `tokenRefreshRetryDelayMs` | `readonly` | `number` | `undefined` | - |
@@ -378,6 +401,18 @@ Object containing cache statistics.
 | `entries` | \{ `hasData`: `boolean`; `hasPendingPromise`: `boolean`; `key`: `string`; `timestamp`: `number`; \}[] |
 | `size` | `number` |
 
+##### getSession()
+
+```ts
+getSession(): NuramaSession | null;
+```
+
+Returns the current session (tokens and expiries), or null when signed out.
+
+###### Returns
+
+[`NuramaSession`](#nuramasession) \| `null`
+
 ##### getTokenExpiry()
 
 ```ts
@@ -433,6 +468,27 @@ Useful for debugging and verifying which SDK version is in use.
 [`SDKVersionInfo`](#sdkversioninfo)
 
 SDK version, build timestamp, build hash, and git commit
+
+##### restoreSession()
+
+```ts
+restoreSession(session): void;
+```
+
+Restores a session previously captured through `onTokensChanged` /
+`getSession()` — for hosts that persist tokens outside localStorage.
+Does not fire `onTokensChanged`. A missing or expired access token is
+refreshed on the next authenticated request.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `session` | [`NuramaSession`](#nuramasession) \| `null` |
+
+###### Returns
+
+`void`
 
 ##### tokenValid()
 
@@ -514,9 +570,8 @@ completeCustomThumbnailUpload(assetId, data): Promise<{
 }>;
 ```
 
-Finalize the multipart upload for a custom thumbnail. Committing the
-upload starts the background processing that generates the thumbnail
-outputs.
+Finalize the multipart S3 upload for a custom thumbnail. Triggers the
+post-processing Lambda by committing the S3 object.
 
 ###### Parameters
 
@@ -549,8 +604,9 @@ completeUpload(uploadData): Promise<any>;
 
 Complete a multipart upload initiated by `createAssets`.
 
-Takes the same `{ uploadId, parts }` shape as
-`nuramaClient.scratch.completeUpload`, plus the `key` and `assetId`.
+Matches the route (`POST /v1/assets/complete-upload`) and mirrors
+`nuramaClient.scratch.completeUpload`, so moving between the asset
+and scratch namespaces uses the same verb.
 
 ###### Parameters
 
@@ -562,7 +618,7 @@ Takes the same `{ uploadId, parts }` shape as
 
 `Promise`\<`any`\>
 
-Upload completion response from the server.
+S3 completion response.
 
 ###### Inherited from
 
@@ -901,10 +957,10 @@ getCustomThumbnailUploadUrl(assetId, data): Promise<{
 }>;
 ```
 
-Mint signed multipart upload URLs for a user-supplied custom thumbnail
-image. Once the upload is completed, background processing generates
-the custom-thumbnail outputs and attaches them to the asset; the
-`assetFileUpdate` websocket event fires when they are ready.
+Mint a signed multipart upload URL for a user-supplied custom thumbnail
+image. The upload lands in the originals bucket tagged so the
+post-processing Lambda generates the customThumbnail outputs and
+registers them on the asset via the file-update callback.
 
 Caller flow:
   1. multipartUpload(file, response.urls, response.key, response.uploadId)
@@ -948,9 +1004,9 @@ getDocumentViewUrl(assetId): Promise<DocumentViewUrlResponse>;
 
 Mints a short-lived signed URL for rendering a document inline.
 
-A document's `media` PDF is kept in private storage, so unlike images
-and video it cannot be addressed by keyPath through the public file URL.
-Fetch this each time a document is opened; do not cache it past `expires`.
+Documents keep their `media` PDF in the private bucket, so unlike images
+and video it cannot be addressed by keyPath through the file CDN. Fetch
+this per document open; do not cache it past `expires`.
 
 ###### Parameters
 
@@ -1156,8 +1212,8 @@ Uploads a file using multipart upload with the provided signed URLs
 | ------ | ------ | ------ |
 | `file` | `string` \| `File` \| `Blob` \| `Buffer`\<`ArrayBufferLike`\> | The file to upload (File/Blob in browser, Buffer/string path in Node.js) |
 | `signedUrls` | `string`[] | Array of signed URLs for each part |
-| `key` | `string` | The storage key returned alongside the signed URLs |
-| `uploadId` | `string` | The multipart upload id returned alongside the signed URLs |
+| `key` | `string` | The S3 key for the upload |
+| `uploadId` | `string` | The S3 uploadId for the multipart upload |
 | `options` | [`MultipartUploadOptions`](routes/asset.md#multipartuploadoptions) | Upload options |
 
 ###### Returns
@@ -2148,8 +2204,9 @@ ReturnType.verifyMfa
 | <a id="enablecache-1"></a> `enableCache?` | `boolean` | Enable response caching. Default: true |
 | <a id="fetch-1"></a> `fetch?` | (`input`, `init?`) => `Promise`\<`Response`\> | Custom fetch implementation. If not provided, will use global fetch |
 | <a id="invalidatecacheonmutation-1"></a> `invalidateCacheOnMutation?` | `boolean` | After a successful write (POST/PUT/PATCH/DELETE) to a resource, evict cached GET responses for that resource so the next read returns fresh data (read-after-write consistency). Default: true. |
-| <a id="onmaintenance"></a> `onMaintenance?` | () => `void` | Invoked when the API returns a `{ error: 'maintenance' }` body with a 418 or 503 status — i.e. the site is in a maintenance window. Lets an already-loaded (cached) app surface a maintenance message instead of failing silently. |
-| <a id="onunauthorized"></a> `onUnauthorized?` | (`reason?`) => `void` | Callback invoked when authentication fails and re-login is required (e.g., refresh token expired/missing). `reason.type` carries the API's error type when available — notably `emailVerificationRequired` when the refresh was rejected because the user's email-verification grace period has expired, so callers can prompt verification instead of a plain logout. |
+| <a id="onmaintenance"></a> `onMaintenance?` | () => `void` | Invoked when the API returns a `{ error: 'maintenance' }` body on a 418 or 503 — i.e. the site is in a maintenance window (the edge rule returns this to non-allowlisted clients; a Cloudflare WAF block can only be a 4xx, so 418 — a guaranteed-unused sentinel — is used there, while a Worker/origin can return 503). Lets an already-loaded (cached) SPA surface a maintenance message instead of failing silently. |
+| <a id="ontokenschanged"></a> `onTokensChanged?` | (`session`) => `void` | Invoked whenever the client's tokens change (login, MFA completion, refresh, logout, or a failed refresh clearing the session). Lets non-browser hosts (e.g. React Native) persist the session in their own secure storage; pair with `restoreSession()` on startup. Not called by `restoreSession()` itself. |
+| <a id="onunauthorized"></a> `onUnauthorized?` | (`reason?`) => `void` | Callback invoked when authentication fails and re-login is required (e.g., refresh token expired/missing). `reason.type` carries the backend error type when available — notably `emailVerificationRequired` when the refresh was rejected because the user's email-verification grace period has expired, so callers can prompt verification instead of a plain logout. |
 | <a id="refreshlocktimeoutms-1"></a> `refreshLockTimeoutMs?` | `number` | Timeout in ms for the refresh lock to prevent multiple simultaneous refreshes. Default: 5000 |
 | <a id="refreshtokenstoragekey-1"></a> `refreshTokenStorageKey?` | `string` | Key used to store the refresh token in storage. Default: 'nurama_refresh_token' |
 | <a id="tokenexpirybufferseconds-1"></a> `tokenExpiryBufferSeconds?` | `number` | Number of seconds before token expiry to trigger refresh. Default: 300 (5 minutes) |
@@ -2157,6 +2214,21 @@ ReturnType.verifyMfa
 | <a id="tokenrefreshretrydelayms-1"></a> `tokenRefreshRetryDelayMs?` | `number` | Delay in ms between token refresh retries. Default: 1000 |
 | <a id="tokenstoragekey-1"></a> `tokenStorageKey?` | `string` | Key used to store the access token in storage. Default: 'nurama_token' |
 | <a id="websocketurl-1"></a> `websocketURL?` | `string` | WebSocket server URL. If not provided, will use the baseURL |
+
+***
+
+### NuramaSession
+
+A persisted session: the token pair plus their ISO expiry timestamps.
+
+#### Properties
+
+| Property | Type |
+| ------ | ------ |
+| <a id="accesstoken"></a> `accessToken` | `string` \| `null` |
+| <a id="accesstokenexpiry"></a> `accessTokenExpiry` | `string` \| `null` |
+| <a id="refreshtoken"></a> `refreshToken` | `string` \| `null` |
+| <a id="refreshtokenexpiry"></a> `refreshTokenExpiry` | `string` \| `null` |
 
 ***
 
@@ -2871,6 +2943,40 @@ Paginated assets.
 
 ```ts
 ReturnType.getAssets
+```
+
+##### getFeedEvents()
+
+```ts
+getFeedEvents(
+   projectId, 
+   visibility, 
+   params?
+): Promise<CursorPaginatedFeedEvents>;
+```
+
+Gets one page of the project's event feed (uploads, asset discussions,
+publishes, submissions and public releases), most recent activity first.
+The creator and reviewer feeds never share events.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `projectId` | `string` | The ID of the project. |
+| `visibility` | `FeedVisibility` | Which feed to read. |
+| `params?` | `ListFeedEventsParams` | Filters and cursor. |
+
+###### Returns
+
+`Promise`\<`CursorPaginatedFeedEvents`\>
+
+One page of feed events.
+
+###### Inherited from
+
+```ts
+ReturnType.getFeedEvents
 ```
 
 ##### getFolders()
@@ -3689,6 +3795,38 @@ The submission object.
 ReturnType.releaseSubmissionUpdate
 ```
 
+##### removeFeedEventReaction()
+
+```ts
+removeFeedEventReaction(
+   projectId, 
+   visibility, 
+   eventId
+): Promise<FeedEvent>;
+```
+
+Removes your reaction from a feed event.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `projectId` | `string` |
+| `visibility` | `FeedVisibility` |
+| `eventId` | `string` |
+
+###### Returns
+
+`Promise`\<`FeedEvent`\>
+
+The updated event.
+
+###### Inherited from
+
+```ts
+ReturnType.removeFeedEventReaction
+```
+
 ##### searchProject()
 
 ```ts
@@ -3717,6 +3855,41 @@ Paginated search results.
 
 ```ts
 ReturnType.searchProject
+```
+
+##### setFeedEventReaction()
+
+```ts
+setFeedEventReaction(
+   projectId, 
+   visibility, 
+   eventId, 
+   emoji
+): Promise<FeedEvent>;
+```
+
+Sets your reaction on a feed event. One per person — a new emoji
+replaces your previous one.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `projectId` | `string` |
+| `visibility` | `FeedVisibility` |
+| `eventId` | `string` |
+| `emoji` | `string` |
+
+###### Returns
+
+`Promise`\<`FeedEvent`\>
+
+The updated event.
+
+###### Inherited from
+
+```ts
+ReturnType.setFeedEventReaction
 ```
 
 ##### tagSubmission()
@@ -3966,17 +4139,17 @@ ReturnType.updateSubmission
 ### SDKVersionInfo
 
 SDK Version Information
-AUTO-GENERATED - DO NOT EDIT MANUALLY
-Generated at: 2026-09-22T16:09:58.836Z
+AUTO-GENERATED by scripts/generate-version-info.cjs - DO NOT EDIT MANUALLY
 
 #### Properties
 
-| Property | Type |
-| ------ | ------ |
-| <a id="buildhash"></a> `buildHash` | `string` |
-| <a id="buildtimestamp"></a> `buildTimestamp` | `string` |
-| <a id="gitcommit"></a> `gitCommit` | `string` |
-| <a id="version-1"></a> `version` | `string` |
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="buildhash"></a> `buildHash` | `string` | - |
+| <a id="buildtimestamp"></a> `buildTimestamp` | `string` | - |
+| <a id="dirty"></a> `dirty` | `boolean` | The build included uncommitted SDK changes. |
+| <a id="gitcommit"></a> `gitCommit` | `string` | - |
+| <a id="version-1"></a> `version` | `string` | The release number for a published build; `<package.json version>+<source hash>` for any other build. |
 
 ***
 
@@ -4316,8 +4489,8 @@ On over-allocation the API returns 400 `planCapacityInsufficient` with
 the SDK's normal error path.
 
 On success, returns the updated subscription plus a `warnings[]` array
-of feature-gate capabilities the destination plan does NOT include
-(suitable for showing as a confirmation notice).
+of feature-gate capabilities the destination plan does NOT include (the
+FE renders these as a confirmation notice).
 
 ###### Parameters
 
@@ -4489,7 +4662,7 @@ video, tutorial coachmark). Idempotent. Returns the updated user.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `element` | `string` | one-time element key (must be one of the element keys the server recognises). |
+| `element` | `string` | one-time element key (see backend oneTimeElements). |
 
 ###### Returns
 

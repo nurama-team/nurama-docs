@@ -798,6 +798,7 @@ function default(client): {
      count: number;
   }>;
   getAssets: Promise<PaginatedResponse<Asset>>;
+  getFeedEvents: Promise<CursorPaginatedFeedEvents>;
   getFolders: Promise<PaginatedResponse<Folder>>;
   getHighlightedMessages: Promise<PaginatedResponse<ChatMessage>>;
   getHomeFeed: Promise<PaginatedResponse<Asset>>;
@@ -828,7 +829,9 @@ function default(client): {
   releasePublicFileSystem: Promise<PublicFileSystemResponse>;
   releaseSubmission: Promise<ChatSubmission>;
   releaseSubmissionUpdate: Promise<ChatSubmission>;
+  removeFeedEventReaction: Promise<FeedEvent>;
   searchProject: Promise<SearchResponse>;
+  setFeedEventReaction: Promise<FeedEvent>;
   tagSubmission: Promise<ChatSubmission>;
   unpublishItems: Promise<any>;
   untagSubmission: Promise<ChatSubmission>;
@@ -872,6 +875,7 @@ function default(client): {
 | `deletePublicItemsAtPath()` | ( `projectId`, `token`, `deleteData` ) => `Promise`\<\{ `count`: `number`; \}\> | Deletes items from a public file system (authenticated management). |
 | `deleteSubmissionItems()` | ( `projectId`, `submissionId`, `deleteData` ) => `Promise`\<\{ `count`: `number`; \}\> | Deletes items within a submission. |
 | `getAssets()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Asset`\>\> | Lists a project's assets for one visibility tier. `creator` requires `canGetCreatorAssets`; `reviewer` requires `canGetReviewerAssets`. **Throws** 'projectId is required.' or 'visibility is required.'. |
+| `getFeedEvents()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<`CursorPaginatedFeedEvents`\> | Gets one page of the project's event feed (uploads, asset discussions, publishes, submissions and public releases), most recent activity first. The creator and reviewer feeds never share events. |
 | `getFolders()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Folder`\>\> | Gets folders within a project with specified visibility. |
 | `getHighlightedMessages()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`ChatMessage`\>\> | Lists highlighted chat messages across a project for one visibility tier (cursor pagination only). `creator` requires `canGetCreatorHighlights`; `reviewer` requires `canGetReviewerHighlights`. **Throws** 'projectId is required.' or 'visibility is required.'. |
 | `getHomeFeed()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Asset`\>\> | Gets the home feed for a project with a specified visibility. |
@@ -898,7 +902,9 @@ function default(client): {
 | `releasePublicFileSystem()` | (`projectId`, `publicId`) => `Promise`\<[`PublicFileSystemResponse`](#publicfilesystemresponse)\> | Releases a staged (unreleased) public file system, making it externally accessible via its public token. |
 | `releaseSubmission()` | (`projectId`, `submissionId`) => `Promise`\<`ChatSubmission`\> | Releases a staged (unreleased) submission, making it visible to reviewers and firing the deferred "new submission" side effects (emails, notifications, system messages). |
 | `releaseSubmissionUpdate()` | (`projectId`, `submissionId`) => `Promise`\<`ChatSubmission`\> | Re-releases an already-released submission's side effects (the "Release Update" action) — re-notifies reviewers with the submission-update email template + `submissionUpdate` notification. Does not change status. |
+| `removeFeedEventReaction()` | ( `projectId`, `visibility`, `eventId` ) => `Promise`\<`FeedEvent`\> | Removes your reaction from a feed event. |
 | `searchProject()` | (`projectId`, `params`) => `Promise`\<`SearchResponse`\> | Full-text search across assets, chat messages, and tasks within a project. Results are populated per the content type's native list view (asset → creator/publisher/tags; chatMessage → author/mentions/attachments; task → creator/assignee/project/origin). |
+| `setFeedEventReaction()` | ( `projectId`, `visibility`, `eventId`, `emoji` ) => `Promise`\<`FeedEvent`\> | Sets your reaction on a feed event. One per person — a new emoji replaces your previous one. |
 | `tagSubmission()` | ( `projectId`, `submissionId`, `tagData` ) => `Promise`\<`ChatSubmission`\> | Adds a tag to a submission. |
 | `unpublishItems()` | (`projectId`, `unpublishData`) => `Promise`\<`any`\> | Unpublishes a list of items (assets, folders) within a project. |
 | `untagSubmission()` | ( `projectId`, `submissionId`, `tagData` ) => `Promise`\<`ChatSubmission`\> | Removes a tag from a submission. |

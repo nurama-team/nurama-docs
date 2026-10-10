@@ -3,7 +3,12 @@ info:
   title: Nurama WebSocket API
   version: 0.3.3
   description: >-
-    Websocket (Socket.io) events emitted by the websocket server (hosted separately from the REST API). 
+    Socket.IO events of the Nurama websocket server. Generated from `src/docs/websocket.yml` and
+    `src/config/notifications.js` by `src/docs/buildAsyncApi.js`; edit those sources, not this document.
+
+
+    Websocket (Socket.io) events emitted by the websocket server (started with `pnpm ws`, hosted separately from the
+    REST API). 
 
 
     **Connecting / channels.** Every channel is a Socket.io namespace named
@@ -25,8 +30,9 @@ info:
     **Server -> client events:** `notification` (every notification event documented below, emitted on each channel in
     the notification's channels list; the payload `type` selects the schema), `tokenEvent`, `typing:start` /
     `typing:stop` and the `collab:*` events (only on `/chat/{chatId}` namespaces). **Client -> server events:**
-    `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Sockets whose JWT expired or was blacklisted, or whose bot
-    key was revoked, receive `tokenEvent` and are disconnected shortly after. 
+    `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Notifications are delivered via PostgreSQL LISTEN/NOTIFY
+    with a polling fallback; sockets whose JWT expired or was blacklisted, or whose bot key was revoked, receive
+    `tokenEvent` and are disconnected shortly after. 
 
 
     Each event type below is documented using 'get' to represent the emitted event payload under the '200' response
@@ -34,20 +40,25 @@ info:
     should be replaced with values and objects in the changes key in existing implementations.**
 defaultContentType: application/json
 servers:
-  production:
-    host: ws.nurama.com
-    protocol: wss
+  local:
+    host: localhost:4000
+    protocol: ws
     pathname: /socket.io
     description: >-
-      WebSocket server for user credentials (JWT or personal access token). Socket.IO transport: connect a Socket.IO
-      client to the channel address, not a raw WebSocket.
+      Local websocket server started with `pnpm ws` (port from WS_PORT). Socket.IO transport: connect with a Socket.IO
+      client to the namespace (channel) address, not with a raw WebSocket.
     security:
       - $ref: '#/components/securitySchemes/handshakeToken'
-  bots:
-    host: bot-ws.nurama.com
+  hosted:
+    host: '{host}'
     protocol: wss
     pathname: /socket.io
-    description: WebSocket server for bot API keys.
+    description: Staging / production websocket server over TLS (Socket.IO), hosted separately from the REST API.
+    variables:
+      host:
+        description: >-
+          Hostname of the staging or production websocket server. It is not part of the API configuration, so it is left
+          as a variable.
     security:
       - $ref: '#/components/securitySchemes/handshakeToken'
 channels:
@@ -71,6 +82,7 @@ channels:
           - asset
           - submission
           - task
+          - presentation
         description: Type of the resource whose events to receive.
       resourceId:
         description: UUID (or legacy 24-character hex id) of the resource.
@@ -157,6 +169,10 @@ channels:
         $ref: '#/components/messages/folderUpdate'
       folderDelete:
         $ref: '#/components/messages/folderDelete'
+      joinRequestApproved:
+        $ref: '#/components/messages/joinRequestApproved'
+      joinRequestRejected:
+        $ref: '#/components/messages/joinRequestRejected'
       inviteCreate:
         $ref: '#/components/messages/inviteCreate'
       inviteCancel:
@@ -293,6 +309,14 @@ channels:
         $ref: '#/components/messages/convoDelete'
       convoParticipantJoined:
         $ref: '#/components/messages/convoParticipantJoined'
+      convoRecordingReady:
+        $ref: '#/components/messages/convoRecordingReady'
+      convoTranscriptionReady:
+        $ref: '#/components/messages/convoTranscriptionReady'
+      feedEvent:
+        $ref: '#/components/messages/feedEvent'
+      assetChatActivity:
+        $ref: '#/components/messages/assetChatActivity'
       convoParticipantLeft:
         $ref: '#/components/messages/convoParticipantLeft'
       convoHandover:
@@ -430,6 +454,10 @@ channels:
         $ref: '#/components/messages/folderUpdate'
       folderDelete:
         $ref: '#/components/messages/folderDelete'
+      joinRequestApproved:
+        $ref: '#/components/messages/joinRequestApproved'
+      joinRequestRejected:
+        $ref: '#/components/messages/joinRequestRejected'
       inviteCreate:
         $ref: '#/components/messages/inviteCreate'
       inviteCancel:
@@ -566,6 +594,14 @@ channels:
         $ref: '#/components/messages/convoDelete'
       convoParticipantJoined:
         $ref: '#/components/messages/convoParticipantJoined'
+      convoRecordingReady:
+        $ref: '#/components/messages/convoRecordingReady'
+      convoTranscriptionReady:
+        $ref: '#/components/messages/convoTranscriptionReady'
+      feedEvent:
+        $ref: '#/components/messages/feedEvent'
+      assetChatActivity:
+        $ref: '#/components/messages/assetChatActivity'
       convoParticipantLeft:
         $ref: '#/components/messages/convoParticipantLeft'
       convoHandover:
@@ -650,6 +686,12 @@ channels:
         $ref: '#/components/messages/collab-playback-sync'
       collab-playback-sync-rejected:
         $ref: '#/components/messages/collab-playback-sync-rejected'
+      collab-presentation-sync:
+        $ref: '#/components/messages/collab-presentation-sync'
+      collab-presentation-sync-rejected:
+        $ref: '#/components/messages/collab-presentation-sync-rejected'
+      collab-presentation-end:
+        $ref: '#/components/messages/collab-presentation-end'
       collab-presenter-assign:
         $ref: '#/components/messages/collab-presenter-assign'
       collab-presenter-state:
@@ -666,6 +708,39 @@ channels:
         $ref: '#/components/messages/collab-members'
       collab-self-color:
         $ref: '#/components/messages/collab-self-color'
+  presentation:
+    address: /presentation/{projectId}
+    title: Presentation namespace
+    summary: Live presentation relay — queue, current asset, view state and audience — for one project.
+    description: >-
+      The relay runs on namespaces starting with `/presentation/`. Scoped to a PROJECT rather than a chat: a project can
+      host several concurrent presentations, and a presentation outlives any single asset in its queue. A session also
+      survives its presenter briefly disconnecting — it is held in a stalled state rather than torn down on the first
+      blip.
+    parameters:
+      projectId:
+        description: UUID of the project hosting the presentation.
+    messages:
+      presentation-started:
+        $ref: '#/components/messages/presentation-started'
+      presentation-live:
+        $ref: '#/components/messages/presentation-live'
+      presentation-live-list:
+        $ref: '#/components/messages/presentation-live-list'
+      presentation-ended:
+        $ref: '#/components/messages/presentation-ended'
+      presentation-stalled:
+        $ref: '#/components/messages/presentation-stalled'
+      presentation-state:
+        $ref: '#/components/messages/presentation-state'
+      presentation-view:
+        $ref: '#/components/messages/presentation-view'
+      presentation-audience:
+        $ref: '#/components/messages/presentation-audience'
+      presentation-rejected:
+        $ref: '#/components/messages/presentation-rejected'
+      presentation-asset-unavailable:
+        $ref: '#/components/messages/presentation-asset-unavailable'
 operations:
   receive-notification:
     action: receive
@@ -718,6 +793,8 @@ operations:
       - $ref: '#/channels/resource/messages/folderCreate'
       - $ref: '#/channels/resource/messages/folderUpdate'
       - $ref: '#/channels/resource/messages/folderDelete'
+      - $ref: '#/channels/resource/messages/joinRequestApproved'
+      - $ref: '#/channels/resource/messages/joinRequestRejected'
       - $ref: '#/channels/resource/messages/inviteCreate'
       - $ref: '#/channels/resource/messages/inviteCancel'
       - $ref: '#/channels/resource/messages/inviteAccept'
@@ -786,6 +863,10 @@ operations:
       - $ref: '#/channels/resource/messages/convoUpdate'
       - $ref: '#/channels/resource/messages/convoDelete'
       - $ref: '#/channels/resource/messages/convoParticipantJoined'
+      - $ref: '#/channels/resource/messages/convoRecordingReady'
+      - $ref: '#/channels/resource/messages/convoTranscriptionReady'
+      - $ref: '#/channels/resource/messages/feedEvent'
+      - $ref: '#/channels/resource/messages/assetChatActivity'
       - $ref: '#/channels/resource/messages/convoParticipantLeft'
       - $ref: '#/channels/resource/messages/convoHandover'
       - $ref: '#/channels/resource/messages/boardCreate'
@@ -859,6 +940,8 @@ operations:
       - $ref: '#/channels/public/messages/folderCreate'
       - $ref: '#/channels/public/messages/folderUpdate'
       - $ref: '#/channels/public/messages/folderDelete'
+      - $ref: '#/channels/public/messages/joinRequestApproved'
+      - $ref: '#/channels/public/messages/joinRequestRejected'
       - $ref: '#/channels/public/messages/inviteCreate'
       - $ref: '#/channels/public/messages/inviteCancel'
       - $ref: '#/channels/public/messages/inviteAccept'
@@ -927,6 +1010,10 @@ operations:
       - $ref: '#/channels/public/messages/convoUpdate'
       - $ref: '#/channels/public/messages/convoDelete'
       - $ref: '#/channels/public/messages/convoParticipantJoined'
+      - $ref: '#/channels/public/messages/convoRecordingReady'
+      - $ref: '#/channels/public/messages/convoTranscriptionReady'
+      - $ref: '#/channels/public/messages/feedEvent'
+      - $ref: '#/channels/public/messages/assetChatActivity'
       - $ref: '#/channels/public/messages/convoParticipantLeft'
       - $ref: '#/channels/public/messages/convoHandover'
       - $ref: '#/channels/public/messages/boardCreate'
@@ -1427,6 +1514,80 @@ operations:
     messages:
       - $ref: '#/channels/collab/messages/collab-playback-sync-rejected'
     x-socket-event: collab:playback-sync:rejected
+  send-collab-presentation-sync:
+    action: send
+    channel:
+      $ref: '#/channels/collab'
+    title: Emit collab:presentation-sync
+    summary: Which item the presenter is showing, and which page of it, broadcast to the other members.
+    description: >-
+      Only the current presenter socket may broadcast; other senders receive collab:presentation-sync:rejected instead
+      and nothing is relayed. Client -> server -> all other sockets in the same namespace. The server sanitises the
+      client payload (tracks are capped and trimmed to identity fields only — never file URLs, so each follower
+      re-fetches the asset under its own rights), then appends the authenticated user identity (userId, displayName,
+      color, avatarUrl), the annotationColor assigned on collab:join and a timestamp; client supplied values for those
+      keys are overwritten. The sanitised result is cached as the namespace presentation state and replayed to late
+      joiners on collab:presenter-state.
+    messages:
+      - $ref: '#/channels/collab/messages/collab-presentation-sync'
+    x-socket-event: collab:presentation-sync
+  receive-collab-presentation-sync:
+    action: receive
+    channel:
+      $ref: '#/channels/collab'
+    title: Receive collab:presentation-sync
+    summary: Which item the presenter is showing, and which page of it, broadcast to the other members.
+    description: >-
+      Only the current presenter socket may broadcast; other senders receive collab:presentation-sync:rejected instead
+      and nothing is relayed. Client -> server -> all other sockets in the same namespace. The server sanitises the
+      client payload (tracks are capped and trimmed to identity fields only — never file URLs, so each follower
+      re-fetches the asset under its own rights), then appends the authenticated user identity (userId, displayName,
+      color, avatarUrl), the annotationColor assigned on collab:join and a timestamp; client supplied values for those
+      keys are overwritten. The sanitised result is cached as the namespace presentation state and replayed to late
+      joiners on collab:presenter-state.
+    messages:
+      - $ref: '#/channels/collab/messages/collab-presentation-sync'
+    x-socket-event: collab:presentation-sync
+  receive-collab-presentation-sync-rejected:
+    action: receive
+    channel:
+      $ref: '#/channels/collab'
+    title: Receive collab:presentation-sync:rejected
+    summary: >-
+      Server -> sender only: the sender is not the presenter, so its collab:presentation-sync was dropped. Carries the
+      real presenter and presentation state so the client can snap back to follower mode.
+    description: Emitted only to the rejected sender.
+    messages:
+      - $ref: '#/channels/collab/messages/collab-presentation-sync-rejected'
+    x-socket-event: collab:presentation-sync:rejected
+  send-collab-presentation-end:
+    action: send
+    channel:
+      $ref: '#/channels/collab'
+    title: Emit collab:presentation-end
+    summary: The presenter has stopped presenting; followers drop out of presentation mode.
+    description: >-
+      Only the current presenter socket may broadcast. Client -> server -> all other sockets in the same namespace; the
+      server clears the cached namespace presentation state and appends the authenticated user identity plus a
+      timestamp. Also emitted by the server on its own when a presenter who was presenting disconnects or hands over
+      control.
+    messages:
+      - $ref: '#/channels/collab/messages/collab-presentation-end'
+    x-socket-event: collab:presentation-end
+  receive-collab-presentation-end:
+    action: receive
+    channel:
+      $ref: '#/channels/collab'
+    title: Receive collab:presentation-end
+    summary: The presenter has stopped presenting; followers drop out of presentation mode.
+    description: >-
+      Only the current presenter socket may broadcast. Client -> server -> all other sockets in the same namespace; the
+      server clears the cached namespace presentation state and appends the authenticated user identity plus a
+      timestamp. Also emitted by the server on its own when a presenter who was presenting disconnects or hands over
+      control.
+    messages:
+      - $ref: '#/channels/collab/messages/collab-presentation-end'
+    x-socket-event: collab:presentation-end
   receive-collab-presenter-assign:
     action: receive
     channel:
@@ -1577,6 +1738,159 @@ operations:
     messages:
       - $ref: '#/channels/collab/messages/collab-self-color'
     x-socket-event: collab:self-color
+  receive-presentation-started:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:started
+    summary: 'Server -> the presenter only: their presentation is live.'
+    description: >-
+      Acknowledges presentation:start to the socket that sent it. Everyone else in the project namespace learns of it
+      through presentation:live.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-started'
+    x-socket-event: presentation:started
+  receive-presentation-live:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:live
+    summary: 'Server -> the whole project namespace: a presentation is running.'
+    description: >-
+      Broadcast when a presentation starts, and again when a stalled one is reclaimed, so a late arrival can offer to
+      join.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-live'
+    x-socket-event: presentation:live
+  receive-presentation-live-list:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:live-list
+    summary: 'Server -> the requesting socket: every presentation currently running in the project.'
+    description: Answers presentation:list. The array is the same summary shape broadcast by presentation:live.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-live-list'
+    x-socket-event: presentation:live-list
+  receive-presentation-ended:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:ended
+    summary: 'Server -> the whole project namespace: a presentation has finished.'
+    description: >-
+      Sent when the presenter ends it, and when a stalled session passes its grace window without the presenter
+      returning. `reason` distinguishes the two.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-ended'
+    x-socket-event: presentation:ended
+  receive-presentation-stalled:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:stalled
+    summary: 'Server -> the whole project namespace: the presenter dropped, the session is being held.'
+    description: >-
+      A presentation outlives a brief presenter disconnect rather than dying on the first blip. Tearing it down
+      immediately turned every network hiccup into a finished presentation. If the presenter does not return within the
+      grace window, presentation:ended follows.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-stalled'
+    x-socket-event: presentation:stalled
+  send-presentation-state:
+    action: send
+    channel:
+      $ref: '#/channels/presentation'
+    title: Emit presentation:state
+    summary: 'Server -> a joining socket: the full picture of a presentation.'
+    description: >-
+      Sent on join so an arrival renders the current slide immediately instead of waiting for the presenter to move
+      next.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-state'
+    x-socket-event: presentation:state
+  receive-presentation-state:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:state
+    summary: 'Server -> a joining socket: the full picture of a presentation.'
+    description: >-
+      Sent on join so an arrival renders the current slide immediately instead of waiting for the presenter to move
+      next.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-state'
+    x-socket-event: presentation:state
+  send-presentation-view:
+    action: send
+    channel:
+      $ref: '#/channels/presentation'
+    title: Emit presentation:view
+    summary: 'Server -> the other sockets in the presentation: the presenter moved.'
+    description: >-
+      Client -> server -> everyone else in the presentation room. Carries only the changed keys, not the whole view.
+      Relayed from the presenter alone; another sender is refused with presentation:rejected.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-view'
+    x-socket-event: presentation:view
+  receive-presentation-view:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:view
+    summary: 'Server -> the other sockets in the presentation: the presenter moved.'
+    description: >-
+      Client -> server -> everyone else in the presentation room. Carries only the changed keys, not the whole view.
+      Relayed from the presenter alone; another sender is refused with presentation:rejected.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-view'
+    x-socket-event: presentation:view
+  receive-presentation-audience:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:audience
+    summary: 'Server -> the presentation room: who is watching.'
+    description: Re-broadcast whenever someone joins or leaves, including on disconnect.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-audience'
+    x-socket-event: presentation:audience
+  receive-presentation-rejected:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:rejected
+    summary: 'Server -> sender only: the sender is not the presenter, so their control event was dropped.'
+    description: >-
+      Carries the real presenter so a client whose state is stale can fall back to following rather than silently
+      failing to drive.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-rejected'
+    x-socket-event: presentation:rejected
+  send-presentation-asset-unavailable:
+    action: send
+    channel:
+      $ref: '#/channels/presentation'
+    title: Emit presentation:asset-unavailable
+    summary: 'Server -> the presenter only: a viewer cannot load the asset on screen.'
+    description: >-
+      Client -> server -> the presenter. Lets the presenter learn that someone is staring at a broken slide — usually a
+      permission they lack — without the viewer having to say so out loud.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-asset-unavailable'
+    x-socket-event: presentation:asset-unavailable
+  receive-presentation-asset-unavailable:
+    action: receive
+    channel:
+      $ref: '#/channels/presentation'
+    title: Receive presentation:asset-unavailable
+    summary: 'Server -> the presenter only: a viewer cannot load the asset on screen.'
+    description: >-
+      Client -> server -> the presenter. Lets the presenter learn that someone is staring at a broken slide — usually a
+      permission they lack — without the viewer having to say so out loud.
+    messages:
+      - $ref: '#/channels/presentation/messages/presentation-asset-unavailable'
+    x-socket-event: presentation:asset-unavailable
 components:
   messages:
     test:
@@ -2196,8 +2510,8 @@ components:
       name: projectAssetsPublish
       title: projectAssetsPublish
       summary: >-
-        CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when assets within a project
-        are published.
+        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
+        when assets within a project are published.
       description: >-
         Fired when assets within a project are published.
 
@@ -2261,8 +2575,8 @@ components:
       name: projectAssetsUnpublish
       title: projectAssetsUnpublish
       summary: >-
-        CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when assets within a project
-        are unpublished.
+        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
+        when assets within a project are unpublished.
       description: >-
         Fired when assets within a project are unpublished.
 
@@ -2799,10 +3113,17 @@ components:
                     type: string
                   keyPath:
                     type: string
-                    description: The storage key of the new/updated file.
+                    description: The S3 key path of the new/updated file.
                   functionType:
                     type: string
                     description: The role of the file (e.g., 'original', 'thumbnail', 'stream').
+                  fileCount:
+                    type: integer
+                    description: >-
+                      How many files this event registered. A processor may register many outputs in one callback (an
+                      HLS ladder emits hundreds), in which case `name`, `keyPath` and `functionType` describe the LAST
+                      file of the batch and the full set is in `changes.update[].resource.files`. 1 for a single-file
+                      registration.
                 required:
                   - assetId
                   - name
@@ -2834,6 +3155,7 @@ components:
         - name
         - keyPath
         - functionType
+        - fileCount
     assetGroupUploadComplete:
       name: assetGroupUploadComplete
       title: assetGroupUploadComplete
@@ -3973,7 +4295,9 @@ components:
     folderCreate:
       name: folderCreate
       title: folderCreate
-      summary: CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a new folder is created.
+      summary: >-
+        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
+        when a new folder is created.
       description: >-
         Fired when a new folder is created.
 
@@ -4032,7 +4356,9 @@ components:
     folderUpdate:
       name: folderUpdate
       title: folderUpdate
-      summary: CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a folder is updated.
+      summary: >-
+        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
+        when a folder is updated.
       description: >-
         Fired when a folder is updated (name, color, etc.).
 
@@ -4096,7 +4422,9 @@ components:
     folderDelete:
       name: folderDelete
       title: folderDelete
-      summary: CURRENTLY UNUSED (the event type is still registered but nothing emits it). Fired when a folder is deleted.
+      summary: >-
+        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
+        when a folder is deleted.
       description: >-
         Fired when a folder is deleted.
 
@@ -4150,6 +4478,93 @@ components:
         - requesterId
         - requester
         - folder
+    joinRequestApproved:
+      name: joinRequestApproved
+      title: joinRequestApproved
+      summary: Fired when a join request is approved.
+      description: >-
+        Fired when a join request is approved.
+
+
+        Payload for the join request approved event.
+
+
+        Delivered as the `notification` socket event with `type` set to `joinRequestApproved`.
+
+
+        Token keys marked with (*) will be deprecated in a future release and should not be used for new development;
+        replace them with the values and objects in the `changes` key in existing implementations.
+      payload:
+        description: Fired when a join request is approved.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  (*)requestId:
+                    type: string
+                    format: uuid
+                  (*)projectId:
+                    type: string
+                    format: uuid
+                  (*)projectName:
+                    type: string
+                    description: Carried in the token rather than looked up, because the recipient may have no access to fetch it.
+                  (*)workspaceId:
+                    type: string
+                    format: uuid
+                  (*)roles:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      The roles the request was admitted for. A project has a creator half and a reviewer half; this is
+                      what decides which one the deep link opens.
+      x-notification-tokens:
+        - requestId
+        - projectId
+        - projectName
+        - workspaceId
+        - roles
+    joinRequestRejected:
+      name: joinRequestRejected
+      title: joinRequestRejected
+      summary: Fired when a join request is rejected.
+      description: >-
+        Fired when a join request is rejected.
+
+
+        Payload for the join request rejected event.
+
+
+        Delivered as the `notification` socket event with `type` set to `joinRequestRejected`.
+
+
+        Token keys marked with (*) will be deprecated in a future release and should not be used for new development;
+        replace them with the values and objects in the `changes` key in existing implementations.
+      payload:
+        description: Fired when a join request is rejected.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  (*)requestId:
+                    type: string
+                    format: uuid
+                  (*)projectId:
+                    type: string
+                    format: uuid
+                  (*)projectName:
+                    type: string
+      x-notification-tokens:
+        - requestId
+        - projectId
+        - projectName
     inviteCreate:
       name: inviteCreate
       title: inviteCreate
@@ -5852,7 +6267,7 @@ components:
         Fired when items are created at a file system path (folder created, single uploaded asset activated, or items
         copied into a public release).
       description: >-
-        Signals clients to refresh the destination path. The changes object is usually absent; it is populated only for
+        Signals the FE to refresh the destination path. The changes object is usually absent; it is populated only for
         the single-asset activation (create asset) and public release (update public) cases.
 
 
@@ -5862,8 +6277,8 @@ components:
         Delivered as the `notification` socket event with `type` set to `fileSystemCreate`.
       payload:
         description: >-
-          Signals clients to refresh the destination path. The changes object is usually absent; it is populated only
-          for the single-asset activation (create asset) and public release (update public) cases.
+          Signals the FE to refresh the destination path. The changes object is usually absent; it is populated only for
+          the single-asset activation (create asset) and public release (update public) cases.
         allOf:
           - $ref: '#/components/schemas/BaseNotificationEvent'
           - type: object
@@ -6406,8 +6821,8 @@ components:
       name: uploadPushSummary
       title: uploadPushSummary
       summary: >-
-        Delayed push-notification summary of assets uploaded to a project by one user. Primarily used to send a push
-        notification after scheduledSendAt, but also broadcast on the project visibility channels when created.
+        Delayed push-notification summary of assets uploaded to a project by one user. Primarily consumed by the push
+        worker (sent after scheduledSendAt) but also broadcast on the project visibility channels when created.
       description: >-
         Created directly (bypasses template validation) and grouped per creator/project while pushStatus is pending;
         later uploads are appended to tokens.assets and the timer is reset. Not intended for UI rendering.
@@ -6462,7 +6877,7 @@ components:
       name: publishPushSummary
       title: publishPushSummary
       summary: >-
-        Push-notification summary of items published to reviewers. Used to send a push notification; broadcast on
+        Push-notification summary of items published to reviewers. Consumed by the push worker; broadcast on
         project/{projectId}/reviewer.
       description: |-
         Created directly (bypasses template validation). Not intended for UI rendering.
@@ -6509,7 +6924,7 @@ components:
       name: submissionPushSummary
       title: submissionPushSummary
       summary: >-
-        Push-notification summary for a newly created submission. Used to send a push notification; broadcast on
+        Push-notification summary for a newly created submission. Consumed by the push worker; broadcast on
         project/{projectId}.
       description: |-
         Created directly (bypasses template validation). Not intended for UI rendering.
@@ -6562,7 +6977,7 @@ components:
       name: memberJoinPush
       title: memberJoinPush
       summary: >-
-        Push-notification record created when a user joins a workspace or project. Used to send a push notification;
+        Push-notification record created when a user joins a workspace or project. Consumed by the push worker;
         broadcast on {resourceType}/{resourceId}.
       description: |-
         Created directly (bypasses template validation). Not intended for UI rendering.
@@ -8396,6 +8811,165 @@ components:
         - userName
         - convoType
         - chatId
+    convoRecordingReady:
+      name: convoRecordingReady
+      title: convoRecordingReady
+      summary: Fired when a call recording has finished processing and is available.
+      description: >-
+        Raised from the call provider's recording webhook once the artifact has been ingested. Carries only identifiers
+        — the recording itself is fetched through the convo.
+
+
+        Payload for the convoRecordingReady event.
+
+
+        Delivered as the `notification` socket event with `type` set to `convoRecordingReady`.
+      payload:
+        description: >-
+          Raised from the call provider's recording webhook once the artifact has been ingested. Carries only
+          identifiers — the recording itself is fetched through the convo.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  convoId:
+                    type: string
+                  chatId:
+                    type: string
+      x-notification-tokens:
+        - convoId
+        - chatId
+    convoTranscriptionReady:
+      name: convoTranscriptionReady
+      title: convoTranscriptionReady
+      summary: Fired when a call transcript has finished processing and is available.
+      description: |-
+        The transcript counterpart of convoRecordingReady, raised from the provider transcript webhook.
+
+        Payload for the convoTranscriptionReady event.
+
+        Delivered as the `notification` socket event with `type` set to `convoTranscriptionReady`.
+      payload:
+        description: The transcript counterpart of convoRecordingReady, raised from the provider transcript webhook.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  convoId:
+                    type: string
+                  chatId:
+                    type: string
+      x-notification-tokens:
+        - convoId
+        - chatId
+    feedEvent:
+      name: feedEvent
+      title: feedEvent
+      summary: Fired when an event-feed card is created or changes — it grew, moved to the bottom, or someone reacted.
+      description: >-
+        Sent on `project/{projectId}/{visibility}` only — the creator and reviewer feeds never share a card. Carries the
+        whole card; clients upsert it by id and re-sort by `lastActivityAt`.
+
+
+        Payload for the feedEvent event.
+
+
+        Delivered as the `notification` socket event with `type` set to `feedEvent`.
+      payload:
+        description: >-
+          Sent on `project/{projectId}/{visibility}` only — the creator and reviewer feeds never share a card. Carries
+          the whole card; clients upsert it by id and re-sort by `lastActivityAt`.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  event:
+                    type: object
+                    description: >-
+                      The whole serialized card — the same FeedEvent shape `GET
+                      /v1/projects/{projectId}/feed-events/{visibility}` returns.
+                required:
+                  - event
+      x-notification-tokens:
+        - event
+    assetChatActivity:
+      name: assetChatActivity
+      title: assetChatActivity
+      summary: Fired when an asset's chat has activity worth surfacing as a peek card.
+      description: >-
+        Drives the activity card that previews an asset chat in the parent feed. Carries a snapshot — recent messages,
+        participants and counts — so the card renders without a second round trip. It is platform chrome rather than a
+        message a subscriber asked for, which is why the outbound-webhook predicate filters system messages off the
+        wire.
+
+
+        Payload for the assetChatActivity event.
+
+
+        Delivered as the `notification` socket event with `type` set to `assetChatActivity`.
+      payload:
+        description: >-
+          Drives the activity card that previews an asset chat in the parent feed. Carries a snapshot — recent messages,
+          participants and counts — so the card renders without a second round trip. It is platform chrome rather than a
+          message a subscriber asked for, which is why the outbound-webhook predicate filters system messages off the
+          wire.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  assetId:
+                    type: string
+                  asset:
+                    type: object
+                  chatId:
+                    type: string
+                  chatSubject:
+                    type: string
+                    nullable: true
+                  visibility:
+                    type: string
+                  projectId:
+                    type: string
+                  participants:
+                    type: array
+                    items:
+                      type: object
+                  participantCount:
+                    type: integer
+                  recentMessages:
+                    type: array
+                    description: Snapshot of the latest messages, so the card renders without a second fetch.
+                    items:
+                      type: object
+                  messageCount:
+                    type: integer
+                  lastActivityAt:
+                    type: string
+                    nullable: true
+      x-notification-tokens:
+        - assetId
+        - asset
+        - chatId
+        - chatSubject
+        - visibility
+        - projectId
+        - participants
+        - participantCount
+        - recentMessages
+        - messageCount
+        - lastActivityAt
     convoParticipantLeft:
       name: convoParticipantLeft
       title: convoParticipantLeft
@@ -10003,6 +10577,326 @@ components:
           timestamp:
             type: integer
             description: Server time in milliseconds since epoch.
+    presentation-started:
+      name: presentation:started
+      title: presentation:started
+      summary: 'Server -> the presenter only: their presentation is live.'
+      description: >-
+        Acknowledges presentation:start to the socket that sent it. Everyone else in the project namespace learns of it
+        through presentation:live.
+
+
+        Payload of the 'presentation:started' socket event.
+      payload:
+        description: >-
+          Acknowledges presentation:start to the socket that sent it. Everyone else in the project namespace learns of
+          it through presentation:live.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          projectId:
+            type: string
+          presenterId:
+            type: string
+          presenterDisplayName:
+            type: string
+            nullable: true
+          title:
+            type: string
+            nullable: true
+          convoId:
+            type: string
+            nullable: true
+            description: Set when the presentation has a convo attached.
+          audienceCount:
+            type: integer
+          trackCount:
+            type: integer
+            description: Number of assets queued.
+          startedAt:
+            type: integer
+          stalled:
+            type: boolean
+            description: True while the presenter's socket is gone but the session is being held.
+          timestamp:
+            type: integer
+    presentation-live:
+      name: presentation:live
+      title: presentation:live
+      summary: 'Server -> the whole project namespace: a presentation is running.'
+      description: >-
+        Broadcast when a presentation starts, and again when a stalled one is reclaimed, so a late arrival can offer to
+        join.
+
+
+        Payload of the 'presentation:live' socket event.
+      payload:
+        description: >-
+          Broadcast when a presentation starts, and again when a stalled one is reclaimed, so a late arrival can offer
+          to join.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          projectId:
+            type: string
+          presenterId:
+            type: string
+          presenterDisplayName:
+            type: string
+            nullable: true
+          title:
+            type: string
+            nullable: true
+          convoId:
+            type: string
+            nullable: true
+            description: Set when the presentation has a convo attached.
+          audienceCount:
+            type: integer
+          trackCount:
+            type: integer
+            description: Number of assets queued.
+          startedAt:
+            type: integer
+          stalled:
+            type: boolean
+            description: True while the presenter's socket is gone but the session is being held.
+          timestamp:
+            type: integer
+    presentation-live-list:
+      name: presentation:live-list
+      title: presentation:live-list
+      summary: 'Server -> the requesting socket: every presentation currently running in the project.'
+      description: |-
+        Answers presentation:list. The array is the same summary shape broadcast by presentation:live.
+
+        Payload of the 'presentation:live-list' socket event.
+      payload:
+        description: Answers presentation:list. The array is the same summary shape broadcast by presentation:live.
+        type: object
+        properties:
+          projectId:
+            type: string
+          presentations:
+            type: array
+            description: Summaries, identical in shape to the presentation:live payload.
+            items:
+              type: object
+          timestamp:
+            type: integer
+    presentation-ended:
+      name: presentation:ended
+      title: presentation:ended
+      summary: 'Server -> the whole project namespace: a presentation has finished.'
+      description: >-
+        Sent when the presenter ends it, and when a stalled session passes its grace window without the presenter
+        returning. `reason` distinguishes the two.
+
+
+        Payload of the 'presentation:ended' socket event.
+      payload:
+        description: >-
+          Sent when the presenter ends it, and when a stalled session passes its grace window without the presenter
+          returning. `reason` distinguishes the two.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          projectId:
+            type: string
+          reason:
+            type: string
+            description: Why it closed — an explicit end, or the presenter's grace window expiring.
+          timestamp:
+            type: integer
+    presentation-stalled:
+      name: presentation:stalled
+      title: presentation:stalled
+      summary: 'Server -> the whole project namespace: the presenter dropped, the session is being held.'
+      description: >-
+        A presentation outlives a brief presenter disconnect rather than dying on the first blip. Tearing it down
+        immediately turned every network hiccup into a finished presentation. If the presenter does not return within
+        the grace window, presentation:ended follows.
+
+
+        Payload of the 'presentation:stalled' socket event.
+      payload:
+        description: >-
+          A presentation outlives a brief presenter disconnect rather than dying on the first blip. Tearing it down
+          immediately turned every network hiccup into a finished presentation. If the presenter does not return within
+          the grace window, presentation:ended follows.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          projectId:
+            type: string
+          presenterId:
+            type: string
+          presenterDisplayName:
+            type: string
+            nullable: true
+          title:
+            type: string
+            nullable: true
+          convoId:
+            type: string
+            nullable: true
+            description: Set when the presentation has a convo attached.
+          audienceCount:
+            type: integer
+          trackCount:
+            type: integer
+            description: Number of assets queued.
+          startedAt:
+            type: integer
+          stalled:
+            type: boolean
+            description: True while the presenter's socket is gone but the session is being held.
+          timestamp:
+            type: integer
+    presentation-state:
+      name: presentation:state
+      title: presentation:state
+      summary: 'Server -> a joining socket: the full picture of a presentation.'
+      description: >-
+        Sent on join so an arrival renders the current slide immediately instead of waiting for the presenter to move
+        next.
+
+
+        Payload of the 'presentation:state' socket event.
+      payload:
+        description: >-
+          Sent on join so an arrival renders the current slide immediately instead of waiting for the presenter to move
+          next.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          queue:
+            type: array
+            description: The presented assets, in order.
+            items:
+              type: object
+          currentAssetId:
+            type: string
+            nullable: true
+          view:
+            type: object
+            description: Current view state (page, zoom, playback position) for the asset on screen.
+          title:
+            type: string
+            nullable: true
+          convoId:
+            type: string
+            nullable: true
+          timestamp:
+            type: integer
+    presentation-view:
+      name: presentation:view
+      title: presentation:view
+      summary: 'Server -> the other sockets in the presentation: the presenter moved.'
+      description: >-
+        Client -> server -> everyone else in the presentation room. Carries only the changed keys, not the whole view.
+        Relayed from the presenter alone; another sender is refused with presentation:rejected.
+
+
+        Payload of the 'presentation:view' socket event.
+      payload:
+        description: >-
+          Client -> server -> everyone else in the presentation room. Carries only the changed keys, not the whole view.
+          Relayed from the presenter alone; another sender is refused with presentation:rejected.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          view:
+            type: object
+            description: Partial view state — only the keys that changed.
+          timestamp:
+            type: integer
+    presentation-audience:
+      name: presentation:audience
+      title: presentation:audience
+      summary: 'Server -> the presentation room: who is watching.'
+      description: |-
+        Re-broadcast whenever someone joins or leaves, including on disconnect.
+
+        Payload of the 'presentation:audience' socket event.
+      payload:
+        description: Re-broadcast whenever someone joins or leaves, including on disconnect.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          audience:
+            type: array
+            description: One entry per watching socket, carrying the authenticated identity.
+            items:
+              type: object
+          timestamp:
+            type: integer
+    presentation-rejected:
+      name: presentation:rejected
+      title: presentation:rejected
+      summary: 'Server -> sender only: the sender is not the presenter, so their control event was dropped.'
+      description: >-
+        Carries the real presenter so a client whose state is stale can fall back to following rather than silently
+        failing to drive.
+
+
+        Payload of the 'presentation:rejected' socket event.
+      payload:
+        description: >-
+          Carries the real presenter so a client whose state is stale can fall back to following rather than silently
+          failing to drive.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          reason:
+            type: string
+            enum:
+              - not-presenter
+          presenterId:
+            type: string
+          presenterDisplayName:
+            type: string
+            nullable: true
+          timestamp:
+            type: integer
+    presentation-asset-unavailable:
+      name: presentation:asset-unavailable
+      title: presentation:asset-unavailable
+      summary: 'Server -> the presenter only: a viewer cannot load the asset on screen.'
+      description: >-
+        Client -> server -> the presenter. Lets the presenter learn that someone is staring at a broken slide — usually
+        a permission they lack — without the viewer having to say so out loud.
+
+
+        Payload of the 'presentation:asset-unavailable' socket event.
+      payload:
+        description: >-
+          Client -> server -> the presenter. Lets the presenter learn that someone is staring at a broken slide —
+          usually a permission they lack — without the viewer having to say so out loud.
+        type: object
+        properties:
+          presentationId:
+            type: string
+          assetId:
+            type: string
+          reason:
+            type: string
+            description: Short reason supplied by the reporting client, defaulting to 'unavailable'.
+          userId:
+            type: string
+          displayName:
+            type: string
+            nullable: true
+          timestamp:
+            type: integer
     collab-join:
       name: collab:join
       title: collab:join
@@ -10674,6 +11568,157 @@ components:
             description: '{ currentTime: number, playing: boolean } of the current presenter.'
           timestamp:
             type: integer
+    collab-presentation-sync:
+      name: collab:presentation-sync
+      title: collab:presentation-sync
+      summary: Which item the presenter is showing, and which page of it, broadcast to the other members.
+      description: >-
+        Only the current presenter socket may broadcast; other senders receive collab:presentation-sync:rejected instead
+        and nothing is relayed. Client -> server -> all other sockets in the same namespace. The server sanitises the
+        client payload (tracks are capped and trimmed to identity fields only — never file URLs, so each follower
+        re-fetches the asset under its own rights), then appends the authenticated user identity (userId, displayName,
+        color, avatarUrl), the annotationColor assigned on collab:join and a timestamp; client supplied values for those
+        keys are overwritten. The sanitised result is cached as the namespace presentation state and replayed to late
+        joiners on collab:presenter-state.
+
+
+        Payload of the 'collab:presentation-sync' socket event.
+      payload:
+        description: >-
+          Only the current presenter socket may broadcast; other senders receive collab:presentation-sync:rejected
+          instead and nothing is relayed. Client -> server -> all other sockets in the same namespace. The server
+          sanitises the client payload (tracks are capped and trimmed to identity fields only — never file URLs, so each
+          follower re-fetches the asset under its own rights), then appends the authenticated user identity (userId,
+          displayName, color, avatarUrl), the annotationColor assigned on collab:join and a timestamp; client supplied
+          values for those keys are overwritten. The sanitised result is cached as the namespace presentation state and
+          replayed to late joiners on collab:presenter-state.
+        type: object
+        properties:
+          tracks:
+            type: array
+            description: The presented queue, in order. Capped server-side.
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Asset ID; the follower re-fetches the asset itself through the API.
+                name:
+                  type: string
+                mediaType:
+                  type: string
+                  enum:
+                    - image
+                    - video
+                    - audio
+                    - 3d
+                    - document
+                thumbUrl:
+                  type: string
+                  nullable: true
+          currentTrackId:
+            type: string
+            nullable: true
+            description: The track currently on screen, or null when the queue is empty.
+          page:
+            type: integer
+            nullable: true
+            description: 1-based page of a paged item (documents), or null.
+          pageCount:
+            type: integer
+            nullable: true
+          userId:
+            type: string
+            description: Authenticated user ID (server supplied, cannot be spoofed).
+          displayName:
+            type: string
+            nullable: true
+            description: Display name (falls back to first + last name).
+          color:
+            type: string
+            nullable: true
+            description: The user's profile colour.
+          avatarUrl:
+            type: string
+            nullable: true
+            description: keyPath of the user's avatar thumbnail file, if any.
+          annotationColor:
+            type: string
+            description: Annotation colour assigned to this user for the collab session.
+          timestamp:
+            type: integer
+            description: Server time in milliseconds since epoch when the event was relayed.
+    collab-presentation-sync-rejected:
+      name: collab:presentation-sync:rejected
+      title: collab:presentation-sync:rejected
+      summary: >-
+        Server -> sender only: the sender is not the presenter, so its collab:presentation-sync was dropped. Carries the
+        real presenter and presentation state so the client can snap back to follower mode.
+      description: |-
+        Emitted only to the rejected sender.
+
+        Payload of the 'collab:presentation-sync:rejected' socket event.
+      payload:
+        description: Emitted only to the rejected sender.
+        type: object
+        properties:
+          reason:
+            type: string
+            enum:
+              - not-presenter
+          presenterId:
+            type: string
+            nullable: true
+          presenterDisplayName:
+            type: string
+            nullable: true
+          presentation:
+            type: object
+            nullable: true
+            description: The presenter's current { tracks, currentTrackId, page, pageCount }, or null when nobody is presenting.
+          timestamp:
+            type: integer
+    collab-presentation-end:
+      name: collab:presentation-end
+      title: collab:presentation-end
+      summary: The presenter has stopped presenting; followers drop out of presentation mode.
+      description: >-
+        Only the current presenter socket may broadcast. Client -> server -> all other sockets in the same namespace;
+        the server clears the cached namespace presentation state and appends the authenticated user identity plus a
+        timestamp. Also emitted by the server on its own when a presenter who was presenting disconnects or hands over
+        control.
+
+
+        Payload of the 'collab:presentation-end' socket event.
+      payload:
+        description: >-
+          Only the current presenter socket may broadcast. Client -> server -> all other sockets in the same namespace;
+          the server clears the cached namespace presentation state and appends the authenticated user identity plus a
+          timestamp. Also emitted by the server on its own when a presenter who was presenting disconnects or hands over
+          control.
+        type: object
+        properties:
+          userId:
+            type: string
+            description: Authenticated user ID (server supplied, cannot be spoofed).
+          displayName:
+            type: string
+            nullable: true
+            description: Display name (falls back to first + last name).
+          color:
+            type: string
+            nullable: true
+            description: The user's profile colour.
+          avatarUrl:
+            type: string
+            nullable: true
+            description: keyPath of the user's avatar thumbnail file, if any.
+          annotationColor:
+            type: string
+            description: Annotation colour assigned to this user for the collab session.
+          timestamp:
+            type: integer
+            description: Server time in milliseconds since epoch when the event was relayed.
     collab-presenter-assign:
       name: collab:presenter-assign
       title: collab:presenter-assign
@@ -10725,6 +11770,13 @@ components:
           playback:
             type: object
             description: '{ currentTime: number, playing: boolean }.'
+          presentation:
+            type: object
+            nullable: true
+            description: >-
+              The running presentation — { tracks, currentTrackId, page, pageCount } — so a late joiner lands where the
+              presenter already is instead of waiting for the next move. Null on a namespace where nobody is presenting
+              a queue.
           timestamp:
             type: integer
     collab-presenter-request:
@@ -10906,8 +11958,8 @@ components:
         type:
           type: string
           description: >-
-            The specific type of notification event (matches the top-level key, e.g., 'workspaceCreate'). Every
-            notification type is documented as its own event in this reference.
+            The specific type of notification event (matches the top-level key, e.g., 'workspaceCreate'). Every value in
+            notificationTemplates (config/notifications.js) is documented in this tag.
         initiatorId:
           type: string
           format: uuid
