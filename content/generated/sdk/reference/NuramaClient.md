@@ -152,11 +152,13 @@ Creates an instance of NuramaClient.
 | `credits.getBalance` | `public` | `Promise`\<[`GetBalanceResponse`](routes/credits.md#getbalanceresponse)\> | `undefined` | - |
 | `credits.getUsageReport` | `public` | `Promise`\<[`UsageReportResponse`](routes/credits.md#usagereportresponse)\> | `undefined` | - |
 | <a id="debug"></a> `debug` | `readonly` | `boolean` | `undefined` | - |
-| <a id="device"></a> `device` | `public` | \{ `deleteDevice`: `Promise`\<`void`\>; `getDevice`: `Promise`\<`Device`\>; `getUserDevices`: `Promise`\<`Device`[]\>; `registerDevice`: `Promise`\<`Device`\>; `updateDevice`: `Promise`\<`Device`\>; \} | `undefined` | - |
+| <a id="device"></a> `device` | `public` | \{ `deleteDevice`: `Promise`\<`void`\>; `endLiveActivity`: `Promise`\<`void`\>; `getDevice`: `Promise`\<`Device`\>; `getUserDevices`: `Promise`\<`Device`[]\>; `registerDevice`: `Promise`\<`Device`\>; `registerLiveActivity`: `Promise`\<`LiveActivityRegistration`\>; `updateDevice`: `Promise`\<`Device`\>; \} | `undefined` | - |
 | `device.deleteDevice` | `public` | `Promise`\<`void`\> | `undefined` | - |
+| `device.endLiveActivity` | `public` | `Promise`\<`void`\> | `undefined` | - |
 | `device.getDevice` | `public` | `Promise`\<`Device`\> | `undefined` | - |
 | `device.getUserDevices` | `public` | `Promise`\<`Device`[]\> | `undefined` | - |
 | `device.registerDevice` | `public` | `Promise`\<`Device`\> | `undefined` | - |
+| `device.registerLiveActivity` | `public` | `Promise`\<`LiveActivityRegistration`\> | `undefined` | - |
 | `device.updateDevice` | `public` | `Promise`\<`Device`\> | `undefined` | - |
 | <a id="enablecache"></a> `enableCache` | `readonly` | `boolean` | `undefined` | - |
 | <a id="fetch"></a> `fetch` | `readonly` | (`input`, `init?`) => `Promise`\<`Response`\> | `undefined` | - |
