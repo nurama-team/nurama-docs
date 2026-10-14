@@ -122,18 +122,25 @@
 ```ts
 function default(client): {
   changePassword: Promise<void>;
+  deletePasskey: Promise<void>;
   disableMfa: Promise<void>;
   enableMfa: Promise<MFAEnableResponse>;
   exchangeOAuthCode: Promise<OAuthExchangeResponse>;
   forgotPassword: Promise<void>;
   getLinkedOAuthProviders: Promise<LinkedAuthProvider[]>;
+  getPasskeyLoginOptions: Promise<PasskeyCredentialOptions>;
+  getPasskeyRegistrationOptions: Promise<PasskeyCredentialOptions>;
   linkOAuthProvider: Promise<LoginRegisterResponse>;
+  listPasskeys: Promise<Passkey[]>;
   lockAccount: Promise<void>;
   login: Promise<LoginRegisterResponse>;
+  loginWithPasskey: Promise<LoginRegisterResponse>;
   logout: Promise<void>;
   refreshTokens: Promise<RefreshResponse>;
   register: Promise<LoginRegisterResponse>;
   registerGuest: Promise<void>;
+  registerPasskey: Promise<Passkey>;
+  renamePasskey: Promise<Passkey>;
   resendVerification: Promise<void>;
   resetPassword: Promise<void>;
   sendVerificationEmail: Promise<void>;
@@ -164,18 +171,25 @@ An object containing the authentication methods.
 | Name | Type | Description |
 | ------ | ------ | ------ |
 | `changePassword()` | ( `currentPassword`, `newPassword`, `mfaToken?` ) => `Promise`\<`void`\> | Changes the authenticated user's password. Requires current password verification and MFA token if MFA is enabled. All refresh tokens will be invalidated after password change. |
+| `deletePasskey()` | (`passkeyId`) => `Promise`\<`void`\> | Removes one of the authenticated user's passkeys. |
 | `disableMfa()` | (`mfaToken`) => `Promise`\<`void`\> | Disables multi-factor authentication for the authenticated user. Requires a current valid MFA token for confirmation. |
 | `enableMfa()` | () => `Promise`\<`MFAEnableResponse`\> | Enables multi-factor authentication for the authenticated user. |
 | `exchangeOAuthCode()` | (`code`) => `Promise`\<`OAuthExchangeResponse`\> | - |
 | `forgotPassword()` | (`email`) => `Promise`\<`void`\> | Forgets a user's password. |
 | `getLinkedOAuthProviders()` | () => `Promise`\<`LinkedAuthProvider`[]\> | Gets all OAuth providers linked to the authenticated user's account. |
+| `getPasskeyLoginOptions()` | () => `Promise`\<`PasskeyCredentialOptions`\> | Gets the options for the browser's passkey sign-in prompt. Pass them to the WebAuthn library (`startAuthentication` in @simplewebauthn/browser), then send its result to `loginWithPasskey`. |
+| `getPasskeyRegistrationOptions()` | (`proof?`) => `Promise`\<`PasskeyCredentialOptions`\> | Gets the options for the browser's "create a passkey" prompt, after confirming who is asking. |
 | `linkOAuthProvider()` | (`provider`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Links an OAuth provider to the authenticated user's account. This allows users to sign in with multiple OAuth providers. |
+| `listPasskeys()` | () => `Promise`\<`Passkey`[]\> | Lists the authenticated user's passkeys, oldest first. |
 | `lockAccount()` | (`token`) => `Promise`\<`void`\> | Locks a user account using a lock account token. This is used when a user receives a password changed notification for a change they did not initiate, allowing them to immediately secure their account. |
 | `login()` | (`credentials`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Logs in a user. |
+| `loginWithPasskey()` | (`credential`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Signs in with the browser's response to the passkey prompt and stores the tokens. A passkey stands in for two-factor, so this never returns an MFA challenge. |
 | `logout()` | (`refreshToken`) => `Promise`\<`void`\> | Logs out a user. |
 | `refreshTokens()` | (`refreshToken?`) => `Promise`\<[`RefreshResponse`](#refreshresponse)\> | Refreshes user tokens. |
 | `register()` | (`userData`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Registers a new user. |
 | `registerGuest()` | (`data`) => `Promise`\<`void`\> | Registers a guest account for public chat participation. Always returns void (204) regardless of outcome for anti-enumeration. |
+| `registerPasskey()` | (`credential`, `name?`) => `Promise`\<`Passkey`\> | Saves the passkey the browser created. |
+| `renamePasskey()` | (`passkeyId`, `name`) => `Promise`\<`Passkey`\> | Renames one of the authenticated user's passkeys. |
 | `resendVerification()` | (`email`) => `Promise`\<`void`\> | Public, unauthenticated resend of the verification email keyed by address. For users past the verification grace window who can't log in or call the authed sendVerificationEmail. Always resolves (the server returns 204 regardless of whether the email exists). |
 | `resetPassword()` | (`params`) => `Promise`\<`void`\> | Resets a user's password. |
 | `sendVerificationEmail()` | () => `Promise`\<`void`\> | Sends a verification email to the authenticated user. |

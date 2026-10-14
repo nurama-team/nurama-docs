@@ -1620,6 +1620,32 @@ Promise resolving when complete.
 ReturnType.changePassword
 ```
 
+##### deletePasskey()
+
+```ts
+deletePasskey(passkeyId): Promise<void>;
+```
+
+Removes one of the authenticated user's passkeys.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `passkeyId` | `string` | The passkey's id. |
+
+###### Returns
+
+`Promise`\<`void`\>
+
+Promise resolving when complete.
+
+###### Inherited from
+
+```ts
+ReturnType.deletePasskey
+```
+
 ##### disableMfa()
 
 ```ts
@@ -1733,6 +1759,53 @@ Promise resolving to array of linked OAuth providers.
 ReturnType.getLinkedOAuthProviders
 ```
 
+##### getPasskeyLoginOptions()
+
+```ts
+getPasskeyLoginOptions(): Promise<PasskeyCredentialOptions>;
+```
+
+Gets the options for the browser's passkey sign-in prompt. Pass them to the WebAuthn library
+(`startAuthentication` in @simplewebauthn/browser), then send its result to `loginWithPasskey`.
+
+###### Returns
+
+`Promise`\<`PasskeyCredentialOptions`\>
+
+Promise resolving to WebAuthn request options.
+
+###### Inherited from
+
+```ts
+ReturnType.getPasskeyLoginOptions
+```
+
+##### getPasskeyRegistrationOptions()
+
+```ts
+getPasskeyRegistrationOptions(proof?): Promise<PasskeyCredentialOptions>;
+```
+
+Gets the options for the browser's "create a passkey" prompt, after confirming who is asking.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `proof` | `PasskeyRegistrationProof` | The password when the account has one, and a two-factor code when two-factor is on. |
+
+###### Returns
+
+`Promise`\<`PasskeyCredentialOptions`\>
+
+Promise resolving to WebAuthn creation options.
+
+###### Inherited from
+
+```ts
+ReturnType.getPasskeyRegistrationOptions
+```
+
 ##### linkOAuthProvider()
 
 ```ts
@@ -1758,6 +1831,26 @@ Promise resolving to user data with updated linked providers.
 
 ```ts
 ReturnType.linkOAuthProvider
+```
+
+##### listPasskeys()
+
+```ts
+listPasskeys(): Promise<Passkey[]>;
+```
+
+Lists the authenticated user's passkeys, oldest first.
+
+###### Returns
+
+`Promise`\<`Passkey`[]\>
+
+Promise resolving to the user's passkeys.
+
+###### Inherited from
+
+```ts
+ReturnType.listPasskeys
 ```
 
 ##### lockAccount()
@@ -1813,6 +1906,33 @@ Object containing user info and tokens (or MFA challenge token).
 
 ```ts
 ReturnType.login
+```
+
+##### loginWithPasskey()
+
+```ts
+loginWithPasskey(credential): Promise<LoginRegisterResponse>;
+```
+
+Signs in with the browser's response to the passkey prompt and stores the tokens.
+A passkey stands in for two-factor, so this never returns an MFA challenge.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `credential` | `PasskeyCredentialResponse` | The WebAuthn library's AuthenticationResponseJSON. |
+
+###### Returns
+
+`Promise`\<[`LoginRegisterResponse`](routes/auth.md#loginregisterresponse)\>
+
+Promise resolving to the user and tokens.
+
+###### Inherited from
+
+```ts
+ReturnType.loginWithPasskey
 ```
 
 ##### logout()
@@ -1918,6 +2038,60 @@ Always returns void (204) regardless of outcome for anti-enumeration.
 
 ```ts
 ReturnType.registerGuest
+```
+
+##### registerPasskey()
+
+```ts
+registerPasskey(credential, name?): Promise<Passkey>;
+```
+
+Saves the passkey the browser created.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `credential` | `PasskeyCredentialResponse` | The WebAuthn library's RegistrationResponseJSON. |
+| `name?` | `string` | Optional name to tell it apart, e.g. "MacBook". |
+
+###### Returns
+
+`Promise`\<`Passkey`\>
+
+Promise resolving to the saved passkey.
+
+###### Inherited from
+
+```ts
+ReturnType.registerPasskey
+```
+
+##### renamePasskey()
+
+```ts
+renamePasskey(passkeyId, name): Promise<Passkey>;
+```
+
+Renames one of the authenticated user's passkeys.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `passkeyId` | `string` | The passkey's id. |
+| `name` | `string` | The new name. |
+
+###### Returns
+
+`Promise`\<`Passkey`\>
+
+Promise resolving to the renamed passkey.
+
+###### Inherited from
+
+```ts
+ReturnType.renamePasskey
 ```
 
 ##### resendVerification()
