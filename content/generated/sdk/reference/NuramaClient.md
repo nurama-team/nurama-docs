@@ -92,7 +92,7 @@ Creates an instance of NuramaClient.
 | `bot.updateBotKeyScopes` | `public` | `Promise`\<[`BotApiKeySummary`](routes/bot.md#botapikeysummary)\> | `undefined` | - |
 | <a id="browsermode"></a> `browserMode` | `readonly` | `boolean` | `false` | - |
 | <a id="cachedurationseconds"></a> `cacheDurationSeconds` | `readonly` | `number` | `undefined` | - |
-| <a id="chat"></a> `chat` | `public` | \{ `addAttachments`: `Promise`\<[`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)[]\>; `addMembers`: `Promise`\<`ChatMember`\>; `archiveMemberChat`: `Promise`\<`ChatMember`\>; `createAssetChatAndMessage`: `Promise`\<`any`\>; `createMemberChat`: `Promise`\<`ChatMember`\>; `createMessage`: `Promise`\<`ChatMessage`\>; `createMessageShortLink`: `Promise`\<\{ `code`: `string`; `shortUrl`: `string`; \}\>; `createReaction`: `Promise`\<`ChatMessage`\>; `createTopicChat`: `Promise`\<`Chat`\>; `deleteChat`: `Promise`\<`void`\>; `deleteMemberChat`: `Promise`\<`void`\>; `deleteMessage`: `Promise`\<`ChatMessage`\>; `fetchLinkPreviews`: `Promise`\<[`LinkPreviewResponse`](routes/chat.md#linkpreviewresponse)\>; `followChat`: `Promise`\<`void`\>; `getAddableMembers`: `Promise`\< \| [`AddableMembersByScope`](routes/chat.md#addablemembersbyscope) \| `Membership`[]\>; `getChat`: `Promise`\<`Chat`\>; `getChatByTopicId`: `Promise`\<`Chat`\>; `getMemberChat`: `Promise`\<`ChatMember`\>; `getMentionableAssets`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Asset`\>\>; `getMentionableFolders`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Folder`\>\>; `getMentionablePublics`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<[`MentionablePublic`](routes/chat.md#mentionablepublic)\>\>; `getMentionableSubmissions`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<[`MentionableSubmission`](routes/chat.md#mentionablesubmission)\>\>; `getMentionableTasks`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`any`\>\>; `getMentions`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getMessage`: `Promise`\<`ChatMessage`\>; `getMessages`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getReplies`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getScopeAddableMembers`: `Promise`\< \| [`AddableMembersByScope`](routes/chat.md#addablemembersbyscope) \| `Membership`[]\>; `getUsersMemberChats`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMember`\>\>; `getWorkspaceProjectChats`: `Promise`\<`any`[]\>; `highlightMessage`: `Promise`\<`ChatMessage`\>; `removeAttachment`: `Promise`\<`ChatMessage`\>; `removeMembers`: `Promise`\<`ChatMember`\>; `removeReaction`: `Promise`\<`ChatMessage`\>; `reviseMessage`: `Promise`\<`ChatMessage`\>; `unarchiveMemberChat`: `Promise`\<`ChatMember`\>; `unfollowChat`: `Promise`\<`void`\>; `unhighlightMessage`: `Promise`\<`ChatMessage`\>; `updateChatSubject`: `Promise`\<`Chat`\>; `updateMemberChat`: `Promise`\<`ChatMember`\>; `updateMemberChatIcon`: `Promise`\<\{ `chat`: `ChatMember`; \} & [`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)\>; \} | `undefined` | - |
+| <a id="chat"></a> `chat` | `public` | \{ `addAttachments`: `Promise`\<[`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)[]\>; `addMembers`: `Promise`\<`ChatMember`\>; `archiveMemberChat`: `Promise`\<`ChatMember`\>; `createAssetChatAndMessage`: `Promise`\<`any`\>; `createMemberChat`: `Promise`\<`ChatMember`\>; `createMessage`: `Promise`\<`ChatMessage`\>; `createMessageShortLink`: `Promise`\<\{ `code`: `string`; `shortUrl`: `string`; \}\>; `createReaction`: `Promise`\<`ChatMessage`\>; `createTopicChat`: `Promise`\<`Chat`\>; `deleteChat`: `Promise`\<`void`\>; `deleteMemberChat`: `Promise`\<`void`\>; `deleteMessage`: `Promise`\<`ChatMessage`\>; `fetchLinkPreviews`: `Promise`\<[`LinkPreviewResponse`](routes/chat.md#linkpreviewresponse)\>; `followChat`: `Promise`\<`void`\>; `getAddableMembers`: `Promise`\< \| [`AddableMembersByScope`](routes/chat.md#addablemembersbyscope) \| `Membership`[]\>; `getChat`: `Promise`\<`Chat`\>; `getChatByTopicId`: `Promise`\<`Chat`\>; `getMemberChat`: `Promise`\<`ChatMember`\>; `getMemberChatReadState`: `Promise`\<`ReadState`\>; `getMemberChatReadStates`: `Promise`\<\{ `results`: [`MemberChatReadState`](routes/chat.md#memberchatreadstate)[]; \}\>; `getMentionableAssets`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Asset`\>\>; `getMentionableFolders`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Folder`\>\>; `getMentionablePublics`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<[`MentionablePublic`](routes/chat.md#mentionablepublic)\>\>; `getMentionableSubmissions`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<[`MentionableSubmission`](routes/chat.md#mentionablesubmission)\>\>; `getMentionableTasks`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`any`\>\>; `getMentions`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getMessage`: `Promise`\<`ChatMessage`\>; `getMessages`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getReplies`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMessage`\>\>; `getScopeAddableMembers`: `Promise`\< \| [`AddableMembersByScope`](routes/chat.md#addablemembersbyscope) \| `Membership`[]\>; `getUsersMemberChats`: `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMember`\>\>; `getWorkspaceProjectChats`: `Promise`\<`any`[]\>; `highlightMessage`: `Promise`\<`ChatMessage`\>; `markMemberChatCaughtUp`: `Promise`\<`ReadState`\>; `removeAttachment`: `Promise`\<`ChatMessage`\>; `removeMembers`: `Promise`\<`ChatMember`\>; `removeReaction`: `Promise`\<`ChatMessage`\>; `reviseMessage`: `Promise`\<`ChatMessage`\>; `unarchiveMemberChat`: `Promise`\<`ChatMember`\>; `unfollowChat`: `Promise`\<`void`\>; `unhighlightMessage`: `Promise`\<`ChatMessage`\>; `updateChatSubject`: `Promise`\<`Chat`\>; `updateMemberChat`: `Promise`\<`ChatMember`\>; `updateMemberChatIcon`: `Promise`\<\{ `chat`: `ChatMember`; \} & [`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)\>; \} | `undefined` | - |
 | `chat.addAttachments` | `public` | `Promise`\<[`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)[]\> | `undefined` | - |
 | `chat.addMembers` | `public` | `Promise`\<`ChatMember`\> | `undefined` | - |
 | `chat.archiveMemberChat` | `public` | `Promise`\<`ChatMember`\> | `undefined` | - |
@@ -111,6 +111,8 @@ Creates an instance of NuramaClient.
 | `chat.getChat` | `public` | `Promise`\<`Chat`\> | `undefined` | - |
 | `chat.getChatByTopicId` | `public` | `Promise`\<`Chat`\> | `undefined` | - |
 | `chat.getMemberChat` | `public` | `Promise`\<`ChatMember`\> | `undefined` | - |
+| `chat.getMemberChatReadState` | `public` | `Promise`\<`ReadState`\> | `undefined` | - |
+| `chat.getMemberChatReadStates` | `public` | `Promise`\<\{ `results`: [`MemberChatReadState`](routes/chat.md#memberchatreadstate)[]; \}\> | `undefined` | - |
 | `chat.getMentionableAssets` | `public` | `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Asset`\>\> | `undefined` | - |
 | `chat.getMentionableFolders` | `public` | `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`Folder`\>\> | `undefined` | - |
 | `chat.getMentionablePublics` | `public` | `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<[`MentionablePublic`](routes/chat.md#mentionablepublic)\>\> | `undefined` | - |
@@ -124,6 +126,7 @@ Creates an instance of NuramaClient.
 | `chat.getUsersMemberChats` | `public` | `Promise`\<[`PaginatedResponse`](routes/chat.md#paginatedresponse)\<`ChatMember`\>\> | `undefined` | - |
 | `chat.getWorkspaceProjectChats` | `public` | `Promise`\<`any`[]\> | `undefined` | - |
 | `chat.highlightMessage` | `public` | `Promise`\<`ChatMessage`\> | `undefined` | - |
+| `chat.markMemberChatCaughtUp` | `public` | `Promise`\<`ReadState`\> | `undefined` | - |
 | `chat.removeAttachment` | `public` | `Promise`\<`ChatMessage`\> | `undefined` | - |
 | `chat.removeMembers` | `public` | `Promise`\<`ChatMember`\> | `undefined` | - |
 | `chat.removeReaction` | `public` | `Promise`\<`ChatMessage`\> | `undefined` | - |
@@ -316,6 +319,13 @@ Creates an instance of NuramaClient.
 | <a id="tokenrefreshretrydelayms"></a> `tokenRefreshRetryDelayMs` | `readonly` | `number` | `undefined` | - |
 | <a id="tokenstoragekey"></a> `tokenStorageKey` | `readonly` | `string` | `undefined` | - |
 | <a id="user"></a> `user` | `readonly` | [`UserMethods`](#usermethods) | `undefined` | - |
+| <a id="userfeed"></a> `userFeed` | `public` | \{ `dismissAll`: `Promise`\<\{ `dismissed`: `number`; \}\>; `getFeed`: `Promise`\<`CursorPaginatedUserFeed`\>; `getReadState`: `Promise`\<`ReadState`\>; `getSummary`: `Promise`\<`UserFeedSummary`\>; `markCaughtUp`: `Promise`\<`ReadState`\>; `setEntryState`: `Promise`\<`UserFeedEntry`\>; \} | `undefined` | - |
+| `userFeed.dismissAll` | `public` | `Promise`\<\{ `dismissed`: `number`; \}\> | `undefined` | - |
+| `userFeed.getFeed` | `public` | `Promise`\<`CursorPaginatedUserFeed`\> | `undefined` | - |
+| `userFeed.getReadState` | `public` | `Promise`\<`ReadState`\> | `undefined` | - |
+| `userFeed.getSummary` | `public` | `Promise`\<`UserFeedSummary`\> | `undefined` | - |
+| `userFeed.markCaughtUp` | `public` | `Promise`\<`ReadState`\> | `undefined` | - |
+| `userFeed.setEntryState` | `public` | `Promise`\<`UserFeedEntry`\> | `undefined` | - |
 | <a id="version"></a> `version` | `public` | \{ `getCommitHash`: `Promise`\<[`CommitResponse`](routes/version.md#commitresponse)\>; `getHealth`: `Promise`\<[`HealthStatus`](routes/version.md#healthstatus)\>; \} | `undefined` | - |
 | `version.getCommitHash` | `public` | `Promise`\<[`CommitResponse`](routes/version.md#commitresponse)\> | `undefined` | - |
 | `version.getHealth` | `public` | `Promise`\<[`HealthStatus`](routes/version.md#healthstatus)\> | `undefined` | - |
@@ -1696,18 +1706,24 @@ ReturnType.enableMfa
 ##### exchangeOAuthCode()
 
 ```ts
-exchangeOAuthCode(code): Promise<OAuthExchangeResponse>;
+exchangeOAuthCode(code, __namedParameters?): Promise<OAuthExchangeResponse>;
 ```
+
+Exchanges a one-time sign-in code for tokens and stores them.
 
 ###### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `code` | `string` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `code` | `string` | The code from the sign-in redirect. |
+| `__namedParameters` | \{ `codeVerifier?`: `string`; \} | - |
+| `__namedParameters.codeVerifier?` | `string` | - |
 
 ###### Returns
 
 `Promise`\<`OAuthExchangeResponse`\>
+
+Promise resolving to the user and tokens, or a two-factor challenge.
 
 ###### Inherited from
 
@@ -1762,11 +1778,17 @@ ReturnType.getLinkedOAuthProviders
 ##### getPasskeyLoginOptions()
 
 ```ts
-getPasskeyLoginOptions(): Promise<PasskeyCredentialOptions>;
+getPasskeyLoginOptions(origin?): Promise<PasskeyCredentialOptions>;
 ```
 
 Gets the options for the browser's passkey sign-in prompt. Pass them to the WebAuthn library
 (`startAuthentication` in @simplewebauthn/browser), then send its result to `loginWithPasskey`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `origin?` | `string` | The web origin to sign in for, from a native app (which has no browser `Origin`); pass the same one to `loginWithPasskey`. Browsers send their own and ignore this. |
 
 ###### Returns
 
@@ -1908,10 +1930,38 @@ Object containing user info and tokens (or MFA challenge token).
 ReturnType.login
 ```
 
+##### loginDesktopWithPasskey()
+
+```ts
+loginDesktopWithPasskey(credential, handoff): Promise<PasskeyDesktopLoginResponse>;
+```
+
+Signs the desktop app in with a passkey, from the browser. Stores nothing: the tokens wait behind the
+returned one-time code, which the desktop app redeems with `exchangeOAuthCode(code, { codeVerifier })`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `credential` | `PasskeyCredentialResponse` | The WebAuthn library's AuthenticationResponseJSON. |
+| `handoff` | `Omit`\<`PasskeyDesktopLoginRequest`, `"credential"`\> | The `state` and PKCE `codeChallenge` the desktop app made. |
+
+###### Returns
+
+`Promise`\<`PasskeyDesktopLoginResponse`\>
+
+Promise resolving to the one-time code.
+
+###### Inherited from
+
+```ts
+ReturnType.loginDesktopWithPasskey
+```
+
 ##### loginWithPasskey()
 
 ```ts
-loginWithPasskey(credential): Promise<LoginRegisterResponse>;
+loginWithPasskey(credential, origin?): Promise<LoginRegisterResponse>;
 ```
 
 Signs in with the browser's response to the passkey prompt and stores the tokens.
@@ -1922,6 +1972,7 @@ A passkey stands in for two-factor, so this never returns an MFA challenge.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `credential` | `PasskeyCredentialResponse` | The WebAuthn library's AuthenticationResponseJSON. |
+| `origin?` | `string` | From a native app: the origin passed to `getPasskeyLoginOptions`. |
 
 ###### Returns
 
@@ -3155,6 +3206,35 @@ One page of feed events.
 ReturnType.getFeedEvents
 ```
 
+##### getFeedReadState()
+
+```ts
+getFeedReadState(projectId, visibility): Promise<ReadState>;
+```
+
+Gets where you had read up to in a project feed, and how many cards have
+moved since. `lastReadAt` is null if you have never recorded a position,
+and `unreadCount` is 0 then. Cards you are the actor on never count.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `projectId` | `string` | The ID of the project. |
+| `visibility` | `FeedVisibility` | Which feed to read. |
+
+###### Returns
+
+`Promise`\<`ReadState`\>
+
+Your reading position in that feed.
+
+###### Inherited from
+
+```ts
+ReturnType.getFeedReadState
+```
+
 ##### getFolders()
 
 ```ts
@@ -3717,6 +3797,41 @@ Ranked asset IDs with counts.
 
 ```ts
 ReturnType.getTopAccessActivity
+```
+
+##### markFeedCaughtUp()
+
+```ts
+markFeedCaughtUp(
+   projectId, 
+   visibility, 
+   lastReadAt?
+): Promise<ReadState>;
+```
+
+Marks a project feed as caught up. Pass `lastReadAt` (epoch ms) to catch
+up to the newest card you had loaded; omit it to catch up to now. The
+marker only moves forward and never past the present, so a stale value is
+a no-op rather than an error.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `projectId` | `string` |
+| `visibility` | `FeedVisibility` |
+| `lastReadAt?` | `number` |
+
+###### Returns
+
+`Promise`\<`ReadState`\>
+
+Your updated reading position.
+
+###### Inherited from
+
+```ts
+ReturnType.markFeedCaughtUp
 ```
 
 ##### moveItemsToPath()

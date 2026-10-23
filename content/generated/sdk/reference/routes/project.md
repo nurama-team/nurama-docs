@@ -799,6 +799,7 @@ function default(client): {
   }>;
   getAssets: Promise<PaginatedResponse<Asset>>;
   getFeedEvents: Promise<CursorPaginatedFeedEvents>;
+  getFeedReadState: Promise<ReadState>;
   getFolders: Promise<PaginatedResponse<Folder>>;
   getHighlightedMessages: Promise<PaginatedResponse<ChatMessage>>;
   getHomeFeed: Promise<PaginatedResponse<Asset>>;
@@ -817,6 +818,7 @@ function default(client): {
   getSubmissionItems: Promise<PaginatedResponse<any>>;
   getSubmissions: Promise<PaginatedResponse<ChatSubmission>>;
   getTopAccessActivity: Promise<ProjectTopAccessActivityResponse>;
+  markFeedCaughtUp: Promise<ReadState>;
   moveItemsToPath: Promise<MoveItemsResult>;
   movePublicItemsAtPath: Promise<{
      count: number;
@@ -876,6 +878,7 @@ function default(client): {
 | `deleteSubmissionItems()` | ( `projectId`, `submissionId`, `deleteData` ) => `Promise`\<\{ `count`: `number`; \}\> | Deletes items within a submission. |
 | `getAssets()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Asset`\>\> | Lists a project's assets for one visibility tier. `creator` requires `canGetCreatorAssets`; `reviewer` requires `canGetReviewerAssets`. **Throws** 'projectId is required.' or 'visibility is required.'. |
 | `getFeedEvents()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<`CursorPaginatedFeedEvents`\> | Gets one page of the project's event feed (uploads, asset discussions, publishes, submissions and public releases), most recent activity first. The creator and reviewer feeds never share events. |
+| `getFeedReadState()` | (`projectId`, `visibility`) => `Promise`\<`ReadState`\> | Gets where you had read up to in a project feed, and how many cards have moved since. `lastReadAt` is null if you have never recorded a position, and `unreadCount` is 0 then. Cards you are the actor on never count. |
 | `getFolders()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Folder`\>\> | Gets folders within a project with specified visibility. |
 | `getHighlightedMessages()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`ChatMessage`\>\> | Lists highlighted chat messages across a project for one visibility tier (cursor pagination only). `creator` requires `canGetCreatorHighlights`; `reviewer` requires `canGetReviewerHighlights`. **Throws** 'projectId is required.' or 'visibility is required.'. |
 | `getHomeFeed()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Asset`\>\> | Gets the home feed for a project with a specified visibility. |
@@ -894,6 +897,7 @@ function default(client): {
 | `getSubmissionItems()` | ( `projectId`, `submissionId`, `path?`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`any`\>\> | Gets files for a specific submission. |
 | `getSubmissions()` | (`projectId`, `params?`) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`ChatSubmission`\>\> | Retrieves submissions for a project. |
 | `getTopAccessActivity()` | (`projectId`, `params?`) => `Promise`\<[`ProjectTopAccessActivityResponse`](#projecttopaccessactivityresponse)\> | Top-N assets in a project by access-activity event type (plays, downloads, embeds). Requires project read access. Returns asset IDs and counts only; hydrate names and thumbnails through the normal asset fetch path. **Throws** 'projectId is required.' when `projectId` is falsy. |
+| `markFeedCaughtUp()` | ( `projectId`, `visibility`, `lastReadAt?` ) => `Promise`\<`ReadState`\> | Marks a project feed as caught up. Pass `lastReadAt` (epoch ms) to catch up to the newest card you had loaded; omit it to catch up to now. The marker only moves forward and never past the present, so a stale value is a no-op rather than an error. |
 | `moveItemsToPath()` | ( `projectId`, `visibility`, `moveData` ) => `Promise`\<[`MoveItemsResult`](#moveitemsresult)\> | Moves items to a specific path within a project. |
 | `movePublicItemsAtPath()` | ( `projectId`, `token`, `moveData` ) => `Promise`\<\{ `count`: `number`; \}\> | Moves items within a public file system (authenticated management). |
 | `moveSubmissionItems()` | ( `projectId`, `submissionId`, `moveData` ) => `Promise`\<\{ `count`: `number`; \}\> | Moves items within a submission. |

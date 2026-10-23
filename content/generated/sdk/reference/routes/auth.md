@@ -134,6 +134,7 @@ function default(client): {
   listPasskeys: Promise<Passkey[]>;
   lockAccount: Promise<void>;
   login: Promise<LoginRegisterResponse>;
+  loginDesktopWithPasskey: Promise<PasskeyDesktopLoginResponse>;
   loginWithPasskey: Promise<LoginRegisterResponse>;
   logout: Promise<void>;
   refreshTokens: Promise<RefreshResponse>;
@@ -174,16 +175,17 @@ An object containing the authentication methods.
 | `deletePasskey()` | (`passkeyId`) => `Promise`\<`void`\> | Removes one of the authenticated user's passkeys. |
 | `disableMfa()` | (`mfaToken`) => `Promise`\<`void`\> | Disables multi-factor authentication for the authenticated user. Requires a current valid MFA token for confirmation. |
 | `enableMfa()` | () => `Promise`\<`MFAEnableResponse`\> | Enables multi-factor authentication for the authenticated user. |
-| `exchangeOAuthCode()` | (`code`) => `Promise`\<`OAuthExchangeResponse`\> | - |
+| `exchangeOAuthCode()` | (`code`, `__namedParameters?`) => `Promise`\<`OAuthExchangeResponse`\> | Exchanges a one-time sign-in code for tokens and stores them. |
 | `forgotPassword()` | (`email`) => `Promise`\<`void`\> | Forgets a user's password. |
 | `getLinkedOAuthProviders()` | () => `Promise`\<`LinkedAuthProvider`[]\> | Gets all OAuth providers linked to the authenticated user's account. |
-| `getPasskeyLoginOptions()` | () => `Promise`\<`PasskeyCredentialOptions`\> | Gets the options for the browser's passkey sign-in prompt. Pass them to the WebAuthn library (`startAuthentication` in @simplewebauthn/browser), then send its result to `loginWithPasskey`. |
+| `getPasskeyLoginOptions()` | (`origin?`) => `Promise`\<`PasskeyCredentialOptions`\> | Gets the options for the browser's passkey sign-in prompt. Pass them to the WebAuthn library (`startAuthentication` in @simplewebauthn/browser), then send its result to `loginWithPasskey`. |
 | `getPasskeyRegistrationOptions()` | (`proof?`) => `Promise`\<`PasskeyCredentialOptions`\> | Gets the options for the browser's "create a passkey" prompt, after confirming who is asking. |
 | `linkOAuthProvider()` | (`provider`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Links an OAuth provider to the authenticated user's account. This allows users to sign in with multiple OAuth providers. |
 | `listPasskeys()` | () => `Promise`\<`Passkey`[]\> | Lists the authenticated user's passkeys, oldest first. |
 | `lockAccount()` | (`token`) => `Promise`\<`void`\> | Locks a user account using a lock account token. This is used when a user receives a password changed notification for a change they did not initiate, allowing them to immediately secure their account. |
 | `login()` | (`credentials`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Logs in a user. |
-| `loginWithPasskey()` | (`credential`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Signs in with the browser's response to the passkey prompt and stores the tokens. A passkey stands in for two-factor, so this never returns an MFA challenge. |
+| `loginDesktopWithPasskey()` | (`credential`, `handoff`) => `Promise`\<`PasskeyDesktopLoginResponse`\> | Signs the desktop app in with a passkey, from the browser. Stores nothing: the tokens wait behind the returned one-time code, which the desktop app redeems with `exchangeOAuthCode(code, { codeVerifier })`. |
+| `loginWithPasskey()` | (`credential`, `origin?`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Signs in with the browser's response to the passkey prompt and stores the tokens. A passkey stands in for two-factor, so this never returns an MFA challenge. |
 | `logout()` | (`refreshToken`) => `Promise`\<`void`\> | Logs out a user. |
 | `refreshTokens()` | (`refreshToken?`) => `Promise`\<[`RefreshResponse`](#refreshresponse)\> | Refreshes user tokens. |
 | `register()` | (`userData`) => `Promise`\<[`LoginRegisterResponse`](#loginregisterresponse)\> | Registers a new user. |

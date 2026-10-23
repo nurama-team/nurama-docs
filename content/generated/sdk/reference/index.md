@@ -43,6 +43,7 @@
 - [routes/taskRelation](routes/taskRelation.md)
 - [routes/token](routes/token.md)
 - [routes/user](routes/user.md)
+- [routes/userFeed](routes/userFeed.md)
 - [routes/version](routes/version.md)
 - [routes/webhook](routes/webhook.md)
 - [routes/workspace](routes/workspace.md)

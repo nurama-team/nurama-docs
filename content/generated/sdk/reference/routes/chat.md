@@ -621,6 +621,22 @@ caller uses to PUT the bytes, or a per-file failure (`status: 'fail'` with `erro
 
 ***
 
+### MemberChatReadState
+
+Unread state for one member chat, as returned by `getMemberChatReadStates`.
+
+#### Properties
+
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="chatid-1"></a> `chatId` | `string` | - |
+| <a id="hasunread"></a> `hasUnread` | `boolean` | `unreadCount > 0`. Null `lastReadAt` does not imply false. |
+| <a id="lastmessageat"></a> `lastMessageAt` | `number` \| `null` | Epoch ms of the newest message, or null when the chat is empty. |
+| <a id="lastreadat"></a> `lastReadAt` | `number` \| `null` | Epoch ms you last read to, or null when you never have. |
+| <a id="unreadcount"></a> `unreadCount` | `number` | Messages newer than your position, excluding your own. |
+
+***
+
 ### MemberIdList
 
 #### Properties
@@ -641,7 +657,7 @@ used in the `publicMention:<token>` message-token payload.
 
 | Property | Type |
 | ------ | ------ |
-| <a id="chatid-1"></a> `chatId` | `string` \| `null` |
+| <a id="chatid-2"></a> `chatId` | `string` \| `null` |
 | <a id="createdat"></a> `createdAt` | `string` |
 | <a id="creator"></a> `creator` | \| \{ `displayName?`: `string`; `firstName?`: `string`; `id`: `string`; `lastName?`: `string`; \} \| `null` |
 | <a id="description"></a> `description` | `string` \| `null` |
@@ -663,11 +679,11 @@ Mentionable submission entry returned by
 
 | Property | Type |
 | ------ | ------ |
-| <a id="chatid-2"></a> `chatId` | `string` |
+| <a id="chatid-3"></a> `chatId` | `string` |
 | <a id="creator-1"></a> `creator` | \| \{ `displayName?`: `string`; `firstName?`: `string`; `id`: `string`; `lastName?`: `string`; \} \| `null` |
 | <a id="description-1"></a> `description` | `string` \| `null` |
 | <a id="id-3"></a> `id` | `string` |
-| <a id="lastmessageat"></a> `lastMessageAt` | `string` \| `null` |
+| <a id="lastmessageat-1"></a> `lastMessageAt` | `string` \| `null` |
 | <a id="publishedat"></a> `publishedAt` | `string` |
 | <a id="status-2"></a> `status` | `string` |
 | <a id="subject-2"></a> `subject` | `string` |
@@ -1265,6 +1281,10 @@ function default(client): {
   getChat: Promise<Chat>;
   getChatByTopicId: Promise<Chat>;
   getMemberChat: Promise<ChatMember>;
+  getMemberChatReadState: Promise<ReadState>;
+  getMemberChatReadStates: Promise<{
+     results: MemberChatReadState[];
+  }>;
   getMentionableAssets: Promise<PaginatedResponse<Asset>>;
   getMentionableFolders: Promise<PaginatedResponse<Folder>>;
   getMentionablePublics: Promise<PaginatedResponse<MentionablePublic>>;
@@ -1278,6 +1298,7 @@ function default(client): {
   getUsersMemberChats: Promise<PaginatedResponse<ChatMember>>;
   getWorkspaceProjectChats: Promise<any[]>;
   highlightMessage: Promise<ChatMessage>;
+  markMemberChatCaughtUp: Promise<ReadState>;
   removeAttachment: Promise<ChatMessage>;
   removeMembers: Promise<ChatMember>;
   removeReaction: Promise<ChatMessage>;
@@ -1325,6 +1346,8 @@ An object containing the chat-related methods.
 | `getChat()` | (`chatId`) => `Promise`\<`Chat`\> | Retrieves a topic chat (project, asset, task or public) by ID without its messages. Requires `canGetCreatorChat` or `canGetReviewerChat` on the chat, matching its visibility. Only topic chats are served here; member chats are served by `getMemberChat` and a member chat ID yields `chatNotFound`. **Throws** 'chatId is required.' when `chatId` is falsy. |
 | `getChatByTopicId()` | (`topicId`, `params`) => `Promise`\<`Chat`\> | Retrieves the topic chat for a project, asset, public release or task, together with its most recent messages and their replies. Requires `canGetCreatorChat` or `canGetReviewerChat` on the chat, matching `params.visibility`. `replies` (default 10, max 100) and `sort` (default `{ id: -1 }`) are honoured, but `messages` is accepted and then not forwarded by the API handler, so 10 recent messages are always returned. **Throws** 'topicId is required.' when `topicId` is falsy. |
 | `getMemberChat()` | (`chatId`) => `Promise`\<`ChatMember`\> | Retrieves a member chat by ID without its messages. The caller must be a member of the chat. **Throws** 'chatId is required.' when `chatId` is falsy. |
+| `getMemberChatReadState()` | (`chatId`) => `Promise`\<`ReadState`\> | Gets where you had read up to in a member chat, and how many messages have arrived since. `lastReadAt` is null if you have never recorded a position, and `unreadCount` is 0 then. Your own messages never count. **Throws** 'chatId is required.' when `chatId` is falsy. |
+| `getMemberChatReadStates()` | () => `Promise`\<\{ `results`: [`MemberChatReadState`](#memberchatreadstate)[]; \}\> | Gets unread state for every member chat you belong to — one row per chat, carrying the chat's `lastMessageAt`, your `lastReadAt` and a `hasUnread` flag. Compares timestamps rather than counting, so it costs the same whether you have three chats or three hundred; for a count, read the single-chat endpoint for the chat on screen. |
 | `getMentionableAssets()` | (`chatId`, `params?`) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Asset`\>\> | Lists the active assets that can be mentioned (`{{assetMention:assetId}}`) in a chat. What is returned depends on the chat: project and asset topic chats return the project's assets at the chat's visibility; project-scoped member chats and submission chats return all of the project's assets; AI chats return the topic project's assets filtered to the caller's own visibility tiers; workspace/social member chats return an empty list. Requires read access to the chat (`canGetChatMentionableAssets`). Defaults to index pagination (`page`, `limit` max 100, sort `{ name: 1 }`); pass `paginate: 'cursor'` for cursor pagination. `startAt` / `includeStartAtRecord` are not accepted here. **Throws** 'chatId is required.' when `chatId` is falsy. |
 | `getMentionableFolders()` | (`chatId`, `params?`) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Folder`\>\> | Lists the active folders that can be mentioned (`{{folderMention:folderId}}`) in a chat. What is returned depends on the chat: project and asset topic chats return the project's folders at the chat's visibility; project-scoped member chats return all of the project's folders; submission chats return the project's reviewer-visibility folders; AI chats return the topic project's folders filtered to the caller's own visibility tiers; workspace/social member chats return an empty list. Requires read access to the chat (`canGetChatMentionableFolders`). Defaults to index pagination (`page`, `limit` max 100, sort `{ name: 1 }`); pass `paginate: 'cursor'` for cursor pagination. `startAt` / `includeStartAtRecord` are not accepted here. **Throws** 'chatId is required.' when `chatId` is falsy. |
 | `getMentionablePublics()` | (`chatId`, `params?`) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<[`MentionablePublic`](#mentionablepublic)\>\> | Lists the active public releases (share links) owned by a chat's project that can be mentioned (`{{publicMention:token}}`). The project is resolved from the chat exactly as for `getMentionableSubmissions`; chats without a project return an empty page. Requires read access to the chat (`canGetChatMentionablePublics`). Index pagination only (`page`, `limit` max 100, sort `{ createdAt: -1 }`, also sortable by `title` and `expires`); cursor-pagination params cause a 400. **Throws** 'chatId is required.' when `chatId` is falsy. |
@@ -1338,6 +1361,7 @@ An object containing the chat-related methods.
 | `getUsersMemberChats()` | (`params?`) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`ChatMember`\>\> | Lists the member chats the caller belongs to, most recently updated first, each with its recent messages. Defaults to index pagination (`page`, `limit` max 20); pass `paginate: 'cursor'` for cursor pagination. `updatedBefore` is only accepted with index pagination, `recentMessages` caps the messages returned per chat (default and max 20), and `archived` narrows to chats the caller has (`true`) or has not (`false`) archived. `createdBefore` / `createdAfter` from DateRangeParams are not accepted by this endpoint and cause a 400. |
 | `getWorkspaceProjectChats()` | (`workspaceId`) => `Promise`\<`any`[]\> | Retrieves every project topic chat (creator/reviewer) the caller can access across all projects in a workspace, with the latest message and message count for each, ordered by most recent activity. Powers the workspace-level "Project Chat" list. Requires `canGetWorkspace` on the workspace; access to each project's chats is derived from the caller's inherited `canGetCreatorChat` / `canGetReviewerChat`. **Throws** 'workspaceId is required.' when `workspaceId` is falsy. |
 | `highlightMessage()` | (`messageId`) => `Promise`\<`ChatMessage`\> | Highlights a message, recording the caller as the highlighter. In topic and submission chats this requires `canHighlightMessage` on the chat; in member chats any member may highlight. For project and asset topic chats a system message is posted in the project chat of the same visibility, a `chatHighlightMessage` notification is sent and project members are emailed. **Throws** 'messageId is required.' when `messageId` is falsy. |
+| `markMemberChatCaughtUp()` | (`chatId`, `lastReadAt?`) => `Promise`\<`ReadState`\> | Marks a member chat as caught up. Pass `lastReadAt` (epoch ms) to catch up to the newest message you had loaded; omit it to catch up to now. The marker only moves forward and never past the present, so a stale value is a no-op rather than an error. **Throws** 'chatId is required.' when `chatId` is falsy. |
 | `removeAttachment()` | (`messageId`, `assetId`) => `Promise`\<`ChatMessage`\> | Removes an attachment from a message and marks the asset for deletion. Only the author may remove attachments, and in topic/submission chats they also need `canDeleteOwnAttachment`. If the message is left with no content and no attachments it is marked for deletion as well, and the deleted message is returned. **Throws** 'messageId is required.' or 'assetId is required.' when either is falsy. |
 | `removeMembers()` | (`chatId`, `data`) => `Promise`\<`ChatMember`\> | Removes users from a member chat by user ID. The caller must be a member of the chat. The chat's creator cannot be removed (`ownerCannotLeaveChat`) and unknown user IDs produce `userNotFound`. Sent as a DELETE with a JSON body. **Throws** 'chatId is required.' when `chatId` is falsy. |
 | `removeReaction()` | (`messageId`) => `Promise`\<`ChatMessage`\> | Removes the caller's own reaction from a message. Gated by the same permission as `createReaction`. Calling it when the caller has no reaction is a no-op that still returns the message. **Throws** 'messageId is required.' when `messageId` is falsy. |

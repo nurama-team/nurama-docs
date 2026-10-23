@@ -10291,7 +10291,7 @@
     "/chats/message/{messageId}/reaction": {
       "post": {
         "summary": "Create or update a reaction on a chat message",
-        "description": "Creates a new reaction or replaces an existing reaction from the same user on a chat message. Each user can only have one reaction per message.",
+        "description": "Creates a new reaction or replaces an existing reaction from the same user on a chat message. Each user can only have one reaction per message.\nThe message's author is notified with a `chatCreateReaction` event on their own `user/{userId}` channel, which also sends them a push — unless the reaction is to their own message or to a system message, or the user already had this reaction on it.",
         "tags": [
           "Chats"
         ],
@@ -13691,375 +13691,6 @@
         "x-required-scope": "projects:read"
       }
     },
-    "/notifications": {
-      "post": {
-        "summary": "Get paginated notifications for specified channels and types",
-        "description": "Retrieves notifications with support for both cursor and index-based pagination",
-        "tags": [
-          "Notifications"
-        ],
-        "security": [
-          {
-            "oauth2": [
-              "notifications:read"
-            ]
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetNotificationsRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved notifications. Shape depends on `paginate` — `CursorPaginatedNotifications` for `cursor`, `IndexPaginatedNotifications` for `index` (default). Internal push-delivery fields are stripped.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/CursorPaginatedNotifications"
-                    },
-                    {
-                      "$ref": "#/components/schemas/IndexPaginatedNotifications"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        },
-        "x-required-scope": "notifications:read"
-      }
-    },
-    "/notifications/new": {
-      "post": {
-        "summary": "Get new notifications with pagination support",
-        "description": "Retrieves new notifications with support for both cursor and index-based pagination, optionally updating last seen records. Note that if a cursor is submitted this is essentially the same as calling the /notifications endpoint. Also, if a cursoe is submitted you probably want to set the updateLastSeen to false.",
-        "tags": [
-          "Notifications"
-        ],
-        "security": [
-          {
-            "oauth2": [
-              "notifications:read"
-            ]
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetNewNotificationsRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved new notifications. `paginate=index` (default) returns `IndexPaginatedNewNotifications` (page plus `newNotificationCount`, `createdBefore`, `lastSeen`, `updatedLastSeen`); `paginate=cursor` returns a plain `CursorPaginatedNotifications` (no last-seen metadata; the last-seen record is still updated when `updateLastSeen` is true).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/CursorPaginatedNotifications"
-                    },
-                    {
-                      "$ref": "#/components/schemas/IndexPaginatedNewNotifications"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        },
-        "x-required-scope": "notifications:read"
-      }
-    },
-    "/notifications/count": {
-      "post": {
-        "summary": "Get count of new notifications for specified channels and types.",
-        "tags": [
-          "Notifications"
-        ],
-        "security": [
-          {
-            "oauth2": [
-              "notifications:read"
-            ]
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetNewNotificationCountRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved the count of new notifications.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "count": {
-                      "type": "integer",
-                      "description": "Number of new records."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        },
-        "x-required-scope": "notifications:read"
-      }
-    },
-    "/notifications/count/bulk": {
-      "post": {
-        "summary": "Get bulk count of new notifications for specified channels and types",
-        "tags": [
-          "Notifications"
-        ],
-        "security": [
-          {
-            "oauth2": [
-              "notifications:read"
-            ]
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "channelQueries": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "channels": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "Array of channel identifiers"
-                        },
-                        "types": {
-                          "type": "array",
-                          "uniqueItems": true,
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "Optional array of notification types (keys of `@config/notifications.notificationTemplates`)."
-                        }
-                      },
-                      "required": [
-                        "channels"
-                      ]
-                    },
-                    "minItems": 1
-                  }
-                },
-                "required": [
-                  "channelQueries"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved bulk counts of new notifications. One entry per `channelQueries` item, in request order.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "channels": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Array of channel identifiers"
-                      },
-                      "types": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Array of notification types as sent in the request (empty array when omitted)"
-                      },
-                      "count": {
-                        "type": "integer",
-                        "description": "Number of new notifications for the specified channels and types"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        },
-        "x-required-scope": "notifications:read"
-      }
-    },
-    "/notifications/last-seen": {
-      "post": {
-        "summary": "Get user's last seen records for specified channels and types.",
-        "tags": [
-          "Notifications"
-        ],
-        "security": [
-          {
-            "oauth2": [
-              "notifications:read"
-            ]
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetUsersLastNotificationsSeenRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved the last seen record matching exactly these channels (and types). Body is `null` when no record exists yet.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LastSeen"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        },
-        "x-required-scope": "notifications:read"
-      },
-      "put": {
-        "summary": "Update user's last seen records for specified channels and types.",
-        "tags": [
-          "Notifications"
-        ],
-        "security": [
-          {
-            "oauth2": [
-              "notifications:read"
-            ]
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUsersLastSeenRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully updated last seen records.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LastSeen"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        },
-        "x-required-scope": "notifications:read"
-      }
-    },
     "/projects/": {
       "post": {
         "summary": "Create a new project and topic chats with for both reviewers and creators.",
@@ -14932,7 +14563,8 @@
                   "publish",
                   "submission",
                   "public",
-                  "member"
+                  "member",
+                  "task"
                 ]
               }
             },
@@ -22771,6 +22403,17 @@
             }
           },
           {
+            "name": "originType",
+            "in": "query",
+            "description": "`chatMessage` returns only mention-tasks; without it, board tasks assigned to the user come too.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chatMessage"
+              ]
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
             "description": "Sort options",
@@ -23694,6 +23337,114 @@
           },
           "404": {
             "$ref": "#/components/responses/ProjectNotFound"
+          }
+        },
+        "x-required-scope": "tasks:write"
+      }
+    },
+    "/tasks/unacknowledged": {
+      "get": {
+        "summary": "Get count of unacknowledged tasks across every project.",
+        "description": "Counts the authenticated user's unacknowledged mention-tasks in every project, split by visibility. The every-project form of `/tasks/unacknowledged/{projectId}`.\n",
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "oauth2": [
+              "tasks:read"
+            ]
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved unacknowledged task counts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "creator": {
+                      "type": "integer"
+                    },
+                    "reviewer": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-required-scope": "tasks:read"
+      }
+    },
+    "/tasks/acknowledge-all": {
+      "put": {
+        "summary": "Acknowledge all of the current user's unacknowledged mention-tasks in every project.",
+        "description": "Sets `acknowledged: true` on every unacknowledged mention-task assigned to the authenticated user, in every project. The every-project form of `/tasks/acknowledge-all/{projectId}`; idempotent and scoped to the caller's own tasks.\n",
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "oauth2": [
+              "tasks:write"
+            ]
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully acknowledged the user's outstanding mention-tasks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "acknowledged": {
+                      "type": "integer",
+                      "description": "Number of tasks acknowledged by this call."
+                    },
+                    "unacknowledgedCount": {
+                      "type": "object",
+                      "description": "The user's remaining unacknowledged counts (all zero after this call).",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "creator": {
+                          "type": "integer"
+                        },
+                        "reviewer": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           }
         },
         "x-required-scope": "tasks:write"
@@ -26366,208 +26117,6 @@
           "relatedToType",
           "status",
           "subject"
-        ]
-      },
-      "LastSeen": {
-        "type": "object",
-        "description": "An object formated {[channel]:timestamp} showing the last time a user has viewed a channel.",
-        "example": "{/workspace/[workspaceId]:[timestamp]}",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "types": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "lastSeen": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "createdAt": {
-            "type": "integer",
-            "format": "int64",
-            "example": 1678886400000
-          },
-          "updatedAt": {
-            "type": "integer",
-            "format": "int64",
-            "example": 1678886400000
-          }
-        }
-      },
-      "Notification": {
-        "type": "object",
-        "description": "A platform notification. `createdAt` is an ISO 8601 string; notifications have no `updatedAt`. Internal push / webhook delivery fields are never returned.",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "The unique identifier of the notification"
-          },
-          "_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Deprecated alias of `id` kept for backward compatibility."
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of notification as defined in config/notifications."
-          },
-          "initiatorId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true,
-            "description": "The ID of the user who initiated the notification. Null for system notifications."
-          },
-          "initiatorType": {
-            "type": "string",
-            "description": "Whether a user or the system initiated the notification.",
-            "enum": [
-              "user",
-              "system"
-            ],
-            "default": "user"
-          },
-          "initiator": {
-            "description": "The public user information for the initiator of the notification. Not present for system notifications.",
-            "$ref": "#/components/schemas/PublicUser"
-          },
-          "resourceId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true,
-            "description": "The ID of the resource the notification is about."
-          },
-          "resourceType": {
-            "type": "string",
-            "nullable": true,
-            "description": "The type of resource the notification is about.",
-            "enum": [
-              "workspace",
-              "project",
-              "asset",
-              "chat",
-              "chatMember",
-              "chatMessage",
-              "chatSubmission",
-              "convo",
-              "user",
-              "folder",
-              "invite",
-              "membership",
-              "task",
-              "board",
-              "lastSeen",
-              "summary",
-              "subscription",
-              "tag",
-              "public",
-              "settings"
-            ]
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "The channels the notification was emitted to (see the Websocket documentation)."
-          },
-          "tokens": {
-            "type": "object",
-            "description": "Tokens as defined by the notifications template in config/notifications"
-          },
-          "changes": {
-            "type": "object",
-            "nullable": true,
-            "description": "The changes that occurred to the resource. Not all keys may be present.",
-            "properties": {
-              "create": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "resourceId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "resourceType": {
-                      "type": "string"
-                    },
-                    "resource": {
-                      "type": "object",
-                      "description": "The resource that was created."
-                    }
-                  }
-                }
-              },
-              "update": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "resourceId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "resourceType": {
-                      "type": "string"
-                    },
-                    "oldResource": {
-                      "type": "object",
-                      "description": "The resource before the update. ( Optional )"
-                    },
-                    "resource": {
-                      "type": "object",
-                      "description": "The resource that was updated."
-                    }
-                  }
-                }
-              },
-              "delete": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "resourceId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "resourceType": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "scheduledSendAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "description": "When a delayed push for this notification is scheduled to send."
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The timestamp when the notification was created"
-          }
-        },
-        "required": [
-          "id",
-          "type",
-          "tokens",
-          "initiatorType",
-          "channels"
         ]
       },
       "UUID": {
@@ -31593,351 +31142,6 @@
           }
         ]
       },
-      "GetNotificationsRequest": {
-        "type": "object",
-        "required": [
-          "channels"
-        ],
-        "properties": {
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "example": "/project/[projectId]/creator"
-            }
-          },
-          "types": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "Notification types to include (keys of `@config/notifications.notificationTemplates`)."
-          },
-          "paginate": {
-            "type": "string",
-            "enum": [
-              "cursor",
-              "index"
-            ],
-            "default": "index"
-          },
-          "createdAfter": {
-            "type": "integer",
-            "description": "Get notifications created after this timestamp (index pagination only)"
-          },
-          "createdBefore": {
-            "type": "integer",
-            "description": "Get notifications created before this timestamp (index pagination only)"
-          },
-          "page": {
-            "type": "number",
-            "default": 1,
-            "description": "Page number (index pagination only)"
-          },
-          "cursor": {
-            "type": "string",
-            "description": "Cursor for pagination (cursor pagination only)"
-          },
-          "paginateReverse": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, paginates in reverse order (cursor pagination only)"
-          },
-          "includeCounts": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, includes count information (cursor pagination only)"
-          },
-          "includeCursorRecord": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, includes the cursor record as first result (cursor pagination only)"
-          },
-          "startAt": {
-            "type": "string",
-            "description": "ID of the record to start pagination from (cursor pagination only)"
-          },
-          "includeStartAtRecord": {
-            "type": "boolean",
-            "default": true,
-            "description": "If true, includes the startAt record in the results (cursor pagination only)"
-          },
-          "sort": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "integer",
-                "enum": [
-                  1,
-                  -1
-                ]
-              },
-              "id": {
-                "type": "number",
-                "enum": [
-                  1,
-                  -1
-                ]
-              },
-              "createdAt": {
-                "type": "integer",
-                "enum": [
-                  1,
-                  -1
-                ]
-              },
-              "type": {
-                "type": "integer",
-                "enum": [
-                  1,
-                  -1
-                ]
-              }
-            }
-          },
-          "limit": {
-            "type": "number",
-            "default": 100,
-            "maximum": 1000,
-            "description": "Maximum results per page (`limits.notification.maxNotificationResults`)."
-          }
-        }
-      },
-      "GetNewNotificationsRequest": {
-        "type": "object",
-        "required": [
-          "channels"
-        ],
-        "properties": {
-          "updateLastSeen": {
-            "type": "boolean",
-            "default": true
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "example": "/project/[projectId]/creator"
-            }
-          },
-          "types": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "Notification types to include (keys of `@config/notifications.notificationTemplates`)."
-          },
-          "paginate": {
-            "type": "string",
-            "enum": [
-              "cursor",
-              "index"
-            ],
-            "default": "index"
-          },
-          "page": {
-            "type": "number",
-            "default": 1,
-            "description": "Page number (index pagination only)"
-          },
-          "cursor": {
-            "type": "string",
-            "description": "Cursor for pagination (cursor pagination only)"
-          },
-          "paginateReverse": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, paginates in reverse order (cursor pagination only)"
-          },
-          "includeCounts": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, includes count information (cursor pagination only)"
-          },
-          "includeCursorRecord": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, includes the cursor record as first result (cursor pagination only)"
-          },
-          "startAt": {
-            "type": "string",
-            "description": "ID of the record to start pagination from (cursor pagination only)"
-          },
-          "includeStartAtRecord": {
-            "type": "boolean",
-            "default": true,
-            "description": "If true, includes the startAt record in the results (cursor pagination only)"
-          },
-          "limit": {
-            "type": "number",
-            "default": 100,
-            "maximum": 1000,
-            "description": "Maximum results per page (`limits.notification.maxNotificationResults`)."
-          }
-        }
-      },
-      "GetNewNotificationCountRequest": {
-        "type": "object",
-        "required": [
-          "channels"
-        ],
-        "properties": {
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "example": "/project/[projectId]/creator"
-            }
-          },
-          "types": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "Notification types to include (keys of `@config/notifications.notificationTemplates`)."
-          }
-        }
-      },
-      "GetUsersLastNotificationsSeenRequest": {
-        "type": "object",
-        "required": [
-          "channels"
-        ],
-        "properties": {
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "example": "/project/[projectId]/creator"
-            }
-          },
-          "types": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "Notification types to include (keys of `@config/notifications.notificationTemplates`)."
-          }
-        }
-      },
-      "UpdateUsersLastSeenRequest": {
-        "type": "object",
-        "required": [
-          "channels"
-        ],
-        "properties": {
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "example": "/project/[projectId]/creator"
-            }
-          },
-          "types": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "Notification types to include (keys of `@config/notifications.notificationTemplates`)."
-          }
-        }
-      },
-      "CursorPaginatedNotifications": {
-        "type": "object",
-        "properties": {
-          "results": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Notification"
-            }
-          },
-          "nextCursor": {
-            "type": "string",
-            "nullable": true
-          },
-          "prevCursor": {
-            "type": "string",
-            "nullable": true
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          },
-          "hasPrevPage": {
-            "type": "boolean"
-          },
-          "totalResults": {
-            "type": "integer"
-          },
-          "totalPreviousResults": {
-            "type": "integer"
-          },
-          "totalNextResults": {
-            "type": "integer"
-          }
-        }
-      },
-      "IndexPaginatedNotifications": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/PaginatedResult"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "results": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Notification"
-                }
-              },
-              "hasNextPage": {
-                "type": "boolean"
-              },
-              "hasPrevPage": {
-                "type": "boolean"
-              }
-            }
-          }
-        ]
-      },
-      "IndexPaginatedNewNotifications": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/IndexPaginatedNotifications"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "newNotificationCount": {
-                "type": "integer",
-                "description": "Count of notifications newer than the caller's last-seen record for these channels/types (independent of `limit`)."
-              },
-              "createdBefore": {
-                "type": "integer",
-                "format": "int64",
-                "description": "Timestamp (ms) used as the upper bound of the query."
-              },
-              "lastSeen": {
-                "type": "integer",
-                "format": "int64",
-                "nullable": true,
-                "description": "The caller's previous last-seen timestamp for these channels/types, or null if there was no record."
-              },
-              "updatedLastSeen": {
-                "type": "integer",
-                "format": "int64",
-                "nullable": true,
-                "description": "New last-seen timestamp written by this call when `updateLastSeen` is true; otherwise null."
-              }
-            }
-          }
-        ]
-      },
       "Submissions": {
         "allOf": [
           {
@@ -35757,10 +34961,6 @@
     {
       "name": "Membership",
       "description": "Membership management and retrieval. New membership can only be created through an invite. Once a record exists new roles may be added."
-    },
-    {
-      "name": "Notifications",
-      "description": "Retrieve notifications and notification last seen records.\n\nChannels are strings of the form `[resourceType]/[resourceId]` or\n`[resourceType]/[resourceId]/[visibility]` (a leading `/` is tolerated).\n`types` values must be keys of `@config/notifications.notificationTemplates`\n(too many to enumerate here). `POST /notifications`, `/new`, `/count` and\n`/count/bulk` run the `canGetNotificationChannels` permission: the caller\nmust be allowed to read every channel named in the body, otherwise `403`.\n"
     },
     {
       "name": "Projects",

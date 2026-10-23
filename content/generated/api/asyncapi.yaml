@@ -155,6 +155,8 @@ channels:
         $ref: '#/components/messages/chatCreateMessage'
       chatReviseMessage:
         $ref: '#/components/messages/chatReviseMessage'
+      chatCreateReaction:
+        $ref: '#/components/messages/chatCreateReaction'
       chatRefreshMessage:
         $ref: '#/components/messages/chatRefreshMessage'
       chatMention:
@@ -315,6 +317,8 @@ channels:
         $ref: '#/components/messages/convoTranscriptionReady'
       feedEvent:
         $ref: '#/components/messages/feedEvent'
+      userFeed:
+        $ref: '#/components/messages/userFeed'
       assetChatActivity:
         $ref: '#/components/messages/assetChatActivity'
       convoParticipantLeft:
@@ -440,6 +444,8 @@ channels:
         $ref: '#/components/messages/chatCreateMessage'
       chatReviseMessage:
         $ref: '#/components/messages/chatReviseMessage'
+      chatCreateReaction:
+        $ref: '#/components/messages/chatCreateReaction'
       chatRefreshMessage:
         $ref: '#/components/messages/chatRefreshMessage'
       chatMention:
@@ -600,6 +606,8 @@ channels:
         $ref: '#/components/messages/convoTranscriptionReady'
       feedEvent:
         $ref: '#/components/messages/feedEvent'
+      userFeed:
+        $ref: '#/components/messages/userFeed'
       assetChatActivity:
         $ref: '#/components/messages/assetChatActivity'
       convoParticipantLeft:
@@ -786,6 +794,7 @@ operations:
       - $ref: '#/channels/resource/messages/chatMemberDelete'
       - $ref: '#/channels/resource/messages/chatCreateMessage'
       - $ref: '#/channels/resource/messages/chatReviseMessage'
+      - $ref: '#/channels/resource/messages/chatCreateReaction'
       - $ref: '#/channels/resource/messages/chatRefreshMessage'
       - $ref: '#/channels/resource/messages/chatMention'
       - $ref: '#/channels/resource/messages/chatDeleteMessage'
@@ -866,6 +875,7 @@ operations:
       - $ref: '#/channels/resource/messages/convoRecordingReady'
       - $ref: '#/channels/resource/messages/convoTranscriptionReady'
       - $ref: '#/channels/resource/messages/feedEvent'
+      - $ref: '#/channels/resource/messages/userFeed'
       - $ref: '#/channels/resource/messages/assetChatActivity'
       - $ref: '#/channels/resource/messages/convoParticipantLeft'
       - $ref: '#/channels/resource/messages/convoHandover'
@@ -933,6 +943,7 @@ operations:
       - $ref: '#/channels/public/messages/chatMemberDelete'
       - $ref: '#/channels/public/messages/chatCreateMessage'
       - $ref: '#/channels/public/messages/chatReviseMessage'
+      - $ref: '#/channels/public/messages/chatCreateReaction'
       - $ref: '#/channels/public/messages/chatRefreshMessage'
       - $ref: '#/channels/public/messages/chatMention'
       - $ref: '#/channels/public/messages/chatDeleteMessage'
@@ -1013,6 +1024,7 @@ operations:
       - $ref: '#/channels/public/messages/convoRecordingReady'
       - $ref: '#/channels/public/messages/convoTranscriptionReady'
       - $ref: '#/channels/public/messages/feedEvent'
+      - $ref: '#/channels/public/messages/userFeed'
       - $ref: '#/channels/public/messages/assetChatActivity'
       - $ref: '#/channels/public/messages/convoParticipantLeft'
       - $ref: '#/channels/public/messages/convoHandover'
@@ -3929,6 +3941,61 @@ components:
         - visibility
         - mentions
         - message
+    chatCreateReaction:
+      name: chatCreateReaction
+      title: chatCreateReaction
+      summary: Fired when someone reacts to a message you wrote.
+      description: >-
+        Fired when someone reacts to a message you wrote.
+
+
+        Payload for the chatCreateReaction event.
+
+
+        Delivered as the `notification` socket event with `type` set to `chatCreateReaction`.
+
+
+        Token keys marked with (*) will be deprecated in a future release and should not be used for new development;
+        replace them with the values and objects in the `changes` key in existing implementations.
+      payload:
+        description: Fired when someone reacts to a message you wrote.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  (*)requesterId:
+                    type: string
+                    format: uuid
+                    description: Deprecated. Use initiatorId.
+                  (*)requester:
+                    type: object
+                    description: Deprecated. Use initiator.
+                  (*)chatId:
+                    type: string
+                    format: uuid
+                    description: The chat the message is in.
+                  (*)messageId:
+                    type: string
+                    format: uuid
+                    description: The message reacted to.
+                  (*)emoji:
+                    type: string
+                    description: The reaction.
+                required:
+                  - requesterId
+                  - requester
+                  - chatId
+                  - messageId
+                  - emoji
+      x-notification-tokens:
+        - requesterId
+        - requester
+        - chatId
+        - messageId
+        - emoji
     chatRefreshMessage:
       name: chatRefreshMessage
       title: chatRefreshMessage
@@ -8901,6 +8968,90 @@ components:
                   - event
       x-notification-tokens:
         - event
+    userFeed:
+      name: userFeed
+      title: userFeed
+      summary: >-
+        Fired when an item in someone's user feed changes — a card placed or moved, an action item recorded, settled,
+        removed or cleared.
+      description: >-
+        Sent on the `user/{userId}` channel of every person the change affects, with one payload for all of them. It
+        names the item by `kind` + `subjectKey` (unique within one person's feed) rather than by entry id. Clients apply
+        it to what they hold and refetch `GET /v1/users/feed` for anything they don't; a missed event only delays the
+        feed, since the next fetch is complete.
+
+
+        Payload for the userFeed event.
+
+
+        Delivered as the `notification` socket event with `type` set to `userFeed`.
+      payload:
+        description: >-
+          Sent on the `user/{userId}` channel of every person the change affects, with one payload for all of them. It
+          names the item by `kind` + `subjectKey` (unique within one person's feed) rather than by entry id. Clients
+          apply it to what they hold and refetch `GET /v1/users/feed` for anything they don't; a missed event only
+          delays the feed, since the next fetch is complete.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  item:
+                    type: object
+                    properties:
+                      change:
+                        type: string
+                        enum:
+                          - placed
+                          - state
+                          - removed
+                          - cleared
+                        description: >
+                          `placed` — new, or moved to the top (`lastActivityAt`). `state` — its `state` changed.
+                          `removed` — it is gone. `cleared` — every open action item up to `before` was dismissed.
+                      category:
+                        type: string
+                        enum:
+                          - activity
+                          - action
+                      kind:
+                        type: string
+                      subjectKey:
+                        type: string
+                      subjectKeys:
+                        type: array
+                        items:
+                          type: string
+                        description: In place of `subjectKey` when several items of one kind changed state at once.
+                      state:
+                        type: string
+                        enum:
+                          - open
+                          - done
+                          - dismissed
+                      feedEventId:
+                        type: string
+                        description: The card, for `activity` items.
+                      projectId:
+                        type: string
+                      visibility:
+                        type: string
+                      lastActivityAt:
+                        type: integer
+                        format: int64
+                      before:
+                        type: integer
+                        format: int64
+                        description: For `cleared`.
+                    required:
+                      - change
+                      - category
+                required:
+                  - item
+      x-notification-tokens:
+        - item
     assetChatActivity:
       name: assetChatActivity
       title: assetChatActivity

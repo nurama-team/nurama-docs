@@ -23,7 +23,7 @@
 | [resolve_shortlink](tools/resolve_shortlink.md) | no | Resolve a Nurama short-link code (the trailing segment of a https://nurma.link/.. |
 | [resolve_public_download](tools/resolve_public_download.md) | no | Resolve a public-download token (the 10-character code at the end of a nurma.link download URL) to minimal file metadata — `fileName`, `mediaType`, `status` |
 | [get_public_download_url](tools/get_public_download_url.md) | no | Return a signed download URL for a public-download token — what a `nurma.link` page actually redirects to when the user clicks Download |
-| [get_unacknowledged_task_count](tools/get_unacknowledged_task_count.md) | no | Return the count of tasks assigned to the calling identity that have not yet been acknowledged, scoped to a project |
+| [get_unacknowledged_task_count](tools/get_unacknowledged_task_count.md) | no | Return the count of @mentions of the calling identity that have not yet been acknowledged, as `{ total, creator, reviewer }`, in one project or, with no `projectId`, across every project |
 | [list_tags](tools/list_tags.md) | no | List every tag defined for an owner resource — project or workspace |
 | [get_chat](tools/get_chat.md) | no | Fetch the metadata for a single chat: chatType (`topic` / `member` / `submission`), topicType (`project` / `asset` / `task` / etc.), topicId, visibility, and participant ids |
 | [get_chat_by_topic_id](tools/get_chat_by_topic_id.md) | no | Resolve a topic id (asset, project, task, public) + visibility into the chat that hangs off it |
