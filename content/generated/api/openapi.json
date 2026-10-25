@@ -1895,6 +1895,9 @@
           "403": {
             "description": "Forbidden — `forbidden` (no `canAiGenerateImageRevision`, or the\n`scratchId` belongs to another user / workspace),\n`capabilityNotAvailable`, or `aiFeatureNotEnabled` when\n`aiImageRevisionEnabled` is off.\n"
           },
+          "422": {
+            "description": "`aiContentPolicyViolation` — the provider's safety system\nrejected the prompt, an input image or the result. The user can\nreword the prompt or use a different image. No credits are deducted.\n"
+          },
           "502": {
             "description": "Upstream provider failure (`aiProviderFailure`)."
           }

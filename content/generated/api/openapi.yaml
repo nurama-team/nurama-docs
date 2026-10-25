@@ -1582,6 +1582,11 @@ paths:
             `scratchId` belongs to another user / workspace),
             `capabilityNotAvailable`, or `aiFeatureNotEnabled` when
             `aiImageRevisionEnabled` is off.
+        '422':
+          description: |
+            `aiContentPolicyViolation` — the provider's safety system
+            rejected the prompt, an input image or the result. The user can
+            reword the prompt or use a different image. No credits are deducted.
         '502':
           description: Upstream provider failure (`aiProviderFailure`).
       security:
