@@ -321,6 +321,8 @@ channels:
         $ref: '#/components/messages/userFeed'
       assetChatActivity:
         $ref: '#/components/messages/assetChatActivity'
+      taskChatActivity:
+        $ref: '#/components/messages/taskChatActivity'
       convoParticipantLeft:
         $ref: '#/components/messages/convoParticipantLeft'
       convoHandover:
@@ -335,6 +337,8 @@ channels:
         $ref: '#/components/messages/boardTaskCreate'
       boardTaskMove:
         $ref: '#/components/messages/boardTaskMove'
+      boardTaskReorder:
+        $ref: '#/components/messages/boardTaskReorder'
       boardTaskAssign:
         $ref: '#/components/messages/boardTaskAssign'
       boardColumnAdd:
@@ -610,6 +614,8 @@ channels:
         $ref: '#/components/messages/userFeed'
       assetChatActivity:
         $ref: '#/components/messages/assetChatActivity'
+      taskChatActivity:
+        $ref: '#/components/messages/taskChatActivity'
       convoParticipantLeft:
         $ref: '#/components/messages/convoParticipantLeft'
       convoHandover:
@@ -624,6 +630,8 @@ channels:
         $ref: '#/components/messages/boardTaskCreate'
       boardTaskMove:
         $ref: '#/components/messages/boardTaskMove'
+      boardTaskReorder:
+        $ref: '#/components/messages/boardTaskReorder'
       boardTaskAssign:
         $ref: '#/components/messages/boardTaskAssign'
       boardColumnAdd:
@@ -877,6 +885,7 @@ operations:
       - $ref: '#/channels/resource/messages/feedEvent'
       - $ref: '#/channels/resource/messages/userFeed'
       - $ref: '#/channels/resource/messages/assetChatActivity'
+      - $ref: '#/channels/resource/messages/taskChatActivity'
       - $ref: '#/channels/resource/messages/convoParticipantLeft'
       - $ref: '#/channels/resource/messages/convoHandover'
       - $ref: '#/channels/resource/messages/boardCreate'
@@ -884,6 +893,7 @@ operations:
       - $ref: '#/channels/resource/messages/boardDelete'
       - $ref: '#/channels/resource/messages/boardTaskCreate'
       - $ref: '#/channels/resource/messages/boardTaskMove'
+      - $ref: '#/channels/resource/messages/boardTaskReorder'
       - $ref: '#/channels/resource/messages/boardTaskAssign'
       - $ref: '#/channels/resource/messages/boardColumnAdd'
       - $ref: '#/channels/resource/messages/boardColumnUpdate'
@@ -1026,6 +1036,7 @@ operations:
       - $ref: '#/channels/public/messages/feedEvent'
       - $ref: '#/channels/public/messages/userFeed'
       - $ref: '#/channels/public/messages/assetChatActivity'
+      - $ref: '#/channels/public/messages/taskChatActivity'
       - $ref: '#/channels/public/messages/convoParticipantLeft'
       - $ref: '#/channels/public/messages/convoHandover'
       - $ref: '#/channels/public/messages/boardCreate'
@@ -1033,6 +1044,7 @@ operations:
       - $ref: '#/channels/public/messages/boardDelete'
       - $ref: '#/channels/public/messages/boardTaskCreate'
       - $ref: '#/channels/public/messages/boardTaskMove'
+      - $ref: '#/channels/public/messages/boardTaskReorder'
       - $ref: '#/channels/public/messages/boardTaskAssign'
       - $ref: '#/channels/public/messages/boardColumnAdd'
       - $ref: '#/channels/public/messages/boardColumnUpdate'
@@ -9121,6 +9133,74 @@ components:
         - recentMessages
         - messageCount
         - lastActivityAt
+    taskChatActivity:
+      name: taskChatActivity
+      title: taskChatActivity
+      summary: Fired when a board task's chat has activity worth surfacing as a peek card.
+      description: >-
+        The assetChatActivity card for a discussion in a board task's own chat, with the task in place of the asset.
+        Posted into the project chat of the chat's side while the task is on an active board shown to that side. Carries
+        the same snapshot, so the card renders without a second round trip.
+
+
+        Payload for the taskChatActivity event.
+
+
+        Delivered as the `notification` socket event with `type` set to `taskChatActivity`.
+      payload:
+        description: >-
+          The assetChatActivity card for a discussion in a board task's own chat, with the task in place of the asset.
+          Posted into the project chat of the chat's side while the task is on an active board shown to that side.
+          Carries the same snapshot, so the card renders without a second round trip.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                  task:
+                    type: object
+                    description: The task as the card draws it — id, number, subject, status, boardId, boardName.
+                  chatId:
+                    type: string
+                  chatSubject:
+                    type: string
+                    nullable: true
+                  visibility:
+                    type: string
+                  projectId:
+                    type: string
+                  participants:
+                    type: array
+                    items:
+                      type: object
+                  participantCount:
+                    type: integer
+                  recentMessages:
+                    type: array
+                    description: Snapshot of the latest messages, so the card renders without a second fetch.
+                    items:
+                      type: object
+                  messageCount:
+                    type: integer
+                  lastActivityAt:
+                    type: string
+                    nullable: true
+      x-notification-tokens:
+        - taskId
+        - task
+        - chatId
+        - chatSubject
+        - visibility
+        - projectId
+        - participants
+        - participantCount
+        - recentMessages
+        - messageCount
+        - lastActivityAt
     convoParticipantLeft:
       name: convoParticipantLeft
       title: convoParticipantLeft
@@ -9621,6 +9701,70 @@ components:
         - boardId
         - fromBoardName
         - fromBoardId
+    boardTaskReorder:
+      name: boardTaskReorder
+      title: boardTaskReorder
+      summary: >-
+        Fired when a task is re-ordered within its own column. Sync only, with no user-facing copy; a move to another
+        column fires boardTaskMove instead.
+      description: >-
+        Fired when a task is re-ordered within its own column. Sync only, with no user-facing copy; a move to another
+        column fires boardTaskMove instead.
+
+
+        Payload for the boardTaskReorder event.
+
+
+        Delivered as the `notification` socket event with `type` set to `boardTaskReorder`.
+
+
+        Token keys marked with (*) will be deprecated in a future release and should not be used for new development;
+        replace them with the values and objects in the `changes` key in existing implementations.
+      payload:
+        description: >-
+          Fired when a task is re-ordered within its own column. Sync only, with no user-facing copy; a move to another
+          column fires boardTaskMove instead.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  (*)projectId:
+                    type: string
+                    format: uuid
+                    description: Deprecated.
+                  (*)boardId:
+                    type: string
+                    format: uuid
+                    description: Deprecated.
+                required:
+                  - projectId
+                  - boardId
+          - type: object
+            properties:
+              changes:
+                type: object
+                properties:
+                  update:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        resourceId:
+                          type: string
+                          format: uuid
+                        resourceType:
+                          type: string
+                          enum:
+                            - task
+                        resource:
+                          type: object
+                          description: The task with its new sortOrder.
+      x-notification-tokens:
+        - projectId
+        - boardId
     boardTaskAssign:
       name: boardTaskAssign
       title: boardTaskAssign

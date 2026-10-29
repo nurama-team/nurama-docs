@@ -14563,6 +14563,7 @@
                 "enum": [
                   "upload",
                   "assetChat",
+                  "taskChat",
                   "publish",
                   "submission",
                   "public",
@@ -14592,7 +14593,7 @@
               "type": "boolean",
               "default": false
             },
-            "description": "Only cards about assets whose chat the caller follows."
+            "description": "Only cards about assets whose chat the caller follows, or tasks the caller follows."
           },
           {
             "$ref": "#/components/parameters/Cursor"
@@ -28754,17 +28755,20 @@
             "enum": [
               "upload",
               "assetChat",
+              "projectChat",
+              "taskChat",
               "publish",
               "submission",
               "public",
-              "member"
+              "member",
+              "task"
             ]
           },
           "subjectKey": {
             "type": "string",
             "format": "uuid",
             "nullable": true,
-            "description": "The asset chat, submission, public release or (for a join) membership the card is about. Null for upload, publish and leave cards."
+            "description": "The asset, project or task chat, submission, public release or (for a join) membership the card is about. Null for upload, publish, task and leave cards."
           },
           "actorId": {
             "type": "string",
@@ -28773,6 +28777,14 @@
           },
           "assetIds": {
             "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "taskIds": {
+            "type": "array",
+            "description": "Every task the card covers — a task card's rows, a task-chat card's task. Drives the Following filter for followed tasks.",
             "items": {
               "type": "string",
               "format": "uuid"
@@ -28789,7 +28801,7 @@
           },
           "data": {
             "type": "object",
-            "description": "Self-contained render snapshot — actor, asset previews, counts and, for asset-chat cards, the last five messages."
+            "description": "Self-contained render snapshot — actor, asset previews, counts and, for asset-, project- and task-chat cards, the last five messages (a task-chat card also carries its task)."
           },
           "reactions": {
             "type": "array",
