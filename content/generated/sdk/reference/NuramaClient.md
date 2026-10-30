@@ -3304,6 +3304,35 @@ Paginated highlighted messages.
 ReturnType.getHighlightedMessages
 ```
 
+##### getHighlightsReadState()
+
+```ts
+getHighlightsReadState(projectId, visibility): Promise<ReadState>;
+```
+
+Gets your reading position in a project's highlights: when you last
+caught up, and how many messages others have highlighted since. If you
+have never caught up, it counts from when read tracking began.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `projectId` | `string` | The project ID. |
+| `visibility` | `"creator"` \| `"reviewer"` | Which highlights. |
+
+###### Returns
+
+`Promise`\<`ReadState`\>
+
+Your reading position.
+
+###### Inherited from
+
+```ts
+ReturnType.getHighlightsReadState
+```
+
 ##### getHomeFeed()
 
 ```ts
@@ -3832,6 +3861,40 @@ Your updated reading position.
 
 ```ts
 ReturnType.markFeedCaughtUp
+```
+
+##### markHighlightsCaughtUp()
+
+```ts
+markHighlightsCaughtUp(
+   projectId, 
+   visibility, 
+   lastReadAt?
+): Promise<ReadState>;
+```
+
+Marks a project's highlights as read. Pass `lastReadAt` (epoch ms) — the
+`highlightedAt` of the newest highlight you had loaded; omit it to catch
+up to now. The marker only moves forward and never past the present.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `projectId` | `string` |
+| `visibility` | `"creator"` \| `"reviewer"` |
+| `lastReadAt?` | `number` |
+
+###### Returns
+
+`Promise`\<`ReadState`\>
+
+Your updated reading position.
+
+###### Inherited from
+
+```ts
+ReturnType.markHighlightsCaughtUp
 ```
 
 ##### moveItemsToPath()

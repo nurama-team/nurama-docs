@@ -18756,6 +18756,11 @@ components:
           format: uuid
           nullable: true
           description: The user who highlighted the message.
+        highlightedAt:
+          type: integer
+          format: int64
+          nullable: true
+          description: When the message was highlighted (epoch ms). Null when it is not highlighted.
         isConvoMessage:
           type: boolean
           default: false
@@ -23978,7 +23983,12 @@ components:
             enum:
               - 1
               - -1
-      description: Sorting criteria for highlighted messages
+          highlightedAt:
+            type: integer
+            enum:
+              - 1
+              - -1
+      description: Sorting criteria for highlighted messages. `highlightedAt` orders by when each message was highlighted.
     HighlightLimit:
       in: query
       name: limit

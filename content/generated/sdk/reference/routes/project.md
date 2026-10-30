@@ -802,6 +802,7 @@ function default(client): {
   getFeedReadState: Promise<ReadState>;
   getFolders: Promise<PaginatedResponse<Folder>>;
   getHighlightedMessages: Promise<PaginatedResponse<ChatMessage>>;
+  getHighlightsReadState: Promise<ReadState>;
   getHomeFeed: Promise<PaginatedResponse<Asset>>;
   getItemsAtPath: Promise<PaginatedResponse<any>>;
   getProject: Promise<Project>;
@@ -819,6 +820,7 @@ function default(client): {
   getSubmissions: Promise<PaginatedResponse<ChatSubmission>>;
   getTopAccessActivity: Promise<ProjectTopAccessActivityResponse>;
   markFeedCaughtUp: Promise<ReadState>;
+  markHighlightsCaughtUp: Promise<ReadState>;
   moveItemsToPath: Promise<MoveItemsResult>;
   movePublicItemsAtPath: Promise<{
      count: number;
@@ -881,6 +883,7 @@ function default(client): {
 | `getFeedReadState()` | (`projectId`, `visibility`) => `Promise`\<`ReadState`\> | Gets where you had read up to in a project feed, and how many cards have moved since. `lastReadAt` is null if you have never recorded a position, and `unreadCount` is 0 then. Cards you are the actor on never count. |
 | `getFolders()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Folder`\>\> | Gets folders within a project with specified visibility. |
 | `getHighlightedMessages()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`ChatMessage`\>\> | Lists highlighted chat messages across a project for one visibility tier (cursor pagination only). `creator` requires `canGetCreatorHighlights`; `reviewer` requires `canGetReviewerHighlights`. **Throws** 'projectId is required.' or 'visibility is required.'. |
+| `getHighlightsReadState()` | (`projectId`, `visibility`) => `Promise`\<`ReadState`\> | Gets your reading position in a project's highlights: when you last caught up, and how many messages others have highlighted since. If you have never caught up, it counts from when read tracking began. |
 | `getHomeFeed()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Asset`\>\> | Gets the home feed for a project with a specified visibility. |
 | `getItemsAtPath()` | ( `projectId`, `visibility`, `path?`, `params?`, `usePost?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`any`\>\> | Gets items at a specific path within a project. |
 | `getProject()` | (`projectId`) => `Promise`\<`Project`\> | Retrieves a specific project by its ID. |
@@ -898,6 +901,7 @@ function default(client): {
 | `getSubmissions()` | (`projectId`, `params?`) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`ChatSubmission`\>\> | Retrieves submissions for a project. |
 | `getTopAccessActivity()` | (`projectId`, `params?`) => `Promise`\<[`ProjectTopAccessActivityResponse`](#projecttopaccessactivityresponse)\> | Top-N assets in a project by access-activity event type (plays, downloads, embeds). Requires project read access. Returns asset IDs and counts only; hydrate names and thumbnails through the normal asset fetch path. **Throws** 'projectId is required.' when `projectId` is falsy. |
 | `markFeedCaughtUp()` | ( `projectId`, `visibility`, `lastReadAt?` ) => `Promise`\<`ReadState`\> | Marks a project feed as caught up. Pass `lastReadAt` (epoch ms) to catch up to the newest card you had loaded; omit it to catch up to now. The marker only moves forward and never past the present, so a stale value is a no-op rather than an error. |
+| `markHighlightsCaughtUp()` | ( `projectId`, `visibility`, `lastReadAt?` ) => `Promise`\<`ReadState`\> | Marks a project's highlights as read. Pass `lastReadAt` (epoch ms) — the `highlightedAt` of the newest highlight you had loaded; omit it to catch up to now. The marker only moves forward and never past the present. |
 | `moveItemsToPath()` | ( `projectId`, `visibility`, `moveData` ) => `Promise`\<[`MoveItemsResult`](#moveitemsresult)\> | Moves items to a specific path within a project. |
 | `movePublicItemsAtPath()` | ( `projectId`, `token`, `moveData` ) => `Promise`\<\{ `count`: `number`; \}\> | Moves items within a public file system (authenticated management). |
 | `moveSubmissionItems()` | ( `projectId`, `submissionId`, `moveData` ) => `Promise`\<\{ `count`: `number`; \}\> | Moves items within a submission. |
