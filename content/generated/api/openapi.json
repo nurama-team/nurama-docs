@@ -20763,7 +20763,7 @@
                         "embed",
                         "embed-download"
                       ],
-                      "description": "Capability mode of the link. The download page uses this to decide\nwhether to render the inline preview (`embed-download`), the embed-only\nmessage (`embed`), or auto-download (`download`).\n",
+                      "description": "Capability mode of the link. The download page uses this to decide\nwhether to render the inline preview with a download button\n(`embed-download`), the preview without one (`embed`), or\nauto-download (`download`).\n",
                       "example": "embed-download"
                     },
                     "mimeType": {
@@ -33719,7 +33719,7 @@
           "publicUrl": {
             "type": "string",
             "description": "The full public download page URL.",
-            "example": "https://app.nurama.com/public-download/Ab3dEf9HiJ"
+            "example": "https://app.nurama.com/share/Ab3dEf9HiJ"
           },
           "isExpired": {
             "type": "boolean",

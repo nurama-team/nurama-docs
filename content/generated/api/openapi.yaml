@@ -14035,8 +14035,9 @@ paths:
                       - embed-download
                     description: |
                       Capability mode of the link. The download page uses this to decide
-                      whether to render the inline preview (`embed-download`), the embed-only
-                      message (`embed`), or auto-download (`download`).
+                      whether to render the inline preview with a download button
+                      (`embed-download`), the preview without one (`embed`), or
+                      auto-download (`download`).
                     example: embed-download
                   mimeType:
                     type: string
@@ -23358,7 +23359,7 @@ components:
         publicUrl:
           type: string
           description: The full public download page URL.
-          example: https://app.nurama.com/public-download/Ab3dEf9HiJ
+          example: https://app.nurama.com/share/Ab3dEf9HiJ
         isExpired:
           type: boolean
           description: Whether the link has passed its expiration date.
