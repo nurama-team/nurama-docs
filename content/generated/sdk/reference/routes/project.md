@@ -766,6 +766,7 @@ type SubmissionResponse = ChatSubmission;
 function default(client): {
   addItemsToPublicFileSystem: Promise<PublicFileSystemResponse>;
   addItemsToSubmission: Promise<ChatSubmission>;
+  cancelPruneOriginals: Promise<AssetPruneCancelResult>;
   copyItemsToPath: Promise<{
      count: number;
   }>;
@@ -805,6 +806,7 @@ function default(client): {
   getHighlightsReadState: Promise<ReadState>;
   getHomeFeed: Promise<PaginatedResponse<Asset>>;
   getItemsAtPath: Promise<PaginatedResponse<any>>;
+  getOriginalPruningSummary: Promise<ProjectPruningSummary>;
   getProject: Promise<Project>;
   getProjectChat: Promise<Chat>;
   getProjectPublicAsset: Promise<PublicAssetResponse>;
@@ -829,6 +831,8 @@ function default(client): {
      count: number;
   }>;
   previewDeleteItemsAtPath: Promise<DeleteImpact>;
+  previewPruneOriginals: Promise<AssetPrunePreview>;
+  pruneOriginals: Promise<AssetPruneRequestResult>;
   publishItems: Promise<any>;
   releasePublicFileSystem: Promise<PublicFileSystemResponse>;
   releaseSubmission: Promise<ChatSubmission>;
@@ -859,6 +863,7 @@ function default(client): {
 | ------ | ------ | ------ |
 | `addItemsToPublicFileSystem()` | ( `projectId`, `publicId`, `addItemsData` ) => `Promise`\<[`PublicFileSystemResponse`](#publicfilesystemresponse)\> | Adds additional items to an existing public file system. |
 | `addItemsToSubmission()` | ( `projectId`, `submissionId`, `addItemsData` ) => `Promise`\<`ChatSubmission`\> | Adds items to an existing submission. |
+| `cancelPruneOriginals()` | (`projectId`, `selection`) => `Promise`\<`AssetPruneCancelResult`\> | Cancels every waiting prune in the selection. Needs `canPruneAsset` on the project. |
 | `copyItemsToPath()` | ( `projectId`, `visibility`, `copyData` ) => `Promise`\<\{ `count`: `number`; \}\> | Copies items to a specific path within a project. |
 | `copyPublicItemsAtPath()` | ( `projectId`, `token`, `copyData` ) => `Promise`\<\{ `count`: `number`; \}\> | Copies items within a public file system (authenticated management). |
 | `copySubmissionItems()` | ( `projectId`, `submissionId`, `copyData` ) => `Promise`\<\{ `count`: `number`; \}\> | Copies items within a submission. |
@@ -886,6 +891,7 @@ function default(client): {
 | `getHighlightsReadState()` | (`projectId`, `visibility`) => `Promise`\<`ReadState`\> | Gets your reading position in a project's highlights: when you last caught up, and how many messages others have highlighted since. If you have never caught up, it counts from when read tracking began. |
 | `getHomeFeed()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`Asset`\>\> | Gets the home feed for a project with a specified visibility. |
 | `getItemsAtPath()` | ( `projectId`, `visibility`, `path?`, `params?`, `usePost?` ) => `Promise`\<[`PaginatedResponse`](#paginatedresponse)\<`any`\>\> | Gets items at a specific path within a project. |
+| `getOriginalPruningSummary()` | (`projectId`) => `Promise`\<`ProjectPruningSummary`\> | The project's pruning policy and what it has done. Needs `canManageProjectSettings`. |
 | `getProject()` | (`projectId`) => `Promise`\<`Project`\> | Retrieves a specific project by its ID. |
 | `getProjectChat()` | ( `projectId`, `visibility`, `params?` ) => `Promise`\<`Chat`\> | Gets the project chat with the specified visibility. |
 | `getProjectPublicAsset()` | ( `projectId`, `token`, `assetId` ) => `Promise`\<`PublicAssetResponse`\> | Gets a public asset with its public chat from an authenticated project context. Unlike the public endpoint, this does NOT check token expiration. Use this for internal management of public file systems. |
@@ -906,6 +912,8 @@ function default(client): {
 | `movePublicItemsAtPath()` | ( `projectId`, `token`, `moveData` ) => `Promise`\<\{ `count`: `number`; \}\> | Moves items within a public file system (authenticated management). |
 | `moveSubmissionItems()` | ( `projectId`, `submissionId`, `moveData` ) => `Promise`\<\{ `count`: `number`; \}\> | Moves items within a submission. |
 | `previewDeleteItemsAtPath()` | ( `projectId`, `visibility`, `deleteData` ) => `Promise`\<`DeleteImpact`\> | Asks what deleting these paths would reach, without deleting anything. Computed from the same cascade the delete runs, so the answer is what will happen rather than an estimate of it. Only SECONDARY references come back — the reviewer, submission and public-release copies that would go with the selection. |
+| `previewPruneOriginals()` | (`projectId`, `selection`) => `Promise`\<`AssetPrunePreview`\> | What pruning the originals of a selection of the project's assets would do, without doing it. Needs `canPruneAsset` on the project. |
+| `pruneOriginals()` | (`projectId`, `selection`) => `Promise`\<`AssetPruneRequestResult`\> | Requests prunes for every asset in the selection that can be pruned. Needs `canPruneAsset` on the project. |
 | `publishItems()` | (`projectId`, `publishData`) => `Promise`\<`any`\> | Publishes a list of items (assets, folders) within a project. |
 | `releasePublicFileSystem()` | (`projectId`, `publicId`) => `Promise`\<[`PublicFileSystemResponse`](#publicfilesystemresponse)\> | Releases a staged (unreleased) public file system, making it externally accessible via its public token. |
 | `releaseSubmission()` | (`projectId`, `submissionId`) => `Promise`\<`ChatSubmission`\> | Releases a staged (unreleased) submission, making it visible to reviewers and firing the deferred "new submission" side effects (emails, notifications, system messages). |

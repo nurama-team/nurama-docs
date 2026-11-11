@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-30T09:37:50.629Z",
+  "generatedAt": "2026-11-11T06:13:19.720Z",
   "source": {
     "repository": "nurama-team/nurama",
-    "commit": "e46370d1042675a051379a5614fc147e6a207fba",
+    "commit": "dccf5ca9274979c7f7ff72607c433e1ef5144c3c",
     "ref": "release/production"
   },
   "versions": {
@@ -12,7 +12,7 @@
     "mcp": "0.1.0"
   },
   "counts": {
-    "paths": 232,
-    "operations": 299
+    "paths": 239,
+    "operations": 307
   }
 }

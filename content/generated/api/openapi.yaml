@@ -2031,6 +2031,10 @@ paths:
 
         Post-processing failures after the S3 upload has been committed do not fail the
         request — they are reported via the optional `warning` field.
+
+        Only the asset's creator — the user who started the upload — may complete it. An
+        asset whose original has been pruned or is being re-attached is refused with 409:
+        its original comes back only through re-attach, which verifies it.
       tags:
         - Assets
       requestBody:
@@ -2059,6 +2063,10 @@ paths:
                     example: Post-processing failed
         '400':
           $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The asset's original is pruned or being re-attached.
       security:
         - oauth2:
             - assets:write
@@ -2688,6 +2696,316 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
+  /assets/{assetId}/original:
+    get:
+      summary: Get the state of an asset's original
+      description: |
+        Where the original is, what the project policy will do with it, and
+        whether it can be pruned by hand now (`eligibility`). Requires
+        `canGetAssetOriginal`.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      responses:
+        '200':
+          description: The original's state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetOriginalStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oauth2:
+            - assets:read
+        - bearerAuth: []
+      x-required-scope: assets:read
+  /assets/{assetId}/original/history:
+    get:
+      summary: List the history of an asset's original
+      description: |
+        What has happened to the original, newest first: hashed, prune
+        requested, cancelled, done or failed, and the keep-original exemption
+        set or cleared. Requires `canGetAssetOriginal`.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      responses:
+        '200':
+          description: The history.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssetOriginalHistoryEntry'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oauth2:
+            - assets:read
+        - bearerAuth: []
+      x-required-scope: assets:read
+  /assets/{assetId}/original/prune:
+    post:
+      summary: Request that an asset's original be pruned
+      description: |
+        Moves the original to `pruneRequested`. It is deleted once `pruneAfter`
+        passes, unless the request is cancelled first. Requires
+        `canPruneAsset`.
+
+        Refused with `assetNotPrunable` (409) when the asset cannot be pruned;
+        `errorData.reasons` then lists why, as the codes in
+        `AssetPruneEligibility`.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      responses:
+        '200':
+          description: The asset, now waiting to be pruned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '403':
+          description: The caller lacks `canPruneAsset`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The asset cannot be pruned (`assetNotPrunable`); `errorData.reasons` says why.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
+    delete:
+      summary: Cancel a requested prune
+      description: |
+        Moves a `pruneRequested` original back to `stored`. Refused with
+        `assetPruneNotCancellable` (409) when no request is waiting, including
+        once the prune has started. Requires `canPruneAsset`.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      responses:
+        '200':
+          description: The asset, with its original back to `stored`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: No prune is waiting (`assetPruneNotCancellable`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
+  /assets/{assetId}/original/keep:
+    put:
+      summary: Exempt an asset from pruning, or lift the exemption
+      description: |
+        An exempt asset is never pruned, by hand or by policy. Exempting one
+        whose prune is waiting cancels the prune; a prune already running
+        finishes. Requires `canPruneAsset`.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - keepOriginal
+              properties:
+                keepOriginal:
+                  type: boolean
+      responses:
+        '200':
+          description: The asset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
+  /projects/{projectId}/original-pruning/preview:
+    post:
+      summary: Preview pruning a selection of a project's assets
+      description: |
+        Checks every asset the selection names, without changing anything:
+        whether each can be pruned, what it would lose, and the bytes it would
+        free. Assets outside the project are reported in `notFound`. Requires
+        `canPruneAsset` on the project.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetPruneSelection'
+      responses:
+        '200':
+          description: What pruning the selection would do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetPrunePreview'
+        '400':
+          description: The selection names more assets than one request may (`assetPruneSelectionTooLarge`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:read
+        - bearerAuth: []
+      x-required-scope: assets:read
+  /projects/{projectId}/original-pruning/prune:
+    post:
+      summary: Request prunes for a selection of a project's assets
+      description: |
+        Requests a prune for every asset in the selection that can be pruned,
+        all with the same `pruneAfter`. The rest are returned in `skipped` with
+        their reasons. Requires `canPruneAsset` on the project.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetPruneSelection'
+      responses:
+        '200':
+          description: Which prunes were requested.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requested:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+                  skipped:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        assetId:
+                          type: string
+                          format: uuid
+                        reasons:
+                          type: array
+                          items:
+                            type: string
+                  pruneAfter:
+                    type: integer
+                    description: When the requested prunes run (Unix ms).
+                  notFound:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+        '400':
+          description: The selection names more assets than one request may (`assetPruneSelectionTooLarge`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: The caller lacks `canPruneAsset`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
+  /projects/{projectId}/original-pruning/cancel:
+    post:
+      summary: Cancel requested prunes for a selection of a project's assets
+      description: |
+        Cancels every waiting prune in the selection. Assets with nothing
+        waiting are returned in `notCancelled`. Requires `canPruneAsset` on the
+        project.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetPruneSelection'
+      responses:
+        '200':
+          description: Which prunes were cancelled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cancelled:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+                  notCancelled:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+                  notFound:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
       security:
         - oauth2:
             - assets:write
@@ -12729,6 +13047,8 @@ paths:
 
         - `aiChatTools`, `aiAssistTools` — object mapping tool names (`^[a-z][a-z0-9_]*$`) to boolean or null.
 
+        - `originalPruning` — an `OriginalPruningPolicy` object, or null to turn automatic
+          pruning off.
 
         A `value` of the wrong type for the setting is a validation error (400).
       tags:
@@ -16998,6 +17318,7 @@ paths:
               - aiAssistTools
               - boardsEnabled
               - convosEnabled
+              - allowOriginalPruning
       requestBody:
         required: true
         content:
@@ -17013,7 +17334,8 @@ paths:
                     `aiAssistFollowUpWindow` — integer 0..30; `aiCustomPreprompt` / `aiTaskGenerationPreprompt` — string
                     ≤ 8000 chars ('' clears); `dailyUserAiSpendBudget` — integer 0..1000000 (0 disables the cap);
                     `autoTopUp*Credits` — integer ≥ 0; `aiChatTools` / `aiAssistTools` — object mapping
-                    `^[a-z][a-z0-9_]*$` tool names to boolean or null.
+                    `^[a-z][a-z0-9_]*$` tool names to boolean or null; `allowOriginalPruning` — boolean, accepted but no
+                    longer has any effect (pruning is configured per project through `originalPruning`).
                   oneOf:
                     - type: boolean
                     - type: integer
@@ -17558,6 +17880,10 @@ components:
           format: uuid
         assetName:
           type: string
+        everPublic:
+          type: boolean
+          description: |
+            Whether the asset has ever been in a public release. Stays true after it leaves every release.
         primaryRoot:
           type: string
           description: Root path of the asset's home file system.
@@ -17608,6 +17934,7 @@ components:
       required:
         - assetId
         - assetName
+        - everPublic
         - primaryRoot
         - primary
         - secondary
@@ -17637,6 +17964,17 @@ components:
         createdAt:
           type: string
           format: date-time
+        releaseStatus:
+          type: string
+          nullable: true
+          enum:
+            - active
+            - disabled
+            - expired
+            - error
+            - null
+          description: |
+            Public references only: the release's status. Null when the release record could not be found.
     Tasks:
       allOf:
         - $ref: '#/components/schemas/PaginatedResult'
@@ -19102,12 +19440,78 @@ components:
           description: The storage key prefix used for the asset's files. Needed by clients to construct CDN URLs.
         checksum:
           type: string
-          description: Checksum of the original file.
+          description: >-
+            Client-supplied fingerprint of the original, used to spot duplicate uploads: a SHA-256 of the whole file up
+            to 4 MB, and of its first 2 MB, last 2 MB and size beyond that. Not a full-file hash — see `contentSha256`.
         checksumAlgorithm:
           type: string
           nullable: true
-          example: md5
+          example: sha256
           description: The algorithm used for computing the checksum.
+        contentSha256:
+          type: string
+          nullable: true
+          description: Full-file SHA-256 of the original, computed server-side once the upload has been read.
+        originalName:
+          type: string
+          nullable: true
+          description: >-
+            The file name the original was uploaded under. Unlike `name`, it does not change when the asset is renamed.
+            Best effort for assets uploaded before it was recorded.
+        originalExtension:
+          type: string
+          nullable: true
+          example: mov
+          description: Lower-case extension of the original file, without the dot.
+        originalSizeInBytes:
+          type: integer
+          nullable: true
+          description: Size of the original file alone. `sizeInBytes` totals every file the asset holds.
+        originalState:
+          type: string
+          enum:
+            - stored
+            - pruneRequested
+            - pruning
+            - pruned
+            - restoring
+            - awaitingConfirmation
+          description: Where the original file is — `stored` while it is in storage, otherwise pruned or in transition.
+        processingCompletedAt:
+          type: integer
+          nullable: true
+          description: When post-processing finished (Unix ms); null while it runs or before it has run.
+        keepOriginal:
+          type: boolean
+          description: True when the asset is exempt from pruning.
+        pruneAfter:
+          type: integer
+          nullable: true
+          description: 'When a requested prune runs (Unix ms): the end of the undo window, or the next retry after a failed attempt.'
+        pruneRequestedById:
+          type: string
+          format: uuid
+          nullable: true
+          description: Who requested the waiting prune; null for the project policy.
+        pruneReason:
+          type: string
+          nullable: true
+          enum:
+            - manual
+            - policy
+            - null
+          description: Whether a person or the project policy asked for the prune.
+        prunedAt:
+          type: integer
+          nullable: true
+          description: When the original was pruned (Unix ms).
+        pruneAttempts:
+          type: integer
+          description: Failed prune attempts since the last success or request.
+        pruneError:
+          type: string
+          nullable: true
+          description: Why the last prune attempt failed, or why the policy set the asset aside.
         name:
           type: string
           description: The name of the asset used on the platform.
@@ -20540,6 +20944,257 @@ components:
         meta:
           key1: value1
           key2: value2
+    OriginalPruningPolicy:
+      type: object
+      description: A project's automatic pruning. Omitted fields take their defaults. Manual pruning does not depend on it.
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+        mediaTypes:
+          type: array
+          description: Media types the policy prunes. Defaults to everything but documents.
+          items:
+            type: string
+            enum:
+              - video
+              - audio
+              - image
+              - 3d
+              - document
+        graceDays:
+          type: integer
+          minimum: 0
+          maximum: 90
+          default: 7
+          description: Days after post-processing finishes before an asset is pruned.
+        skipPublished:
+          type: boolean
+          default: true
+          description: Leave alone assets that reviewers, public links or public collections can see.
+        skipInSubmissions:
+          type: boolean
+          default: true
+          description: Leave alone assets included in a submission.
+    AssetPruneEligibility:
+      type: object
+      properties:
+        eligible:
+          type: boolean
+        reasons:
+          type: array
+          description: >-
+            Why the original cannot be pruned. `notProjectMedia`, `unsupportedMediaType`, `notActive`,
+            `processingNotFinished`, `processingFailed`, `renditionsPending`, `documentNotProcessed`, `missingOutputs`,
+            `keepOriginal`, `noOriginal`, `originalNotStored`; and, for the policy only, `policyDisabled`,
+            `mediaTypeExcluded`, `published`, `inSubmission`.
+          items:
+            type: string
+        warnings:
+          type: array
+          description: >-
+            What pruning would cost, for whoever decides. `noDownloadableVersion`, `reducedResolution`,
+            `compressedModelOnly`, `documentPreviewOnly`, `sharedElsewhere`, `cannotReprocess`.
+          items:
+            type: string
+        references:
+          type: object
+          description: Where else the asset can be seen; every one of these loses the original too.
+          properties:
+            reviewers:
+              type: boolean
+            publicLinks:
+              type: boolean
+            publicCollections:
+              type: integer
+            submissions:
+              type: integer
+        bytesReclaimed:
+          type: integer
+          description: Storage the prune would free.
+    AssetOriginalStatus:
+      type: object
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        originalState:
+          type: string
+          enum:
+            - stored
+            - pruneRequested
+            - pruning
+            - pruned
+        keepOriginal:
+          type: boolean
+        pruneAfter:
+          type: integer
+          nullable: true
+        pruneReason:
+          type: string
+          nullable: true
+        prunedAt:
+          type: integer
+          nullable: true
+        pruneAttempts:
+          type: integer
+        pruneError:
+          type: string
+          nullable: true
+        contentSha256:
+          type: string
+          nullable: true
+          description: Full SHA-256 of the original, once hashed.
+        originalName:
+          type: string
+          nullable: true
+        originalExtension:
+          type: string
+          nullable: true
+        originalSizeInBytes:
+          type: integer
+          nullable: true
+        processingCompletedAt:
+          type: integer
+          nullable: true
+        eligibility:
+          $ref: '#/components/schemas/AssetPruneEligibility'
+        policy:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            mediaTypes:
+              type: array
+              items:
+                type: string
+            graceDays:
+              type: integer
+            skipPublished:
+              type: boolean
+            skipInSubmissions:
+              type: boolean
+            appliesToAsset:
+              type: boolean
+              description: Whether the policy covers this asset at all.
+            skippedBecause:
+              type: array
+              items:
+                type: string
+                enum:
+                  - mediaTypeExcluded
+                  - published
+                  - inSubmission
+              description: >-
+                Why an enabled policy leaves the asset alone. `published` means it is shared with reviewers, through a
+                public link or in a public release; `inSubmission` that a submission includes it. Empty when the policy
+                is off or covers the asset.
+            eligibleFrom:
+              type: integer
+              nullable: true
+              description: When the policy will consider the asset (Unix ms).
+    AssetOriginalHistoryEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum:
+            - hashed
+            - pruneRequested
+            - pruneCancelled
+            - pruned
+            - pruneFailed
+            - keepOriginalSet
+            - keepOriginalCleared
+        actor:
+          type: object
+          nullable: true
+          description: Who acted; null when the system did.
+          properties:
+            id:
+              type: string
+              format: uuid
+            displayName:
+              type: string
+              nullable: true
+        sha256:
+          type: string
+          nullable: true
+        sizeInBytes:
+          type: integer
+          nullable: true
+        fileName:
+          type: string
+          nullable: true
+        relatedSha256:
+          type: string
+          nullable: true
+        relatedAssetId:
+          type: string
+          format: uuid
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        createdAt:
+          type: integer
+    AssetPruneSelection:
+      type: object
+      description: >-
+        Assets to act on: ids, paths in the project's creator tree (a folder includes everything inside it), or both. At
+        most 500 assets after folders are expanded.
+      properties:
+        assetIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        itemPaths:
+          type: array
+          items:
+            type: string
+    AssetPrunePreview:
+      type: object
+      properties:
+        totals:
+          type: object
+          properties:
+            selected:
+              type: integer
+            eligible:
+              type: integer
+            ineligible:
+              type: integer
+            bytesReclaimed:
+              type: integer
+        assets:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/AssetPruneEligibility'
+              - type: object
+                properties:
+                  assetId:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  mediaType:
+                    type: string
+                  originalState:
+                    type: string
+        notFound:
+          type: array
+          items:
+            type: string
+            format: uuid
     Board:
       type: object
       properties:
@@ -22470,6 +23125,7 @@ components:
         - aiTaskGenerationPreprompt
         - aiChatTools
         - aiAssistTools
+        - originalPruning
     UpdateProjectSettingRequest:
       type: object
       required:
@@ -22480,8 +23136,9 @@ components:
           description: >
             The new value. `null` inherits the workspace's value. Otherwise the type must match the setting named in the
             path: boolean for the enable / allow-reviewer flags, integer 0–30 for `aiAssistFollowUpWindow`, string (max
-            preprompt length, may be empty) for `aiCustomPreprompt` / `aiTaskGenerationPreprompt`, and an object of
-            tool-name → boolean|null for `aiChatTools` / `aiAssistTools`.
+            preprompt length, may be empty) for `aiCustomPreprompt` / `aiTaskGenerationPreprompt`, an object of
+            tool-name → boolean|null for `aiChatTools` / `aiAssistTools`, and an `OriginalPruningPolicy` for
+            `originalPruning` (null turns it off).
           oneOf:
             - type: boolean
             - type: integer
@@ -22492,6 +23149,7 @@ components:
               additionalProperties:
                 type: boolean
                 nullable: true
+            - $ref: '#/components/schemas/OriginalPruningPolicy'
     PublicAuditAsset:
       type: object
       description: A project asset that is or has been publicly exposed.
@@ -23590,6 +24248,22 @@ components:
         type: boolean
         default: true
       description: If true, includes the startAt record in the results (only accepted with `paginate=cursor`).
+    AssetOriginalAssetId:
+      in: path
+      name: assetId
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: The ID of the asset.
+    AssetOriginalProjectId:
+      in: path
+      name: projectId
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: The ID of the project.
     ChatId:
       name: chatId
       in: path
@@ -24358,6 +25032,20 @@ tags:
       as the initiator; user-sends use the user's own id.
   - name: Assets
     description: Manage assets and files.
+  - name: AssetOriginals
+    description: |
+      Pruning originals: deleting an asset's uploaded file once post-processing
+      has finished, and keeping every processed version (streams, thumbnails,
+      the resized image, the viewer PDF, the GLB).
+
+      Admins (`canPruneAsset`) can prune by hand, one asset or many. Automatic
+      pruning is configured per project through its `originalPruning` policy,
+      which picks the media types and the grace period; it is off by default.
+
+      A manual request waits out a short undo window (`pruneAfter`) before the
+      original is deleted, and can be cancelled until then. The asset itself is
+      pruned, so the original also disappears from every reviewer view,
+      submission and public collection that shows it.
   - name: Join Links
     description: |
       Shareable links that add whoever opens them to a project, without an

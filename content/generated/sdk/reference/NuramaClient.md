@@ -548,6 +548,32 @@ Error thrown by `_request` when the API responds with a non-2xx status.
 
 #### Methods
 
+##### cancelPruneOriginal()
+
+```ts
+cancelPruneOriginal(assetId): Promise<Asset>;
+```
+
+Cancels a requested prune before it runs. Needs `canPruneAsset`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+
+###### Returns
+
+`Promise`\<`Asset`\>
+
+The asset, with its original back to `stored`.
+
+###### Inherited from
+
+```ts
+ReturnType.cancelPruneOriginal
+```
+
 ##### cleanupUploadSessions()
 
 ```ts
@@ -1092,6 +1118,63 @@ An array of file objects.
 ReturnType.getFilesByFunctionType
 ```
 
+##### getOriginal()
+
+```ts
+getOriginal(assetId): Promise<AssetOriginalStatus>;
+```
+
+Where an asset's original is, what the project's pruning policy will do
+with it, and whether it can be pruned by hand now. Needs `canGetAssetOriginal`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+
+###### Returns
+
+`Promise`\<`AssetOriginalStatus`\>
+
+The original's state.
+
+###### Inherited from
+
+```ts
+ReturnType.getOriginal
+```
+
+##### getOriginalHistory()
+
+```ts
+getOriginalHistory(assetId): Promise<{
+  results: AssetOriginalHistoryEntry[];
+}>;
+```
+
+The history of an asset's original, newest first. Needs `canGetAssetOriginal`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+
+###### Returns
+
+`Promise`\<\{
+  `results`: `AssetOriginalHistoryEntry`[];
+\}\>
+
+The history.
+
+###### Inherited from
+
+```ts
+ReturnType.getOriginalHistory
+```
+
 ##### getPublicLinks()
 
 ```ts
@@ -1332,6 +1415,33 @@ attachment's workspace doesn't match the destination project's.
 ReturnType.promoteAttachmentToProject
 ```
 
+##### pruneOriginal()
+
+```ts
+pruneOriginal(assetId): Promise<Asset>;
+```
+
+Requests that an asset's original be pruned once the undo window has
+passed (`pruneAfter`). Needs `canPruneAsset`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+
+###### Returns
+
+`Promise`\<`Asset`\>
+
+The asset, now waiting to be pruned.
+
+###### Inherited from
+
+```ts
+ReturnType.pruneOriginal
+```
+
 ##### reactivatePublicLink()
 
 ```ts
@@ -1468,6 +1578,33 @@ Array of repair results.
 
 ```ts
 ReturnType.repairAssets
+```
+
+##### setKeepOriginal()
+
+```ts
+setKeepOriginal(assetId, keepOriginal): Promise<Asset>;
+```
+
+Exempts an asset from pruning, or lifts the exemption. Needs `canPruneAsset`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+| `keepOriginal` | `boolean` | True to exempt the asset. |
+
+###### Returns
+
+`Promise`\<`Asset`\>
+
+The asset.
+
+###### Inherited from
+
+```ts
+ReturnType.setKeepOriginal
 ```
 
 ##### tagAsset()
@@ -2531,6 +2668,33 @@ The updated submission object.
 ReturnType.addItemsToSubmission
 ```
 
+##### cancelPruneOriginals()
+
+```ts
+cancelPruneOriginals(projectId, selection): Promise<AssetPruneCancelResult>;
+```
+
+Cancels every waiting prune in the selection. Needs `canPruneAsset` on the project.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `projectId` | `string` | The project ID. |
+| `selection` | `AssetPruneSelection` | Asset ids, creator-tree paths, or both. |
+
+###### Returns
+
+`Promise`\<`AssetPruneCancelResult`\>
+
+The cancelled assets, and those with nothing waiting.
+
+###### Inherited from
+
+```ts
+ReturnType.cancelPruneOriginals
+```
+
 ##### copyItemsToPath()
 
 ```ts
@@ -3401,6 +3565,32 @@ Paginated list of items at the path.
 ReturnType.getItemsAtPath
 ```
 
+##### getOriginalPruningSummary()
+
+```ts
+getOriginalPruningSummary(projectId): Promise<ProjectPruningSummary>;
+```
+
+The project's pruning policy and what it has done. Needs `canManageProjectSettings`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `projectId` | `string` | The project ID. |
+
+###### Returns
+
+`Promise`\<`ProjectPruningSummary`\>
+
+The summary.
+
+###### Inherited from
+
+```ts
+ReturnType.getOriginalPruningSummary
+```
+
 ##### getProject()
 
 ```ts
@@ -4034,6 +4224,62 @@ would go with the selection.
 
 ```ts
 ReturnType.previewDeleteItemsAtPath
+```
+
+##### previewPruneOriginals()
+
+```ts
+previewPruneOriginals(projectId, selection): Promise<AssetPrunePreview>;
+```
+
+What pruning the originals of a selection of the project's assets would
+do, without doing it. Needs `canPruneAsset` on the project.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `projectId` | `string` | The project ID. |
+| `selection` | `AssetPruneSelection` | Asset ids, creator-tree paths, or both. |
+
+###### Returns
+
+`Promise`\<`AssetPrunePreview`\>
+
+Each asset's eligibility, and the totals.
+
+###### Inherited from
+
+```ts
+ReturnType.previewPruneOriginals
+```
+
+##### pruneOriginals()
+
+```ts
+pruneOriginals(projectId, selection): Promise<AssetPruneRequestResult>;
+```
+
+Requests prunes for every asset in the selection that can be pruned.
+Needs `canPruneAsset` on the project.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `projectId` | `string` | The project ID. |
+| `selection` | `AssetPruneSelection` | Asset ids, creator-tree paths, or both. |
+
+###### Returns
+
+`Promise`\<`AssetPruneRequestResult`\>
+
+The requested and skipped assets.
+
+###### Inherited from
+
+```ts
+ReturnType.pruneOriginals
 ```
 
 ##### publishItems()

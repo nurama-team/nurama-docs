@@ -22,8 +22,9 @@
 | <a id="chats"></a> `chats?` | \{ `creator?`: [`Chat`](#chat); `reviewer?`: [`Chat`](#chat); \} | - | - |
 | `chats.creator?` | [`Chat`](#chat) | - | - |
 | `chats.reviewer?` | [`Chat`](#chat) | - | - |
-| <a id="checksum"></a> `checksum` | `string` | MD5 checksum of original file. **Format** md5 | `Omit.checksum` |
-| <a id="checksumalgorithm"></a> `checksumAlgorithm?` | `"md5"` | The algorithm used for computing the checksum. | `Omit.checksumAlgorithm` |
+| <a id="checksum"></a> `checksum` | `string` | Client-supplied fingerprint of the original, used to spot duplicate uploads. The web and mobile apps send a SHA-256 of the whole file up to 4 MB and of its first 2 MB, last 2 MB and size beyond that; older SDK callers sent MD5. It is not a full-file hash — see `contentSha256`. | `Omit.checksum` |
+| <a id="checksumalgorithm"></a> `checksumAlgorithm?` | `string` \| `null` | The algorithm used for computing the checksum, when recorded. | `Omit.checksumAlgorithm` |
+| <a id="contentsha256"></a> `contentSha256?` | `string` \| `null` | Full-file SHA-256 of the original, computed server-side once the upload has been read. Null until then. | `Omit.contentSha256` |
 | <a id="createdat"></a> `createdAt?` | `number` | The timestamp when the asset was created. **Format** int64 | `Omit.createdAt` |
 | <a id="creator"></a> `creator?` | `PublicUser` | Public user information of the creator. | `Omit.creator` |
 | <a id="creatorid"></a> `creatorId` | `string` | The ID of the user who created the asset. **Format** objectId | `Omit.creatorId` |
@@ -39,12 +40,24 @@
 | <a id="id"></a> `id` | `string` | The id of the asset. **Format** objectId | `Omit.id` |
 | <a id="inheritance"></a> `inheritance?` | `any` | Populated inheritance data. | `Omit.inheritance` |
 | <a id="inheritanceid"></a> `inheritanceId?` | `string` \| `null` | ID of the inheritance object associated with this asset. **Format** objectId | `Omit.inheritanceId` |
+| <a id="keeporiginal"></a> `keepOriginal?` | `boolean` | True when the asset is exempt from pruning. | `Omit.keepOriginal` |
 | <a id="keypath"></a> `keyPath` | `string` | The path used by the file system (like an S3 bucket) for the asset. | `Omit.keyPath` |
 | <a id="mediatype"></a> `mediaType` | `"image"` \| `"video"` \| `"audio"` \| `"file"` \| `"3d"` \| `"document"` | The media type of the asset. | `Omit.mediaType` |
 | <a id="meta"></a> `meta?` | `Record`\<`string`, `any`\> | Additional metadata for the asset. **Default** `{}` | `Omit.meta` |
 | <a id="name"></a> `name` | `string` | The name of the asset used on the platform. | `Omit.name` |
+| <a id="originalextension"></a> `originalExtension?` | `string` \| `null` | Lower-case extension of the original file, without the dot. | `Omit.originalExtension` |
+| <a id="originalname"></a> `originalName?` | `string` \| `null` | The file name the original was uploaded under. Unlike `name` it does not change when the asset is renamed. Best effort for assets uploaded before it was recorded. | `Omit.originalName` |
+| <a id="originalsizeinbytes"></a> `originalSizeInBytes?` | `number` \| `null` | Size of the original file in bytes. Unlike `sizeInBytes`, which totals every file the asset holds, this is the upload alone. | `Omit.originalSizeInBytes` |
+| <a id="originalstate"></a> `originalState?` | \| `"stored"` \| `"pruneRequested"` \| `"pruning"` \| `"pruned"` \| `"restoring"` \| `"awaitingConfirmation"` | Where the original file is: `stored` while it is in storage, otherwise pruned or in transition. | `Omit.originalState` |
 | <a id="ownerresourceid"></a> `ownerResourceId` | `string` | The id of the resource that the asset is attached to. **Format** objectId | `Omit.ownerResourceId` |
 | <a id="ownerresourcetype"></a> `ownerResourceType` | `"project"` \| `"chatMessage"` \| `"user"` | The type of the owner resource. | `Omit.ownerResourceType` |
+| <a id="processingcompletedat"></a> `processingCompletedAt?` | `number` \| `null` | When post-processing finished (Unix ms), or null while it is running or has not run. | `Omit.processingCompletedAt` |
+| <a id="pruneafter"></a> `pruneAfter?` | `number` \| `null` | When a requested prune runs (Unix ms): the end of the undo window, or the next retry after a failed attempt. | `Omit.pruneAfter` |
+| <a id="pruneattempts"></a> `pruneAttempts?` | `number` | Failed prune attempts since the last success or request. | `Omit.pruneAttempts` |
+| <a id="prunedat"></a> `prunedAt?` | `number` \| `null` | When the original was pruned (Unix ms). | `Omit.prunedAt` |
+| <a id="pruneerror"></a> `pruneError?` | `string` \| `null` | Why the last prune attempt failed, or why the policy set the asset aside. | `Omit.pruneError` |
+| <a id="prunereason"></a> `pruneReason?` | `"manual"` \| `"policy"` \| `null` | Whether a person or the project policy asked for the prune. | `Omit.pruneReason` |
+| <a id="prunerequestedbyid"></a> `pruneRequestedById?` | `string` \| `null` | Who requested the waiting prune; null for the project policy. | `Omit.pruneRequestedById` |
 | <a id="publishedon"></a> `publishedOn?` | `string` \| `null` | The date when the asset was published. If not published, this will be null. **Format** date-time **Default** `null` | `Omit.publishedOn` |
 | <a id="publisher"></a> `publisher?` | `PublicUser` | Public user information of the publisher (if published). | `Omit.publisher` |
 | <a id="publisherid"></a> `publisherId?` | `string` \| `null` | The ID of the user who published the asset (if published). **Format** objectId **Default** `null` | `Omit.publisherId` |
@@ -322,6 +335,7 @@ type RepairAssetsResponse = any[];
 
 ```ts
 function default(client): {
+  cancelPruneOriginal: Promise<Asset>;
   cleanupUploadSessions: void;
   completeCustomThumbnailUpload: Promise<{
      key: string;
@@ -371,6 +385,10 @@ function default(client): {
   getDocumentViewUrl: Promise<DocumentViewUrlResponse>;
   getFile: Promise<File>;
   getFilesByFunctionType: Promise<File[]>;
+  getOriginal: Promise<AssetOriginalStatus>;
+  getOriginalHistory: Promise<{
+     results: AssetOriginalHistoryEntry[];
+  }>;
   getPublicLinks: Promise<{
      results: PublicAssetLink[];
   }>;
@@ -384,11 +402,13 @@ function default(client): {
      asset: Asset;
      deduped: boolean;
   }>;
+  pruneOriginal: Promise<Asset>;
   reactivatePublicLink: Promise<PublicAssetLink>;
   recordAccessActivity: Promise<void>;
   removeCustomThumbnail: Promise<Asset>;
   removeUploadSession: void;
   repairAssets: Promise<RepairAssetsResponse>;
+  setKeepOriginal: Promise<Asset>;
   tagAsset: Promise<AssetWithChats>;
   untagAsset: Promise<AssetWithChats>;
   updateAsset: Promise<AssetWithChats>;
@@ -410,6 +430,7 @@ An object containing the asset-related methods.
 
 | Name | Type | Description |
 | ------ | ------ | ------ |
+| `cancelPruneOriginal()` | (`assetId`) => `Promise`\<`Asset`\> | Cancels a requested prune before it runs. Needs `canPruneAsset`. |
 | `cleanupUploadSessions()` | (`projectId`, `olderThanMs?`) => `void` | Clean up old upload sessions for a project |
 | `completeCustomThumbnailUpload()` | (`assetId`, `data`) => `Promise`\<\{ `key`: `string`; `status`: `string`; \}\> | Finalize the multipart S3 upload for a custom thumbnail. Triggers the post-processing Lambda by committing the S3 object. |
 | `completeUpload()` | (`uploadData`) => `Promise`\<`any`\> | Complete a multipart upload initiated by `createAssets`. Matches the route (`POST /v1/assets/complete-upload`) and mirrors `nuramaClient.scratch.completeUpload`, so moving between the asset and scratch namespaces uses the same verb. |
@@ -427,6 +448,8 @@ An object containing the asset-related methods.
 | `getDocumentViewUrl()` | (`assetId`) => `Promise`\<[`DocumentViewUrlResponse`](#documentviewurlresponse)\> | Mints a short-lived signed URL for rendering a document inline. Documents keep their `media` PDF in the private bucket, so unlike images and video it cannot be addressed by keyPath through the file CDN. Fetch this per document open; do not cache it past `expires`. |
 | `getFile()` | (`assetId`, `fileId`) => `Promise`\<`File`\> | Retrieves a specific file from an asset. |
 | `getFilesByFunctionType()` | (`assetId`, `functionType`) => `Promise`\<`File`[]\> | Retrieves files of a specific function type from an asset. |
+| `getOriginal()` | (`assetId`) => `Promise`\<`AssetOriginalStatus`\> | Where an asset's original is, what the project's pruning policy will do with it, and whether it can be pruned by hand now. Needs `canGetAssetOriginal`. |
+| `getOriginalHistory()` | (`assetId`) => `Promise`\<\{ `results`: `AssetOriginalHistoryEntry`[]; \}\> | The history of an asset's original, newest first. Needs `canGetAssetOriginal`. |
 | `getPublicLinks()` | (`assetId`, `options?`) => `Promise`\<\{ `results`: [`PublicAssetLink`](#publicassetlink)[]; \}\> | Get all public download links for an asset. |
 | `getUploadSession()` | (`projectId`, `sessionId`) => `UploadSessionData` \| `null` | Get a specific upload session |
 | `getUploadSessions()` | (`projectId`) => `UploadSessionData`[] | Get all active upload sessions for a project |
@@ -435,11 +458,13 @@ An object containing the asset-related methods.
 | `offUploadSessionMessage()` | (`listenerId`) => `void` | Unregister a cross-tab upload session message listener |
 | `onUploadSessionMessage()` | (`listenerId`, `callback`) => `void` | Register a listener for cross-tab upload session messages |
 | `promoteAttachmentToProject()` | (`assetId`, `payload`) => `Promise`\<\{ `asset`: `Asset`; `deduped`: `boolean`; \}\> | Promote a chat-message attachment into a project as a fresh, independent project asset. The source attachment is left untouched; the new project asset has its own lifecycle, post-processing pipeline, and storage footprint. Idempotent: a second promote of the same source into the same project returns the existing promoted asset with `deduped: true`. Requires `canCreateAsset` on the destination project — reviewers are blocked. The server additionally rejects when the source attachment's workspace doesn't match the destination project's. |
+| `pruneOriginal()` | (`assetId`) => `Promise`\<`Asset`\> | Requests that an asset's original be pruned once the undo window has passed (`pruneAfter`). Needs `canPruneAsset`. |
 | `reactivatePublicLink()` | ( `assetId`, `linkId`, `data?` ) => `Promise`\<[`PublicAssetLink`](#publicassetlink)\> | Reactivate a disabled/expired public download link. |
 | `recordAccessActivity()` | (`assetId`, `body`) => `Promise`\<`void`\> | Record an authenticated play event from the in-app player. Fire-and-forget; server returns 204. Throw-on-failure is fine because the caller already de-dupes per session. |
 | `removeCustomThumbnail()` | (`assetId`) => `Promise`\<`Asset`\> | Remove the custom thumbnail from an asset. Soft-deletes all custom thumb files; the asset falls back to the auto-generated thumbnail. |
 | `removeUploadSession()` | (`projectId`, `sessionId`) => `void` | Remove an upload session |
 | `repairAssets()` | (`assetIds`) => `Promise`\<[`RepairAssetsResponse`](#repairassetsresponse)\> | Attempts to repair assets (e.g., regenerate signed URLs for pending uploads). |
+| `setKeepOriginal()` | (`assetId`, `keepOriginal`) => `Promise`\<`Asset`\> | Exempts an asset from pruning, or lifts the exemption. Needs `canPruneAsset`. |
 | `tagAsset()` | (`assetId`, `tagData`) => `Promise`\<[`AssetWithChats`](#assetwithchats)\> | Tags an asset with a specific tag. |
 | `untagAsset()` | (`assetId`, `untagData`) => `Promise`\<[`AssetWithChats`](#assetwithchats)\> | Untags an asset by removing a specific tag. |
 | `updateAsset()` | (`assetId`, `updateData`) => `Promise`\<[`AssetWithChats`](#assetwithchats)\> | Updates an asset. |

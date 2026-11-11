@@ -134,6 +134,9 @@
         "assetFileUpdate": {
           "$ref": "#/components/messages/assetFileUpdate"
         },
+        "assetOriginalStateUpdate": {
+          "$ref": "#/components/messages/assetOriginalStateUpdate"
+        },
         "assetGroupUploadComplete": {
           "$ref": "#/components/messages/assetGroupUploadComplete"
         },
@@ -569,6 +572,9 @@
         },
         "assetFileUpdate": {
           "$ref": "#/components/messages/assetFileUpdate"
+        },
+        "assetOriginalStateUpdate": {
+          "$ref": "#/components/messages/assetOriginalStateUpdate"
         },
         "assetGroupUploadComplete": {
           "$ref": "#/components/messages/assetGroupUploadComplete"
@@ -1129,6 +1135,9 @@
           "$ref": "#/channels/resource/messages/assetFileUpdate"
         },
         {
+          "$ref": "#/channels/resource/messages/assetOriginalStateUpdate"
+        },
+        {
           "$ref": "#/channels/resource/messages/assetGroupUploadComplete"
         },
         {
@@ -1550,6 +1559,9 @@
         },
         {
           "$ref": "#/channels/public/messages/assetFileUpdate"
+        },
+        {
+          "$ref": "#/channels/public/messages/assetOriginalStateUpdate"
         },
         {
           "$ref": "#/channels/public/messages/assetGroupUploadComplete"
@@ -4450,6 +4462,103 @@
           "keyPath",
           "functionType",
           "fileCount"
+        ]
+      },
+      "assetOriginalStateUpdate": {
+        "name": "assetOriginalStateUpdate",
+        "title": "assetOriginalStateUpdate",
+        "summary": "Fired when the state of assets' originals changes — a prune requested, cancelled, done or failed, or the keep-original exemption toggled.",
+        "description": "One event can cover several assets (a bulk request), all moved to the same `originalState` by the same `action`. Each changed asset is in `changes.update`.\n\nPayload for the assetOriginalStateUpdate event. Sent on the project's creator channel, and the asset's own channel when one asset changed.\n\nDelivered as the `notification` socket event with `type` set to `assetOriginalStateUpdate`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
+        "payload": {
+          "description": "One event can cover several assets (a bulk request), all moved to the same `originalState` by the same `action`. Each changed asset is in `changes.update`.",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/BaseNotificationEvent"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "tokens": {
+                  "type": "object",
+                  "properties": {
+                    "(*)assetIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "(*)originalState": {
+                      "type": "string",
+                      "enum": [
+                        "stored",
+                        "pruneRequested",
+                        "pruning",
+                        "pruned"
+                      ],
+                      "description": "The state the assets are now in."
+                    },
+                    "(*)action": {
+                      "type": "string",
+                      "enum": [
+                        "pruneRequested",
+                        "pruneCancelled",
+                        "pruned",
+                        "pruneFailed",
+                        "keepOriginalSet",
+                        "keepOriginalCleared"
+                      ],
+                      "description": "The history action that moved them there."
+                    }
+                  },
+                  "required": [
+                    "assetIds",
+                    "originalState",
+                    "action"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "changes": {
+                  "type": "object",
+                  "properties": {
+                    "update": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "resourceType": {
+                            "type": "string",
+                            "enum": [
+                              "asset"
+                            ]
+                          },
+                          "resource": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "update"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "x-notification-tokens": [
+          "assetIds",
+          "originalState",
+          "action"
         ]
       },
       "assetGroupUploadComplete": {
