@@ -42,7 +42,7 @@
 | <a id="inheritanceid"></a> `inheritanceId?` | `string` \| `null` | ID of the inheritance object associated with this asset. **Format** objectId | `Omit.inheritanceId` |
 | <a id="keeporiginal"></a> `keepOriginal?` | `boolean` | True when the asset is exempt from pruning. | `Omit.keepOriginal` |
 | <a id="keypath"></a> `keyPath` | `string` | The path used by the file system (like an S3 bucket) for the asset. | `Omit.keyPath` |
-| <a id="mediatype"></a> `mediaType` | `"image"` \| `"video"` \| `"audio"` \| `"file"` \| `"3d"` \| `"document"` | The media type of the asset. | `Omit.mediaType` |
+| <a id="mediatype"></a> `mediaType` | `"image"` \| `"video"` \| `"audio"` \| `"3d"` \| `"document"` \| `"file"` | The media type of the asset. | `Omit.mediaType` |
 | <a id="meta"></a> `meta?` | `Record`\<`string`, `any`\> | Additional metadata for the asset. **Default** `{}` | `Omit.meta` |
 | <a id="name"></a> `name` | `string` | The name of the asset used on the platform. | `Omit.name` |
 | <a id="originalextension"></a> `originalExtension?` | `string` \| `null` | Lower-case extension of the original file, without the dot. | `Omit.originalExtension` |

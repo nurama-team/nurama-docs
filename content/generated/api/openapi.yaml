@@ -14155,9 +14155,10 @@ paths:
 
         The frontend resolves keyPaths against `VITE_NURAMA_FILE_BASEPATH` and uses
         HLS.js to play the `.m3u8` manifest when `streamKeyPath` is present, falling
-        back to the original media file otherwise. Only `video` and `audio` assets are
-        meant to be embedded; the response still returns paths for other media types,
-        but the embed UI surface gates the feature client-side.
+        back to the original media file otherwise. `video`, `audio`, `3d` and `document`
+        assets embed: a 3D asset plays its processed `media` model (`mediaKeyPath`), and a
+        document fetches its viewer PDF from `/public-download/{token}/document-view`.
+        Other media types return paths for completeness but aren't embedded.
 
         No authentication required. Returns minimal file info — never the full asset
         record (no `id`, `files`, `creatorId`, etc.).
@@ -14197,10 +14198,12 @@ paths:
                       - video
                       - audio
                       - image
+                      - 3d
+                      - document
                       - file
                     description: |
-                      Media type of the asset. Embed UI is only exposed for `video` and `audio`;
-                      other types are returned for completeness but should not be embedded.
+                      Media type of the asset. Embed UI is exposed for `video`, `audio`, `3d` and
+                      `document`; other types are returned for completeness but aren't embedded.
                     example: video
                   mode:
                     type: string
@@ -14282,6 +14285,95 @@ paths:
             or the owning workspace has no active subscription
             (`publicAssetLinkOwnerInactive`). The link row itself is unchanged in
             the latter case — access resumes if the subscription is restored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Public asset link not found (`publicAssetLinkNotFound`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '410':
+          description: Link has expired (`publicAssetLinkExpired`) or is disabled (`publicAssetLinkInactive`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-credential: any
+  /public-download/{token}/document-view:
+    get:
+      summary: Get a signed view URL for a shared document
+      description: |
+        Returns a short-lived signed URL for the viewer PDF of the `document` asset
+        behind a public download token, so the share page and the embed can show the
+        document itself. Serves the processed `media` derivative (page-capped, PDF
+        permission flags stripped) — never the original, which only
+        `/public-download/{token}/download` serves, and only on links that allow it.
+
+        Offered on every active link that shows a preview, including links shared
+        without original downloads (`embed`). `download`-only links have no preview
+        and are rejected with 403.
+
+        No authentication required.
+      tags:
+        - PublicAssetLinks
+      parameters:
+        - in: path
+          name: token
+          required: true
+          description: The 10-character alphanumeric public download token.
+          schema:
+            type: string
+            pattern: ^[a-zA-Z0-9]{10}$
+            example: Ab3dEf9HiJ
+      responses:
+        '200':
+          description: Signed view URL and document page metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - url
+                  - expires
+                properties:
+                  url:
+                    type: string
+                    description: 'Signed GET URL (`Content-Type: application/pdf`, `Content-Disposition: inline`).'
+                  expires:
+                    type: integer
+                    format: int64
+                    description: Unix timestamp (seconds) when the signed URL expires.
+                    example: 1705988395
+                  pageCount:
+                    type: integer
+                    description: Number of pages in the served (possibly truncated) PDF.
+                  pagesTruncated:
+                    type: boolean
+                    description: True when the served PDF holds only part of the original document.
+                  truncatedFrom:
+                    type: string
+                    enum:
+                      - start
+                      - end
+                    description: Which end of the document the served pages were kept from.
+                  originalPageCount:
+                    type: integer
+                    description: Page count of the original document.
+        '400':
+          description: |
+            `assetNotFound` (the asset is no longer active), `invalidAssetType` (not a
+            document), or `fileNotFound` (the viewer PDF isn't ready yet).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: |
+            Either the link is download-only (`publicAssetLinkDownloadOnly`), or the
+            owning workspace has no active subscription (`publicAssetLinkOwnerInactive`).
           content:
             application/json:
               schema:

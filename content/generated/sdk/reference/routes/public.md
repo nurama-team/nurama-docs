@@ -129,6 +129,7 @@ function default(client): {
   getPublicAsset: Promise<PublicAssetResponse>;
   getPublicChat: Promise<Chat | null>;
   getPublicChatMessages: Promise<PublicChatMessagesResponse>;
+  getPublicDocumentViewUrl: Promise<DocumentViewUrlResponse>;
   getPublicDownloadUrl: Promise<PublicDownloadUrlResponse>;
   getPublicEmbedFiles: Promise<PublicEmbedFilesResponse>;
   getPublicFileSystem: Promise<PublicFileSystemDetailsResponse>;
@@ -158,6 +159,7 @@ Defines public route methods for unauthenticated access to public file systems.
 | `getPublicAsset()` | (`token`, `assetId`) => `Promise`\<`PublicAssetResponse`\> | Gets an asset with its public chat in the context of a public file system. This endpoint does not require authentication for read access. **Example** `const asset = await nuramaClient.public.getPublicAsset('abc123def4', 'asset-id'); if (asset.chats.public) { console.log('Asset has public chat:', asset.chats.public.id); }` |
 | `getPublicChat()` | (`token`, `chatId?`) => `Promise`\<`Chat` \| `null`\> | Gets the main public file system chat or a specific chat by ID. This endpoint does not require authentication for read access. **Example** `// Get main public file system chat const mainChat = await nuramaClient.public.getPublicChat('abc123def4'); // Get specific chat by ID const chat = await nuramaClient.public.getPublicChat('abc123def4', 'chat-id-here');` |
 | `getPublicChatMessages()` | ( `token`, `chatId`, `params?` ) => `Promise`\<`PublicChatMessagesResponse`\> | Gets paginated messages for a public chat. This endpoint does not require authentication for read access. **Example** `const messages = await nuramaClient.public.getPublicChatMessages('abc123def4', 'chat-id', { limit: 20, paginateReverse: false, });` |
+| `getPublicDocumentViewUrl()` | (`token`) => `Promise`\<[`DocumentViewUrlResponse`](asset.md#documentviewurlresponse)\> | Get a short-lived signed URL for a shared document's viewer PDF (the page-capped `media` derivative, never the original), for the share page and the embed. Public endpoint; fails with 403 for download-only links and 400 for anything but a document. **Throws** 'token is required.' when `token` is falsy. |
 | `getPublicDownloadUrl()` | (`token`) => `Promise`\<[`PublicDownloadUrlResponse`](shortlink.md#publicdownloadurlresponse)\> | Get a short-lived signed download URL for a public asset-link token. Public endpoint; fails with 403 for embed-only links. **Throws** 'token is required.' when `token` is falsy. |
 | `getPublicEmbedFiles()` | (`token`) => `Promise`\<[`PublicEmbedFilesResponse`](shortlink.md#publicembedfilesresponse)\> | Get the HLS stream and fallback media key paths for the embeddable player. Public endpoint; fails with 403 for download-only links. **Throws** 'token is required.' when `token` is falsy. |
 | `getPublicFileSystem()` | (`token`) => `Promise`\<[`PublicFileSystemDetailsResponse`](#publicfilesystemdetailsresponse)\> | Gets public file system details by token. This endpoint does not require authentication - access is controlled by the token. **Example** `const publicFileSystem = await nuramaClient.public.getPublicFileSystem('abc123def4');` |

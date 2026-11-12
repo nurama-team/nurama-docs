@@ -20922,7 +20922,7 @@
     "/public-download/{token}/embed-files": {
       "get": {
         "summary": "Resolve a public asset link to embed-player file paths",
-        "description": "Returns the HLS streaming manifest keyPath and a fallback original-media keyPath\nfor the asset behind a public download token. Used by the in-iframe embeddable\nplayer at /public/{token}/embed.\n\nThe frontend resolves keyPaths against `VITE_NURAMA_FILE_BASEPATH` and uses\nHLS.js to play the `.m3u8` manifest when `streamKeyPath` is present, falling\nback to the original media file otherwise. Only `video` and `audio` assets are\nmeant to be embedded; the response still returns paths for other media types,\nbut the embed UI surface gates the feature client-side.\n\nNo authentication required. Returns minimal file info — never the full asset\nrecord (no `id`, `files`, `creatorId`, etc.).\n",
+        "description": "Returns the HLS streaming manifest keyPath and a fallback original-media keyPath\nfor the asset behind a public download token. Used by the in-iframe embeddable\nplayer at /public/{token}/embed.\n\nThe frontend resolves keyPaths against `VITE_NURAMA_FILE_BASEPATH` and uses\nHLS.js to play the `.m3u8` manifest when `streamKeyPath` is present, falling\nback to the original media file otherwise. `video`, `audio`, `3d` and `document`\nassets embed: a 3D asset plays its processed `media` model (`mediaKeyPath`), and a\ndocument fetches its viewer PDF from `/public-download/{token}/document-view`.\nOther media types return paths for completeness but aren't embedded.\n\nNo authentication required. Returns minimal file info — never the full asset\nrecord (no `id`, `files`, `creatorId`, etc.).\n",
         "tags": [
           "PublicAssetLinks"
         ],
@@ -20966,9 +20966,11 @@
                         "video",
                         "audio",
                         "image",
+                        "3d",
+                        "document",
                         "file"
                       ],
-                      "description": "Media type of the asset. Embed UI is only exposed for `video` and `audio`;\nother types are returned for completeness but should not be embedded.\n",
+                      "description": "Media type of the asset. Embed UI is exposed for `video`, `audio`, `3d` and\n`document`; other types are returned for completeness but aren't embedded.\n",
                       "example": "video"
                     },
                     "mode": {
@@ -21041,6 +21043,117 @@
           },
           "403": {
             "description": "Either the link mode forbids embedding (`publicAssetLinkDownloadOnly`),\nor the owning workspace has no active subscription\n(`publicAssetLinkOwnerInactive`). The link row itself is unchanged in\nthe latter case — access resumes if the subscription is restored.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Public asset link not found (`publicAssetLinkNotFound`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Link has expired (`publicAssetLinkExpired`) or is disabled (`publicAssetLinkInactive`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-credential": "any"
+      }
+    },
+    "/public-download/{token}/document-view": {
+      "get": {
+        "summary": "Get a signed view URL for a shared document",
+        "description": "Returns a short-lived signed URL for the viewer PDF of the `document` asset\nbehind a public download token, so the share page and the embed can show the\ndocument itself. Serves the processed `media` derivative (page-capped, PDF\npermission flags stripped) — never the original, which only\n`/public-download/{token}/download` serves, and only on links that allow it.\n\nOffered on every active link that shows a preview, including links shared\nwithout original downloads (`embed`). `download`-only links have no preview\nand are rejected with 403.\n\nNo authentication required.\n",
+        "tags": [
+          "PublicAssetLinks"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "description": "The 10-character alphanumeric public download token.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9]{10}$",
+              "example": "Ab3dEf9HiJ"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signed view URL and document page metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "url",
+                    "expires"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "Signed GET URL (`Content-Type: application/pdf`, `Content-Disposition: inline`)."
+                    },
+                    "expires": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "Unix timestamp (seconds) when the signed URL expires.",
+                      "example": 1705988395
+                    },
+                    "pageCount": {
+                      "type": "integer",
+                      "description": "Number of pages in the served (possibly truncated) PDF."
+                    },
+                    "pagesTruncated": {
+                      "type": "boolean",
+                      "description": "True when the served PDF holds only part of the original document."
+                    },
+                    "truncatedFrom": {
+                      "type": "string",
+                      "enum": [
+                        "start",
+                        "end"
+                      ],
+                      "description": "Which end of the document the served pages were kept from."
+                    },
+                    "originalPageCount": {
+                      "type": "integer",
+                      "description": "Page count of the original document."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`assetNotFound` (the asset is no longer active), `invalidAssetType` (not a\ndocument), or `fileNotFound` (the viewer PDF isn't ready yet).\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Either the link is download-only (`publicAssetLinkDownloadOnly`), or the\nowning workspace has no active subscription (`publicAssetLinkOwnerInactive`).\n",
             "content": {
               "application/json": {
                 "schema": {
