@@ -3229,6 +3229,7 @@ components:
                       - pruneRequested
                       - pruning
                       - pruned
+                      - restoring
                     description: The state the assets are now in.
                   (*)action:
                     type: string
@@ -3239,6 +3240,11 @@ components:
                       - pruneFailed
                       - keepOriginalSet
                       - keepOriginalCleared
+                      - reattachStarted
+                      - reattached
+                      - reattachRejected
+                      - reattachCancelled
+                      - reattachFailed
                     description: The history action that moved them there.
                 required:
                   - assetIds

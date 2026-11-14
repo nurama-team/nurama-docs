@@ -575,6 +575,32 @@ The asset, with its original back to `stored`.
 ReturnType.cancelPruneOriginal
 ```
 
+##### cancelReattachOriginal()
+
+```ts
+cancelReattachOriginal(assetId): Promise<Asset>;
+```
+
+Cancels a re-attach whose upload has not completed; the original is pruned again.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+
+###### Returns
+
+`Promise`\<`Asset`\>
+
+The asset.
+
+###### Inherited from
+
+```ts
+ReturnType.cancelReattachOriginal
+```
+
 ##### cleanupUploadSessions()
 
 ```ts
@@ -633,6 +659,39 @@ post-processing Lambda by committing the S3 object.
 
 ```ts
 ReturnType.completeCustomThumbnailUpload
+```
+
+##### completeReattachOriginal()
+
+```ts
+completeReattachOriginal(assetId, data): Promise<Asset>;
+```
+
+Completes a re-attach upload. The file is verified against the
+original's SHA-256 in the background: the asset comes back still
+`restoring`, and the outcome arrives as an `assetOriginalStateUpdate`
+(`stored` when it matched, `pruned` when it did not).
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+| `data` | \{ `key`: `string`; `parts`: \{ `ETag`: `string`; `PartNumber`: `number`; \}[]; `uploadId`: `string`; \} | The completed upload. |
+| `data.key` | `string` | - |
+| `data.parts` | \{ `ETag`: `string`; `PartNumber`: `number`; \}[] | - |
+| `data.uploadId` | `string` | - |
+
+###### Returns
+
+`Promise`\<`Asset`\>
+
+The asset, `restoring` while the file is verified.
+
+###### Inherited from
+
+```ts
+ReturnType.completeReattachOriginal
 ```
 
 ##### completeUpload()
@@ -1476,6 +1535,46 @@ The reactivated public link.
 ReturnType.reactivatePublicLink
 ```
 
+##### reattachOriginal()
+
+```ts
+reattachOriginal(
+   assetId, 
+   file, 
+   options
+): Promise<Asset>;
+```
+
+Re-attaches a pruned original from a file: starts the re-attach, uploads
+the file and completes it. Aborting (`abortSignal`) or a failed upload
+cancels the re-attach. Resolves once the upload is committed; the
+verification outcome arrives as an `assetOriginalStateUpdate`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+| `file` | `string` \| `File` \| `Blob` \| `Buffer`\<`ArrayBufferLike`\> | The file. |
+| `options` | \{ `abortSignal?`: `AbortSignal`; `checksum?`: `string`; `fileName`: `string`; `onProgress?`: (`progress`) => `void`; `sizeInBytes`: `number`; \} | - |
+| `options.abortSignal?` | `AbortSignal` | - |
+| `options.checksum?` | `string` | Its upload fingerprint, to refuse a wrong file before sending it. |
+| `options.fileName` | `string` | The file's name. |
+| `options.onProgress?` | (`progress`) => `void` | - |
+| `options.sizeInBytes` | `number` | Its size. |
+
+###### Returns
+
+`Promise`\<`Asset`\>
+
+The asset, `restoring` while the file is verified.
+
+###### Inherited from
+
+```ts
+ReturnType.reattachOriginal
+```
+
 ##### recordAccessActivity()
 
 ```ts
@@ -1606,6 +1705,41 @@ The asset.
 
 ```ts
 ReturnType.setKeepOriginal
+```
+
+##### startReattachOriginal()
+
+```ts
+startReattachOriginal(assetId, data): Promise<AssetOriginalReattachStart>;
+```
+
+Starts re-attaching a pruned original. The size and the upload
+fingerprint (`checksum`) are checked against the original's first, so a
+wrong file is refused before it is sent (`assetOriginalMismatch`, 422).
+Needs `canReattachAssetOriginal`, or `canReattachOwnAssetOriginal` on an
+asset you created. Upload the parts with `multipartUpload`, then call
+`completeReattachOriginal` — or use `reattachOriginal`, which does all three.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `assetId` | `string` | The ID of the asset. |
+| `data` | \{ `checksum?`: `string`; `fileName`: `string`; `sizeInBytes`: `number`; \} | The file. |
+| `data.checksum?` | `string` | - |
+| `data.fileName` | `string` | - |
+| `data.sizeInBytes` | `number` | - |
+
+###### Returns
+
+`Promise`\<`AssetOriginalReattachStart`\>
+
+The asset, now `restoring`, and the upload's links.
+
+###### Inherited from
+
+```ts
+ReturnType.startReattachOriginal
 ```
 
 ##### tagAsset()

@@ -4494,7 +4494,8 @@
                         "stored",
                         "pruneRequested",
                         "pruning",
-                        "pruned"
+                        "pruned",
+                        "restoring"
                       ],
                       "description": "The state the assets are now in."
                     },
@@ -4506,7 +4507,12 @@
                         "pruned",
                         "pruneFailed",
                         "keepOriginalSet",
-                        "keepOriginalCleared"
+                        "keepOriginalCleared",
+                        "reattachStarted",
+                        "reattached",
+                        "reattachRejected",
+                        "reattachCancelled",
+                        "reattachFailed"
                       ],
                       "description": "The history action that moved them there."
                     }

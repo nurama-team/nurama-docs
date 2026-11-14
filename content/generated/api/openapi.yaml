@@ -2863,6 +2863,187 @@ paths:
             - assets:write
         - bearerAuth: []
       x-required-scope: assets:write
+  /assets/{assetId}/original/reattach:
+    post:
+      summary: Start re-attaching a pruned original
+      description: |
+        Checks the file against the pruned original before any bytes are sent:
+        `sizeInBytes` must equal the original's, and `checksum` (the client
+        upload fingerprint — SHA-256 of the whole file up to 4 MB, otherwise of
+        its first and last 2 MB and its size) must equal the one recorded at
+        upload, when both are SHA-256 values. The original moves to
+        `restoring`, and the response carries multipart upload links for it:
+        upload the parts, then call `/original/reattach/complete`.
+
+        The links expire after the usual signed-link lifetime; an upload not
+        completed by then is ended by the cleanup pass and the asset is pruned
+        again. The bytes count against the workspace's storage, so a request
+        that would exceed it is refused with `uploadRequestExceedsSubscription`.
+
+        Requires `canReattachAssetOriginal`, or `canReattachOwnAssetOriginal`
+        on an asset the caller created.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileName
+                - sizeInBytes
+              properties:
+                fileName:
+                  type: string
+                  description: The file's name on the uploader's machine, for the history.
+                sizeInBytes:
+                  type: integer
+                checksum:
+                  type: string
+                  description: The client upload fingerprint.
+      responses:
+        '201':
+          description: The asset, now `restoring`, and where to upload the file.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetOriginalReattachStart'
+        '400':
+          description: The upload would exceed the workspace's storage (`uploadRequestExceedsSubscription`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: The caller may not re-attach this asset's original.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The original is not pruned (`assetOriginalNotPruned`), is already being re-attached
+            (`assetOriginalReattachInProgress`), or has no recorded hash to check a file against
+            (`assetOriginalNotVerifiable`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: >-
+            The file is not the original (`assetOriginalMismatch`): `errorData.reason` is `size` or `fingerprint`, with
+            `expected` and `received`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
+    delete:
+      summary: Cancel a re-attach before its upload completes
+      description: |
+        Aborts the upload and puts the original back to `pruned`. Refused with
+        `assetOriginalNotReattaching` (409) when no upload is waiting, including
+        once it has completed and is being verified. Requires the same rights
+        as starting one, or being the person who started it.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      responses:
+        '200':
+          description: The asset, pruned again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: No re-attach upload is waiting (`assetOriginalNotReattaching`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
+  /assets/{assetId}/original/reattach/complete:
+    post:
+      summary: Complete a re-attach upload
+      description: |
+        Commits the multipart upload and starts verifying it. Verification
+        hashes the whole file, which can take minutes for a large original, so
+        it runs in the background: the response is the asset, still
+        `restoring`, and the outcome arrives as an `assetOriginalStateUpdate`
+        event. On a match the original is `stored` again, with Keep original
+        on (`action: reattached`); otherwise the upload is deleted and the
+        original is `pruned` (`action: reattachRejected`, or `reattachFailed`
+        when the file could not be checked). Both are in the original history.
+
+        Requires the same rights as starting one, or being the person who
+        started it.
+      tags:
+        - AssetOriginals
+      parameters:
+        - $ref: '#/components/parameters/AssetOriginalAssetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - key
+                - uploadId
+                - parts
+              properties:
+                key:
+                  type: string
+                uploadId:
+                  type: string
+                parts:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - ETag
+                      - PartNumber
+                    properties:
+                      ETag:
+                        type: string
+                      PartNumber:
+                        type: integer
+      responses:
+        '202':
+          description: The asset, `restoring` while the file is verified.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: No such re-attach upload is waiting (`assetOriginalNotReattaching`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - oauth2:
+            - assets:write
+        - bearerAuth: []
+      x-required-scope: assets:write
   /projects/{projectId}/original-pruning/preview:
     post:
       summary: Preview pruning a selection of a project's assets
@@ -19568,8 +19749,9 @@ components:
             - pruning
             - pruned
             - restoring
-            - awaitingConfirmation
-          description: Where the original file is — `stored` while it is in storage, otherwise pruned or in transition.
+          description: >-
+            Where the original file is — `stored` while it is in storage, otherwise pruned or in transition.
+            `restoring`: a pruned original is being re-attached (uploaded, or verified against its recorded hash).
         processingCompletedAt:
           type: integer
           nullable: true
@@ -19598,6 +19780,19 @@ components:
           type: integer
           nullable: true
           description: When the original was pruned (Unix ms).
+        reattachStartedAt:
+          type: integer
+          nullable: true
+          description: While `restoring`, when the re-attach upload was started (Unix ms).
+        reattachById:
+          type: string
+          format: uuid
+          nullable: true
+          description: While `restoring`, who started the re-attach.
+        reattachUploadId:
+          type: string
+          nullable: true
+          description: While `restoring`, the multipart upload the file is arriving through; null once it is being verified.
         pruneAttempts:
           type: integer
           description: Failed prune attempts since the last success or request.
@@ -21070,6 +21265,13 @@ components:
           type: boolean
           default: true
           description: Leave alone assets included in a submission.
+        reattachMatchingUploads:
+          type: boolean
+          default: false
+          description: >-
+            Take an ordinary upload whose fingerprint matches a pruned asset in the project as a re-attach of its
+            original, verified against the original's hash. Off, the upload is a duplicate of the asset and its original
+            stays pruned. Applies whether or not `enabled` is set.
     AssetPruneEligibility:
       type: object
       properties:
@@ -21109,6 +21311,22 @@ components:
     AssetOriginalStatus:
       type: object
       properties:
+        reattach:
+          type: object
+          nullable: true
+          description: While the original is `restoring`, how far the re-attach has got.
+          properties:
+            phase:
+              type: string
+              enum:
+                - uploading
+                - verifying
+            startedAt:
+              type: integer
+              description: When the upload was started (Unix ms).
+            startedById:
+              type: string
+              format: uuid
         assetId:
           type: string
           format: uuid
@@ -21119,6 +21337,7 @@ components:
             - pruneRequested
             - pruning
             - pruned
+            - restoring
         keepOriginal:
           type: boolean
         pruneAfter:
@@ -21206,6 +21425,11 @@ components:
             - pruneFailed
             - keepOriginalSet
             - keepOriginalCleared
+            - reattachStarted
+            - reattached
+            - reattachRejected
+            - reattachCancelled
+            - reattachFailed
         actor:
           type: object
           nullable: true
@@ -21238,6 +21462,31 @@ components:
           nullable: true
         createdAt:
           type: integer
+    AssetOriginalReattachStart:
+      type: object
+      properties:
+        asset:
+          $ref: '#/components/schemas/Asset'
+        upload:
+          type: object
+          description: >-
+            A multipart upload: cut the file into `uploadChunkSizeInBytes` parts and PUT part N to `urls[N-1]`, keeping
+            each response's ETag.
+          properties:
+            uploadId:
+              type: string
+            key:
+              type: string
+            urls:
+              type: array
+              items:
+                type: string
+                format: uri
+            expires:
+              type: integer
+              description: When the links expire (Unix seconds).
+            uploadChunkSizeInBytes:
+              type: integer
     AssetPruneSelection:
       type: object
       description: >-
@@ -25139,6 +25388,14 @@ tags:
       original is deleted, and can be cancelled until then. The asset itself is
       pruned, so the original also disappears from every reviewer view,
       submission and public collection that shows it.
+
+      A pruned original can be re-attached by uploading the same file again
+      (`canReattachAssetOriginal`, or `canReattachOwnAssetOriginal` for the
+      asset's creator). The file is checked against the SHA-256 recorded before
+      the prune, and only the exact bytes are accepted; nothing is reprocessed.
+      A re-attached original has Keep original turned on. Uploading a file whose
+      fingerprint matches a pruned asset in the project through the normal
+      upload flow starts a re-attach of that asset too.
   - name: Join Links
     description: |
       Shareable links that add whoever opens them to a project, without an
