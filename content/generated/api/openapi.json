@@ -2232,14 +2232,14 @@
         "security": [
           {
             "oauth2": [
-              "assets:read"
+              "assets:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "assets:read"
+        "x-required-scope": "assets:write"
       },
       "delete": {
         "summary": "Mark asset for deletion",
@@ -2285,14 +2285,14 @@
         "security": [
           {
             "oauth2": [
-              "assets:read"
+              "assets:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "assets:read"
+        "x-required-scope": "assets:write"
       }
     },
     "/assets/{assetId}/references": {
@@ -4882,7 +4882,7 @@
         "security": [
           {
             "oauth2": [
-              "tasks:read"
+              "tasks:write"
             ]
           },
           {
@@ -5025,7 +5025,7 @@
             }
           }
         },
-        "x-required-scope": "tasks:read"
+        "x-required-scope": "tasks:write"
       },
       "delete": {
         "summary": "Delete a board",
@@ -5036,7 +5036,7 @@
         "security": [
           {
             "oauth2": [
-              "tasks:read"
+              "tasks:write"
             ]
           },
           {
@@ -5122,7 +5122,7 @@
             "$ref": "#/components/responses/Forbidden"
           }
         },
-        "x-required-scope": "tasks:read"
+        "x-required-scope": "tasks:write"
       }
     },
     "/boards/{boardId}/columns": {
@@ -5630,7 +5630,7 @@
         "security": [
           {
             "oauth2": [
-              "tasks:read"
+              "tasks:write"
             ]
           },
           {
@@ -5709,7 +5709,7 @@
             "$ref": "#/components/responses/Forbidden"
           }
         },
-        "x-required-scope": "tasks:read"
+        "x-required-scope": "tasks:write"
       }
     },
     "/boards/{boardId}/tasks/add": {
@@ -6113,7 +6113,7 @@
         "security": [
           {
             "oauth2": [
-              "tasks:write"
+              "tasks:read"
             ]
           },
           {
@@ -6141,7 +6141,7 @@
             "$ref": "#/components/responses/Forbidden"
           }
         },
-        "x-required-scope": "tasks:write"
+        "x-required-scope": "tasks:read"
       }
     },
     "/tasks/{taskId}/links/{linkedTaskId}": {
@@ -7866,7 +7866,7 @@
               "format": "date-time"
             },
             "required": false,
-            "description": "Get chats updated before this timestamp (only for index pagination)."
+            "description": "Get chats updated before this timestamp (only for index pagination). Unix time in milliseconds; a value that looks like seconds is rejected with a 400 `validationError`."
           },
           {
             "in": "query",
@@ -8056,14 +8056,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:write"
+              "chat:read"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:write"
+        "x-required-scope": "chat:read"
       }
     },
     "/chats/member/{chatId}": {
@@ -8168,14 +8168,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       },
       "delete": {
         "summary": "Mark member chat for deletion. From the user's perspective the chat will have been deleted. Only chat creators may delete a chat.",
@@ -8206,14 +8206,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       }
     },
     "/chats/member/{chatId}/icon": {
@@ -8583,14 +8583,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       },
       "delete": {
         "summary": "Delete an array of members from a member chat by user ID.",
@@ -8648,14 +8648,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       }
     },
     "/chats/{chatId}": {
@@ -8758,14 +8758,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       },
       "delete": {
         "summary": "Mark chat for deletion. Only chat creators may delete a chat.",
@@ -8796,14 +8796,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       }
     },
     "/chats/{chatId}/follow": {
@@ -10689,14 +10689,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       },
       "delete": {
         "summary": "Delete a message",
@@ -10730,14 +10730,14 @@
         "security": [
           {
             "oauth2": [
-              "chat:read"
+              "chat:write"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "chat:read"
+        "x-required-scope": "chat:write"
       }
     },
     "/chats/message/{messageId}/replies": {
@@ -11333,7 +11333,7 @@
               "format": "date-time"
             },
             "required": false,
-            "description": "Get mentions created before this timestamp (only for index pagination)"
+            "description": "Get mentions created before this timestamp (only for index pagination). A numeric timestamp is Unix time in milliseconds; a value that looks like seconds is rejected with a 400 `validationError`."
           },
           {
             "in": "query",
@@ -12595,7 +12595,7 @@
         "security": [
           {
             "oauth2": [
-              "assets:read"
+              "assets:write"
             ]
           },
           {
@@ -12646,7 +12646,7 @@
             "description": "Folder not found (`folderNotFound`)."
           }
         },
-        "x-required-scope": "assets:read"
+        "x-required-scope": "assets:write"
       }
     },
     "/folders/{folderId}/assets": {
@@ -14492,7 +14492,7 @@
         "security": [
           {
             "oauth2": [
-              "projects:write"
+              "projects:read"
             ]
           },
           {
@@ -14523,7 +14523,7 @@
             }
           }
         },
-        "x-required-scope": "projects:write"
+        "x-required-scope": "projects:read"
       }
     },
     "/projects/{projectId}": {
@@ -14534,7 +14534,7 @@
       ],
       "post": {
         "summary": "Create assets and signed upload links for a project.",
-        "description": "Creates assets in the project's creator tree and returns signed upload links. Requires `canCreateAsset`. When a submitted file's checksum matches an asset already in the project, no bytes are transferred: the platform adds another FileSystem reference to the existing asset and reports `status: success` with `referencesExistingAsset: true` and no signed URLs.\nIn that case the response's `name` is the EXISTING asset's name, because that is what the new reference carries — `FileSystem.resourceName` is a denormalized copy of `Asset.name`, so the submitted name never lands. The submitted name is returned as `originalName`. Correlate results with requests positionally or by your own upload id, not by `name`.\nReturns `uploadRequestExceedsSubscription` (400) when the request would exceed the workspace's subscribed storage.\n",
+        "description": "Creates assets in the project's creator tree and returns signed upload links. Requires `canCreateAsset`. When a submitted file's checksum matches an asset already in the project, no bytes are transferred: the platform adds another FileSystem reference to the existing asset and reports `status: success` with `referencesExistingAsset: true` and no signed URLs.\nIn that case the response's `name` is the EXISTING asset's name, because that is what the new reference carries — `FileSystem.resourceName` is a denormalized copy of `Asset.name`, so the submitted name never lands. The submitted name is returned as `originalName`. Correlate results with requests positionally or by your own upload id, not by `name`.\nOnly an `active` asset is matched — one whose bytes are stored and whose processing has finished. A copy that is still `pendingUpload` (links issued, upload not completed), `pendingPostProcessing` or `postProcessingError` is not: a file submitted with the same checksum while the earlier copy is in one of those states gets its own asset and its own signed URLs, and both become separate assets in the project. This is deliberate. A pending copy has no bytes yet and its checksum is still only the uploader's claim; if that upload is abandoned the asset is removed, and a reference to it would leave the second caller with a `success` and no file. To avoid duplicates, wait for the first copy to reach `active` before submitting the same content again, and do not submit the same file from two requests at once.\nReturns `uploadRequestExceedsSubscription` (400) when the request would exceed the workspace's subscribed storage.\n",
         "tags": [
           "Projects"
         ],
@@ -14603,7 +14603,7 @@
         "security": [
           {
             "oauth2": [
-              "projects:write"
+              "projects:read"
             ]
           },
           {
@@ -14625,7 +14625,7 @@
             "$ref": "#/components/responses/ProjectNotFound"
           }
         },
-        "x-required-scope": "projects:write"
+        "x-required-scope": "projects:read"
       },
       "put": {
         "summary": "Update project details",
@@ -15646,7 +15646,7 @@
         "security": [
           {
             "oauth2": [
-              "projects:write"
+              "projects:read"
             ]
           },
           {
@@ -15784,7 +15784,7 @@
             "$ref": "#/components/responses/ProjectNotFound"
           }
         },
-        "x-required-scope": "projects:write"
+        "x-required-scope": "projects:read"
       }
     },
     "/projects/{projectId}/submission/{submissionId}": {
@@ -15869,7 +15869,7 @@
         "security": [
           {
             "oauth2": [
-              "projects:read"
+              "projects:write"
             ]
           },
           {
@@ -15921,7 +15921,7 @@
             "$ref": "#/components/responses/SubmissionNotFound"
           }
         },
-        "x-required-scope": "projects:read"
+        "x-required-scope": "projects:write"
       }
     },
     "/projects/{projectId}/submission/{submissionId}/tag": {
@@ -15941,64 +15941,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "tagId"
-                ],
-                "properties": {
-                  "tagId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "description": "The ID of the tag to add"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Tag added successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ChatSubmission"
-                }
-              }
-            }
+            "oauth2": [
+              "projects:write"
+            ]
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "404": {
-            "description": "Submission or tag not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "x-credential": "any"
-      },
-      "post": {
-        "deprecated": true,
-        "summary": "Add a tag to a submission (deprecated alias; use PUT)",
-        "description": "Requires `canTagSubmission`. The submission must belong to `projectId`.",
-        "tags": [
-          "Projects"
-        ],
-        "security": [
           {
             "bearerAuth": []
           }
@@ -16048,7 +15994,71 @@
             }
           }
         },
-        "x-credential": "any"
+        "x-required-scope": "projects:write"
+      },
+      "post": {
+        "deprecated": true,
+        "summary": "Add a tag to a submission (deprecated alias; use PUT)",
+        "description": "Requires `canTagSubmission`. The submission must belong to `projectId`.",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "oauth2": [
+              "projects:write"
+            ]
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tagId"
+                ],
+                "properties": {
+                  "tagId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "The ID of the tag to add"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tag added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSubmission"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Submission or tag not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-required-scope": "projects:write"
       }
     },
     "/projects/{projectId}/submission/{submissionId}/untag": {
@@ -16068,64 +16078,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "tagId"
-                ],
-                "properties": {
-                  "tagId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "description": "The ID of the tag to remove"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Tag removed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ChatSubmission"
-                }
-              }
-            }
+            "oauth2": [
+              "projects:write"
+            ]
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "404": {
-            "description": "Submission or tag not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "x-credential": "any"
-      },
-      "post": {
-        "deprecated": true,
-        "summary": "Remove a tag from a submission (deprecated alias; use PUT)",
-        "description": "Requires `canUntagSubmission`. The submission must belong to `projectId`.",
-        "tags": [
-          "Projects"
-        ],
-        "security": [
           {
             "bearerAuth": []
           }
@@ -16175,7 +16131,71 @@
             }
           }
         },
-        "x-credential": "any"
+        "x-required-scope": "projects:write"
+      },
+      "post": {
+        "deprecated": true,
+        "summary": "Remove a tag from a submission (deprecated alias; use PUT)",
+        "description": "Requires `canUntagSubmission`. The submission must belong to `projectId`.",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "oauth2": [
+              "projects:write"
+            ]
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tagId"
+                ],
+                "properties": {
+                  "tagId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "The ID of the tag to remove"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tag removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSubmission"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Submission or tag not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-required-scope": "projects:write"
       }
     },
     "/projects/{projectId}/submission/{submissionId}/release": {
@@ -17332,54 +17352,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DeleteItemsRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Items deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FileOperationResponse"
-                }
-              }
-            }
+            "oauth2": [
+              "projects:write"
+            ]
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "404": {
-            "description": "Project not found, or an item path does not exist.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "x-credential": "any"
-      },
-      "delete": {
-        "deprecated": true,
-        "summary": "Delete items at specified paths within a project (deprecated alias; use PUT)",
-        "description": "Paths are relative to `project/{projectId}/{visibility}`. Requires `canDeleteCreatorItems` for `creator` and `canDeleteReviewerItems` for `reviewer`. Use `delete-preview` first to learn which secondary references the cascade will remove.\n",
-        "tags": [
-          "Projects"
-        ],
-        "security": [
           {
             "bearerAuth": []
           }
@@ -17419,7 +17395,61 @@
             }
           }
         },
-        "x-credential": "any"
+        "x-required-scope": "projects:write"
+      },
+      "delete": {
+        "deprecated": true,
+        "summary": "Delete items at specified paths within a project (deprecated alias; use PUT)",
+        "description": "Paths are relative to `project/{projectId}/{visibility}`. Requires `canDeleteCreatorItems` for `creator` and `canDeleteReviewerItems` for `reviewer`. Use `delete-preview` first to learn which secondary references the cascade will remove.\n",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "oauth2": [
+              "projects:write"
+            ]
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteItemsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Items deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileOperationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Project not found, or an item path does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-required-scope": "projects:write"
       }
     },
     "/projects/{projectId}/files/{visibility}": {
@@ -17960,7 +17990,7 @@
         "security": [
           {
             "oauth2": [
-              "projects:write"
+              "projects:read"
             ]
           },
           {
@@ -18117,7 +18147,7 @@
             "$ref": "#/components/responses/ProjectNotFound"
           }
         },
-        "x-required-scope": "projects:write"
+        "x-required-scope": "projects:read"
       }
     },
     "/projects/{projectId}/public/{publicId}": {
@@ -18138,7 +18168,7 @@
         "security": [
           {
             "oauth2": [
-              "projects:write"
+              "projects:read"
             ]
           },
           {
@@ -18160,7 +18190,7 @@
             "$ref": "#/components/responses/PublicFileSystemNotFound"
           }
         },
-        "x-required-scope": "projects:write"
+        "x-required-scope": "projects:read"
       },
       "put": {
         "summary": "Update public file system details",
@@ -19215,7 +19245,7 @@
         "security": [
           {
             "oauth2": [
-              "projects:read"
+              "chat:write"
             ]
           },
           {
@@ -19267,7 +19297,7 @@
             "$ref": "#/components/responses/ChatNotFound"
           }
         },
-        "x-required-scope": "projects:read"
+        "x-required-scope": "chat:write"
       }
     },
     "/projects/{projectId}/public/{token}/chat/messages": {
@@ -20701,14 +20731,14 @@
         "security": [
           {
             "oauth2": [
-              "assets:write"
+              "assets:read"
             ]
           },
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scope": "assets:write"
+        "x-required-scope": "assets:read"
       }
     },
     "/assets/{assetId}/public-links/{linkId}": {
@@ -22948,7 +22978,7 @@
         "security": [
           {
             "oauth2": [
-              "tasks:read"
+              "tasks:write"
             ]
           },
           {
@@ -23016,7 +23046,7 @@
             "description": "Relation already exists (`relationAlreadyExists`)"
           }
         },
-        "x-required-scope": "tasks:read"
+        "x-required-scope": "tasks:write"
       }
     },
     "/tasks/{taskId}/relations/{relationId}": {
@@ -25339,7 +25369,7 @@
         "security": [
           {
             "oauth2": [
-              "workspaces:write"
+              "workspaces:read"
             ]
           },
           {
@@ -25376,7 +25406,7 @@
             "$ref": "#/components/responses/Unauthorized"
           }
         },
-        "x-required-scope": "workspaces:write"
+        "x-required-scope": "workspaces:read"
       }
     },
     "/workspaces/{workspaceId}": {
@@ -25436,7 +25466,7 @@
         "security": [
           {
             "oauth2": [
-              "workspaces:read"
+              "workspaces:write"
             ]
           },
           {
@@ -25477,7 +25507,7 @@
             "$ref": "#/components/responses/WorkspaceNotFound"
           }
         },
-        "x-required-scope": "workspaces:read"
+        "x-required-scope": "workspaces:write"
       },
       "delete": {
         "summary": "Change a workspace's status to 'pendingDelete' for later cleanup.",
@@ -25493,7 +25523,7 @@
         "security": [
           {
             "oauth2": [
-              "workspaces:read"
+              "workspaces:write"
             ]
           },
           {
@@ -25521,7 +25551,7 @@
             "$ref": "#/components/responses/WorkspaceNotFound"
           }
         },
-        "x-required-scope": "workspaces:read"
+        "x-required-scope": "workspaces:write"
       }
     },
     "/workspaces/{workspaceId}/projects": {
@@ -27133,6 +27163,10 @@
           "status": {
             "type": "string",
             "example": "success"
+          },
+          "referencesExistingAsset": {
+            "type": "boolean",
+            "description": "Present and `true` when the file's checksum matched an `active` asset in the same owner resource, so a reference to that asset was added instead of a new upload: `asset` is the existing asset and there is no `signedUrlData`. Copies that are not yet `active` (`pendingUpload`, `pendingPostProcessing`, `postProcessingError`) are never matched, so an identical file submitted while an earlier copy is still uploading or processing becomes a second asset.\n"
           }
         }
       },
@@ -33390,8 +33424,10 @@
                     "image",
                     "video",
                     "audio",
-                    "folder",
-                    "file"
+                    "file",
+                    "3d",
+                    "document",
+                    "folder"
                   ]
                 }
               },
@@ -33401,8 +33437,10 @@
                   "image",
                   "video",
                   "audio",
-                  "folder",
-                  "file"
+                  "file",
+                  "3d",
+                  "document",
+                  "folder"
                 ]
               }
             ],
@@ -35313,7 +35351,7 @@
       },
       "CreatedBefore": {
         "name": "createdBefore",
-        "description": "Timestamp or ID indicating the upper bound of result creation time. You may preface an ID with a '+' to make the results inclusive of that result Meaning <= instead of just <.",
+        "description": "Timestamp or ID indicating the upper bound of result creation time. A numeric timestamp is Unix time in **milliseconds**; a value that looks like seconds is rejected with a 400 `validationError`. You may preface an ID with a '+' to make the results inclusive of that result Meaning <= instead of just <.",
         "in": "query",
         "schema": {
           "oneOf": [
@@ -35330,7 +35368,7 @@
       },
       "CreatedAfter": {
         "name": "createdAfter",
-        "description": "Timestamp or ID indicating the lower bound of result creation time. You may preface an ID with a '+' to make the results inclusive of that result Meaning <= instead of just <.",
+        "description": "Timestamp or ID indicating the lower bound of result creation time. A numeric timestamp is Unix time in **milliseconds**; a value that looks like seconds is rejected with a 400 `validationError`. You may preface an ID with a '+' to make the results inclusive of that result Meaning <= instead of just <.",
         "in": "query",
         "schema": {
           "oneOf": [
@@ -35762,8 +35800,10 @@
                   "image",
                   "video",
                   "audio",
-                  "folder",
-                  "file"
+                  "file",
+                  "3d",
+                  "document",
+                  "folder"
                 ]
               }
             },
@@ -35773,8 +35813,10 @@
                 "image",
                 "video",
                 "audio",
-                "folder",
-                "file"
+                "file",
+                "3d",
+                "document",
+                "folder"
               ]
             }
           ],
@@ -35794,8 +35836,11 @@
                 "enum": [
                   "image",
                   "video",
-                  "folder",
-                  "file"
+                  "audio",
+                  "file",
+                  "3d",
+                  "document",
+                  "folder"
                 ]
               }
             },
@@ -35804,8 +35849,11 @@
               "enum": [
                 "image",
                 "video",
-                "folder",
-                "file"
+                "audio",
+                "file",
+                "3d",
+                "document",
+                "folder"
               ]
             }
           ],
@@ -36083,8 +36131,10 @@
               "image",
               "video",
               "audio",
-              "folder",
-              "file"
+              "file",
+              "3d",
+              "document",
+              "folder"
             ]
           },
           "default": []
@@ -36275,7 +36325,7 @@
           "type": "string",
           "format": "date-time"
         },
-        "description": "Get tasks created before this timestamp (only for index pagination)"
+        "description": "Get tasks created before this timestamp (only for index pagination). A numeric timestamp is Unix time in milliseconds; a value that looks like seconds is rejected with a 400 `validationError`."
       },
       "TaskCreatedAfter": {
         "in": "query",
@@ -36284,7 +36334,7 @@
           "type": "string",
           "format": "date-time"
         },
-        "description": "Get tasks created after this timestamp (only for index pagination)"
+        "description": "Get tasks created after this timestamp (only for index pagination). A numeric timestamp is Unix time in milliseconds; a value that looks like seconds is rejected with a 400 `validationError`."
       },
       "WebhookSubscriptionIdParam": {
         "name": "id",

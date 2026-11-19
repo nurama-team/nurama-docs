@@ -1814,9 +1814,9 @@ paths:
           description: Asset not found.
       security:
         - oauth2:
-            - assets:read
+            - assets:write
         - bearerAuth: []
-      x-required-scope: assets:read
+      x-required-scope: assets:write
     delete:
       summary: Mark asset for deletion
       description: Mark an asset as deleted.
@@ -1846,9 +1846,9 @@ paths:
           description: Asset not found.
       security:
         - oauth2:
-            - assets:read
+            - assets:write
         - bearerAuth: []
-      x-required-scope: assets:read
+      x-required-scope: assets:write
   /assets/{assetId}/references:
     get:
       summary: List every location an asset is referenced
@@ -3669,7 +3669,7 @@ paths:
         - Boards
       security:
         - oauth2:
-            - tasks:read
+            - tasks:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -3762,7 +3762,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-required-scope: tasks:read
+      x-required-scope: tasks:write
     delete:
       summary: Delete a board
       description: |
@@ -3780,7 +3780,7 @@ paths:
         - Boards
       security:
         - oauth2:
-            - tasks:read
+            - tasks:write
         - bearerAuth: []
       requestBody:
         required: false
@@ -3836,7 +3836,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-      x-required-scope: tasks:read
+      x-required-scope: tasks:write
   /boards/{boardId}/columns:
     post:
       summary: Add a column to a board
@@ -4183,7 +4183,7 @@ paths:
         - Board Tasks
       security:
         - oauth2:
-            - tasks:read
+            - tasks:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -4234,7 +4234,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-      x-required-scope: tasks:read
+      x-required-scope: tasks:write
   /boards/{boardId}/tasks/add:
     post:
       summary: Add an existing task to a board
@@ -4502,7 +4502,7 @@ paths:
         - Task Links
       security:
         - oauth2:
-            - tasks:write
+            - tasks:read
         - bearerAuth: []
       responses:
         '200':
@@ -4517,7 +4517,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-      x-required-scope: tasks:write
+      x-required-scope: tasks:read
   /tasks/{taskId}/links/{linkedTaskId}:
     delete:
       summary: Unlink two tasks
@@ -5670,7 +5670,9 @@ paths:
             type: string
             format: date-time
           required: false
-          description: Get chats updated before this timestamp (only for index pagination).
+          description: >-
+            Get chats updated before this timestamp (only for index pagination). Unix time in milliseconds; a value that
+            looks like seconds is rejected with a 400 `validationError`.
         - in: query
           name: sort
           schema:
@@ -5798,9 +5800,9 @@ paths:
           description: Bad request due to validation failure.
       security:
         - oauth2:
-            - chat:write
+            - chat:read
         - bearerAuth: []
-      x-required-scope: chat:write
+      x-required-scope: chat:read
   /chats/member/{chatId}:
     get:
       summary: Get member chat by id.
@@ -5864,9 +5866,9 @@ paths:
           description: Chat not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
     delete:
       summary: >-
         Mark member chat for deletion. From the user's perspective the chat will have been deleted. Only chat creators
@@ -5888,9 +5890,9 @@ paths:
           description: Chat not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
   /chats/member/{chatId}/icon:
     put:
       summary: Upload and set member chat icon.
@@ -6118,9 +6120,9 @@ paths:
           description: Chat not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
     delete:
       summary: Delete an array of members from a member chat by user ID.
       tags:
@@ -6159,9 +6161,9 @@ paths:
           description: Chat not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
   /chats/{chatId}:
     get:
       summary: Get topic chat by id.
@@ -6226,9 +6228,9 @@ paths:
           description: Chat not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
     delete:
       summary: Mark chat for deletion. Only chat creators may delete a chat.
       tags:
@@ -6248,9 +6250,9 @@ paths:
           description: Chat not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
   /chats/{chatId}/follow:
     put:
       summary: Follow a chat to receive updates
@@ -7577,9 +7579,9 @@ paths:
           description: Message not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
     delete:
       summary: Delete a message
       description: Marks the message for deletion. It is removed later by the cleanup service.
@@ -7600,9 +7602,9 @@ paths:
           description: Message not found
       security:
         - oauth2:
-            - chat:read
+            - chat:write
         - bearerAuth: []
-      x-required-scope: chat:read
+      x-required-scope: chat:write
   /chats/message/{messageId}/replies:
     get:
       summary: Get replies for a message
@@ -7988,7 +7990,9 @@ paths:
             type: string
             format: date-time
           required: false
-          description: Get mentions created before this timestamp (only for index pagination)
+          description: >-
+            Get mentions created before this timestamp (only for index pagination). A numeric timestamp is Unix time in
+            milliseconds; a value that looks like seconds is rejected with a 400 `validationError`.
         - in: query
           name: cursor
           schema:
@@ -8874,7 +8878,7 @@ paths:
         - Folders
       security:
         - oauth2:
-            - assets:read
+            - assets:write
         - bearerAuth: []
       parameters:
         - name: folderId
@@ -8905,7 +8909,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           description: Folder not found (`folderNotFound`).
-      x-required-scope: assets:read
+      x-required-scope: assets:write
   /folders/{folderId}/assets:
     get:
       summary: Get assets in a folder (not implemented)
@@ -10164,7 +10168,7 @@ paths:
         - Projects
       security:
         - oauth2:
-            - projects:write
+            - projects:read
         - bearerAuth: []
       parameters:
         - name: sort
@@ -10181,7 +10185,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Projects'
-      x-required-scope: projects:write
+      x-required-scope: projects:read
   /projects/{projectId}:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -10197,6 +10201,15 @@ paths:
         — `FileSystem.resourceName` is a denormalized copy of `Asset.name`, so the submitted name never lands. The
         submitted name is returned as `originalName`. Correlate results with requests positionally or by your own upload
         id, not by `name`.
+
+        Only an `active` asset is matched — one whose bytes are stored and whose processing has finished. A copy that is
+        still `pendingUpload` (links issued, upload not completed), `pendingPostProcessing` or `postProcessingError` is
+        not: a file submitted with the same checksum while the earlier copy is in one of those states gets its own asset
+        and its own signed URLs, and both become separate assets in the project. This is deliberate. A pending copy has
+        no bytes yet and its checksum is still only the uploader's claim; if that upload is abandoned the asset is
+        removed, and a reference to it would leave the second caller with a `success` and no file. To avoid duplicates,
+        wait for the first copy to reach `active` before submitting the same content again, and do not submit the same
+        file from two requests at once.
 
         Returns `uploadRequestExceedsSubscription` (400) when the request would exceed the workspace's subscribed
         storage.
@@ -10243,7 +10256,7 @@ paths:
         - Projects
       security:
         - oauth2:
-            - projects:write
+            - projects:read
         - bearerAuth: []
       responses:
         '200':
@@ -10254,7 +10267,7 @@ paths:
                 $ref: '#/components/schemas/Project'
         '404':
           $ref: '#/components/responses/ProjectNotFound'
-      x-required-scope: projects:write
+      x-required-scope: projects:read
     put:
       summary: Update project details
       description: Requires `canUpdateProject`. A `projectUpdate` notification is emitted only when the name actually changes.
@@ -10908,7 +10921,7 @@ paths:
         - Projects
       security:
         - oauth2:
-            - projects:write
+            - projects:read
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/Paginate'
@@ -10981,7 +10994,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/ProjectNotFound'
-      x-required-scope: projects:write
+      x-required-scope: projects:read
   /projects/{projectId}/submission/{submissionId}:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -11028,7 +11041,7 @@ paths:
         - Projects
       security:
         - oauth2:
-            - projects:read
+            - projects:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -11060,7 +11073,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/SubmissionNotFound'
-      x-required-scope: projects:read
+      x-required-scope: projects:write
   /projects/{projectId}/submission/{submissionId}/tag:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -11071,6 +11084,8 @@ paths:
       tags:
         - Projects
       security:
+        - oauth2:
+            - projects:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -11100,7 +11115,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-credential: any
+      x-required-scope: projects:write
     post:
       deprecated: true
       summary: Add a tag to a submission (deprecated alias; use PUT)
@@ -11108,6 +11123,8 @@ paths:
       tags:
         - Projects
       security:
+        - oauth2:
+            - projects:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -11137,7 +11154,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-credential: any
+      x-required-scope: projects:write
   /projects/{projectId}/submission/{submissionId}/untag:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -11148,6 +11165,8 @@ paths:
       tags:
         - Projects
       security:
+        - oauth2:
+            - projects:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -11177,7 +11196,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-credential: any
+      x-required-scope: projects:write
     post:
       deprecated: true
       summary: Remove a tag from a submission (deprecated alias; use PUT)
@@ -11185,6 +11204,8 @@ paths:
       tags:
         - Projects
       security:
+        - oauth2:
+            - projects:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -11214,7 +11235,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-credential: any
+      x-required-scope: projects:write
   /projects/{projectId}/submission/{submissionId}/release:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -11896,6 +11917,8 @@ paths:
       tags:
         - Projects
       security:
+        - oauth2:
+            - projects:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -11918,7 +11941,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-credential: any
+      x-required-scope: projects:write
     delete:
       deprecated: true
       summary: Delete items at specified paths within a project (deprecated alias; use PUT)
@@ -11929,6 +11952,8 @@ paths:
       tags:
         - Projects
       security:
+        - oauth2:
+            - projects:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -11951,7 +11976,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-credential: any
+      x-required-scope: projects:write
   /projects/{projectId}/files/{visibility}:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -12263,7 +12288,7 @@ paths:
         - Projects
       security:
         - oauth2:
-            - projects:write
+            - projects:read
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/Paginate'
@@ -12356,7 +12381,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/ProjectNotFound'
-      x-required-scope: projects:write
+      x-required-scope: projects:read
   /projects/{projectId}/public/{publicId}:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -12370,7 +12395,7 @@ paths:
         - Projects
       security:
         - oauth2:
-            - projects:write
+            - projects:read
         - bearerAuth: []
       responses:
         '200':
@@ -12381,7 +12406,7 @@ paths:
                 $ref: '#/components/schemas/PublicFileSystem'
         '404':
           $ref: '#/components/responses/PublicFileSystemNotFound'
-      x-required-scope: projects:write
+      x-required-scope: projects:read
     put:
       summary: Update public file system details
       description: >
@@ -12998,7 +13023,7 @@ paths:
         - Projects
       security:
         - oauth2:
-            - projects:read
+            - chat:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -13027,7 +13052,7 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           $ref: '#/components/responses/ChatNotFound'
-      x-required-scope: projects:read
+      x-required-scope: chat:write
   /projects/{projectId}/public/{token}/chat/messages:
     parameters:
       - $ref: '#/components/parameters/ProjectIdPath'
@@ -14010,9 +14035,9 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
         - oauth2:
-            - assets:write
+            - assets:read
         - bearerAuth: []
-      x-required-scope: assets:write
+      x-required-scope: assets:read
   /assets/{assetId}/public-links/{linkId}:
     put:
       summary: Update a public download link
@@ -15657,7 +15682,7 @@ paths:
         - Task Relations
       security:
         - oauth2:
-            - tasks:read
+            - tasks:write
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/TaskRelationTaskId'
@@ -15702,7 +15727,7 @@ paths:
           description: Chat / message not found (`relatedResourceNotFound`) or board not found (`boardNotFound`)
         '409':
           description: Relation already exists (`relationAlreadyExists`)
-      x-required-scope: tasks:read
+      x-required-scope: tasks:write
   /tasks/{taskId}/relations/{relationId}:
     delete:
       summary: Remove a task relation
@@ -17248,7 +17273,7 @@ paths:
         - Workspaces
       security:
         - oauth2:
-            - workspaces:write
+            - workspaces:read
         - bearerAuth: []
       parameters:
         - name: sort
@@ -17269,7 +17294,7 @@ paths:
                   $ref: '#/components/schemas/WorkspaceWithRoles'
         '401':
           $ref: '#/components/responses/Unauthorized'
-      x-required-scope: workspaces:write
+      x-required-scope: workspaces:read
   /workspaces/{workspaceId}:
     get:
       summary: Get details of a specific workspace
@@ -17303,7 +17328,7 @@ paths:
         - Workspaces
       security:
         - oauth2:
-            - workspaces:read
+            - workspaces:write
         - bearerAuth: []
       requestBody:
         required: true
@@ -17326,7 +17351,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/WorkspaceNotFound'
-      x-required-scope: workspaces:read
+      x-required-scope: workspaces:write
     delete:
       summary: Change a workspace's status to 'pendingDelete' for later cleanup.
       description: >
@@ -17339,7 +17364,7 @@ paths:
         - Workspaces
       security:
         - oauth2:
-            - workspaces:read
+            - workspaces:write
         - bearerAuth: []
       responses:
         '200':
@@ -17354,7 +17379,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/WorkspaceNotFound'
-      x-required-scope: workspaces:read
+      x-required-scope: workspaces:write
   /workspaces/{workspaceId}/projects:
     get:
       summary: Get projects within a specific workspace
@@ -18506,6 +18531,14 @@ components:
         status:
           type: string
           example: success
+        referencesExistingAsset:
+          type: boolean
+          description: >
+            Present and `true` when the file's checksum matched an `active` asset in the same owner resource, so a
+            reference to that asset was added instead of a new upload: `asset` is the existing asset and there is no
+            `signedUrlData`. Copies that are not yet `active` (`pendingUpload`, `pendingPostProcessing`,
+            `postProcessingError`) are never matched, so an identical file submitted while an earlier copy is still
+            uploading or processing becomes a second asset.
     RepairAssetAndSignedLinks:
       type: array
       items:
@@ -23110,15 +23143,19 @@ components:
                   - image
                   - video
                   - audio
-                  - folder
                   - file
+                  - 3d
+                  - document
+                  - folder
             - type: string
               enum:
                 - image
                 - video
                 - audio
-                - folder
                 - file
+                - 3d
+                - document
+                - folder
           default: []
         resourceStatus:
           type: string
@@ -24528,8 +24565,9 @@ components:
     CreatedBefore:
       name: createdBefore
       description: >-
-        Timestamp or ID indicating the upper bound of result creation time. You may preface an ID with a '+' to make the
-        results inclusive of that result Meaning <= instead of just <.
+        Timestamp or ID indicating the upper bound of result creation time. A numeric timestamp is Unix time in
+        **milliseconds**; a value that looks like seconds is rejected with a 400 `validationError`. You may preface an
+        ID with a '+' to make the results inclusive of that result Meaning <= instead of just <.
       in: query
       schema:
         oneOf:
@@ -24540,8 +24578,9 @@ components:
     CreatedAfter:
       name: createdAfter
       description: >-
-        Timestamp or ID indicating the lower bound of result creation time. You may preface an ID with a '+' to make the
-        results inclusive of that result Meaning <= instead of just <.
+        Timestamp or ID indicating the lower bound of result creation time. A numeric timestamp is Unix time in
+        **milliseconds**; a value that looks like seconds is rejected with a 400 `validationError`. You may preface an
+        ID with a '+' to make the results inclusive of that result Meaning <= instead of just <.
       in: query
       schema:
         oneOf:
@@ -24860,15 +24899,19 @@ components:
                 - image
                 - video
                 - audio
-                - folder
                 - file
+                - 3d
+                - document
+                - folder
           - type: string
             enum:
               - image
               - video
               - audio
-              - folder
               - file
+              - 3d
+              - document
+              - folder
         default: []
       description: Filter by media types (single value or array)
     SubmissionMediaTypes:
@@ -24882,14 +24925,20 @@ components:
               enum:
                 - image
                 - video
-                - folder
+                - audio
                 - file
+                - 3d
+                - document
+                - folder
           - type: string
             enum:
               - image
               - video
-              - folder
+              - audio
               - file
+              - 3d
+              - document
+              - folder
         default: []
       description: Filter by media types (single value or array)
     FsResourceStatus:
@@ -25102,8 +25151,10 @@ components:
             - image
             - video
             - audio
-            - folder
             - file
+            - 3d
+            - document
+            - folder
         default: []
       description: Filter by media types. A single value or repeated parameter.
     PublicItemsResourceStatus:
@@ -25246,14 +25297,18 @@ components:
       schema:
         type: string
         format: date-time
-      description: Get tasks created before this timestamp (only for index pagination)
+      description: >-
+        Get tasks created before this timestamp (only for index pagination). A numeric timestamp is Unix time in
+        milliseconds; a value that looks like seconds is rejected with a 400 `validationError`.
     TaskCreatedAfter:
       in: query
       name: createdAfter
       schema:
         type: string
         format: date-time
-      description: Get tasks created after this timestamp (only for index pagination)
+      description: >-
+        Get tasks created after this timestamp (only for index pagination). A numeric timestamp is Unix time in
+        milliseconds; a value that looks like seconds is rejected with a 400 `validationError`.
     WebhookSubscriptionIdParam:
       name: id
       in: path

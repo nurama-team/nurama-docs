@@ -3,7 +3,7 @@
   "info": {
     "title": "Nurama WebSocket API",
     "version": "0.3.3",
-    "description": "Socket.IO events of the Nurama websocket server. Generated from `src/docs/websocket.yml` and `src/config/notifications.js` by `src/docs/buildAsyncApi.js`; edit those sources, not this document.\n\nWebsocket (Socket.io) events emitted by the websocket server (started with `pnpm ws`, hosted separately from the REST API). \n\n**Connecting / channels.** Every channel is a Socket.io namespace named `/{resourceType}/{resourceId}[/{visibility}]`, where resourceType is one of workspace, project, user, chat, asset, submission, task or public, resourceId is a UUID (or legacy 24-char hex id) and the optional visibility is creator, reviewer or public. Public release channels are `/public/{token}` (10-character public token, no visibility suffix). Any other namespace is refused. Authenticate by passing `query: { token }` on the handshake: a user JWT, a personal access token or a bot API key (bot keys must connect through a configured bot gateway hostname). `/public/{token}` namespaces need no handshake token (the token in the namespace is validated instead); authenticated users may also join them. Failures surface as `connect_error` with message `forbidden` (invalid credentials or no permission) or `badRequest` (malformed channel / permission lookup error). \n\n**Permissions.** A user may only join their own `/user/{userId}`. `/project/{id}/creator`, `/reviewer` and `/public` require canGetProjectCreatorNotifications, canGetProjectReviewerNotifications and canGetProjectPublicNotifications respectively; every other channel requires canGet{ResourceType}Notifications (direct or inherited). \n\n**Server -> client events:** `notification` (every notification event documented below, emitted on each channel in the notification's channels list; the payload `type` selects the schema), `tokenEvent`, `typing:start` / `typing:stop` and the `collab:*` events (only on `/chat/{chatId}` namespaces). **Client -> server events:** `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Notifications are delivered via PostgreSQL LISTEN/NOTIFY with a polling fallback; sockets whose JWT expired or was blacklisted, or whose bot key was revoked, receive `tokenEvent` and are disconnected shortly after. \n\nEach event type below is documented using 'get' to represent the emitted event payload under the '200' response schema. **Keys marked with (*) will be deprecated in a future release and should not be used for new development and should be replaced with values and objects in the changes key in existing implementations.**"
+    "description": "Socket.IO events of the Nurama websocket server. Generated from `src/docs/websocket.yml` and `src/config/notifications.js` by `src/docs/buildAsyncApi.js`; edit those sources, not this document.\n\nWebsocket (Socket.io) events emitted by the websocket server (started with `pnpm ws`, hosted separately from the REST API). \n\n**Connecting / channels.** Every channel is a Socket.io namespace named `/{resourceType}/{resourceId}[/{visibility}]`, where resourceType is one of workspace, project, user, chat, asset, submission, task or public, resourceId is a UUID (or legacy 24-char hex id) and the optional visibility is creator, reviewer or public. Public release channels are `/public/{token}` (10-character public token, no visibility suffix). Any other namespace is refused. Authenticate by passing `query: { token }` on the handshake: a user JWT, a personal access token or a bot API key (bot keys must connect through a configured bot gateway hostname). `/public/{token}` namespaces need no handshake token (the token in the namespace is validated instead); authenticated users may also join them. Failures surface as `connect_error` with message `forbidden` (invalid credentials or no permission), `botGatewayRequired` (a valid bot API key used on a host that is not a bot gateway) or `badRequest` (malformed channel / permission lookup error). \n\n**Permissions.** A user may only join their own `/user/{userId}`. `/project/{id}/creator`, `/reviewer` and `/public` require canGetProjectCreatorNotifications, canGetProjectReviewerNotifications and canGetProjectPublicNotifications respectively; every other channel requires canGet{ResourceType}Notifications (direct or inherited). \n\n**Server -> client events:** `notification` (every notification event documented below, emitted on each channel in the notification's channels list; the payload `type` selects the schema), `tokenEvent`, `typing:start` / `typing:stop` and the `collab:*` events (only on `/chat/{chatId}` namespaces). **Client -> server events:** `ws:probe`, `typing:start` / `typing:stop`, `collab:*`. Notifications are delivered via PostgreSQL LISTEN/NOTIFY with a polling fallback; sockets whose JWT expired or was blacklisted, or whose bot key was revoked, receive `tokenEvent` and are disconnected shortly after. \n\nEach event type below is documented using 'get' to represent the emitted event payload under the '200' response schema. **Keys marked with (*) will be deprecated in a future release and should not be used for new development and should be replaced with values and objects in the changes key in existing implementations.**"
   },
   "defaultContentType": "application/json",
   "servers": {
@@ -6105,10 +6105,10 @@
       "folderUpdate": {
         "name": "folderUpdate",
         "title": "folderUpdate",
-        "summary": "CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired when a folder is updated.",
-        "description": "Fired when a folder is updated (name, color, etc.).\n\nPayload for the folder update event.\n\nDelivered as the `notification` socket event with `type` set to `folderUpdate`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
+        "summary": "Fired when a folder is renamed or recoloured (PUT /folders/{folderId}).",
+        "description": "Fired when a folder is updated (name, color). resourceId is the folder id and resourceType is 'folder'. For a project folder it is sent on the folder's visibility channel only (project/{projectId}/creator or project/{projectId}/reviewer); folders owned by another resource use {ownerResourceType}/{ownerResourceId}.\n\nPayload for the folder update event.\n\nDelivered as the `notification` socket event with `type` set to `folderUpdate`.\n\nToken keys marked with (*) will be deprecated in a future release and should not be used for new development; replace them with the values and objects in the `changes` key in existing implementations.",
         "payload": {
-          "description": "Fired when a folder is updated (name, color, etc.).",
+          "description": "Fired when a folder is updated (name, color). resourceId is the folder id and resourceType is 'folder'. For a project folder it is sent on the folder's visibility channel only (project/{projectId}/creator or project/{projectId}/reviewer); folders owned by another resource use {ownerResourceType}/{ownerResourceId}.",
           "allOf": [
             {
               "$ref": "#/components/schemas/BaseNotificationEvent"
@@ -8615,6 +8615,31 @@
                       },
                       "description": "Original file system paths of the moved items."
                     },
+                    "items": {
+                      "type": "array",
+                      "description": "The moved items by id, one entry per moved path. Only the items named in the request are listed, not the contents of a moved folder. The event's own resourceId is still the container (project, submission or public release).",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "itemPath": {
+                            "type": "string",
+                            "description": "Original file system path of the item (before the move)."
+                          },
+                          "resourceId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Id of the asset or folder at that path."
+                          },
+                          "resourceType": {
+                            "type": "string",
+                            "enum": [
+                              "asset",
+                              "folder"
+                            ]
+                          }
+                        }
+                      }
+                    },
                     "destinationPath": {
                       "type": "string",
                       "description": "Destination file system path where items were moved."
@@ -8623,6 +8648,7 @@
                   "required": [
                     "itemsCount",
                     "itemPaths",
+                    "items",
                     "destinationPath"
                   ]
                 }
@@ -8642,6 +8668,7 @@
         "x-notification-tokens": [
           "itemsCount",
           "itemPaths",
+          "items",
           "destinationPath"
         ]
       },
@@ -8730,11 +8757,37 @@
                         "type": "string"
                       },
                       "description": "File system paths of the deleted items."
+                    },
+                    "items": {
+                      "type": "array",
+                      "description": "The deleted items by id, one entry per deleted path. Only the items named in the request are listed, not the contents of a deleted folder. The event's own resourceId is still the container (project, submission or public release).",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "itemPath": {
+                            "type": "string",
+                            "description": "File system path the item was deleted from."
+                          },
+                          "resourceId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Id of the asset or folder at that path."
+                          },
+                          "resourceType": {
+                            "type": "string",
+                            "enum": [
+                              "asset",
+                              "folder"
+                            ]
+                          }
+                        }
+                      }
                     }
                   },
                   "required": [
                     "itemsCount",
-                    "itemPaths"
+                    "itemPaths",
+                    "items"
                   ]
                 }
               }
@@ -8752,7 +8805,8 @@
         },
         "x-notification-tokens": [
           "itemsCount",
-          "itemPaths"
+          "itemPaths",
+          "items"
         ]
       },
       "fileSystemPublish": {
@@ -15626,7 +15680,7 @@
         "type": "httpApiKey",
         "name": "token",
         "in": "query",
-        "description": "Socket.IO handshake query parameter (`io(url, { query: { token } })`): a user JWT, a personal access token or a bot API key (bot keys must connect through a configured bot gateway hostname). Not needed on `/public/{token}` namespaces. Invalid credentials or a missing permission fail the connection with `connect_error` \"forbidden\"; a malformed namespace or permission lookup error with \"badRequest\"."
+        "description": "Socket.IO handshake query parameter (`io(url, { query: { token } })`): a user JWT, a personal access token or a bot API key (bot keys must connect through a configured bot gateway hostname). Not needed on `/public/{token}` namespaces. Invalid credentials or a missing permission fail the connection with `connect_error` \"forbidden\"; a valid bot API key on a non-gateway host with \"botGatewayRequired\"; a malformed namespace or permission lookup error with \"badRequest\"."
       }
     }
   }

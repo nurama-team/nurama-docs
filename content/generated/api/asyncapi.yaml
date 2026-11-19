@@ -18,8 +18,9 @@ info:
     Any other namespace is refused. Authenticate by passing `query: { token }` on the handshake: a user JWT, a personal
     access token or a bot API key (bot keys must connect through a configured bot gateway hostname). `/public/{token}`
     namespaces need no handshake token (the token in the namespace is validated instead); authenticated users may also
-    join them. Failures surface as `connect_error` with message `forbidden` (invalid credentials or no permission) or
-    `badRequest` (malformed channel / permission lookup error). 
+    join them. Failures surface as `connect_error` with message `forbidden` (invalid credentials or no permission),
+    `botGatewayRequired` (a valid bot API key used on a host that is not a bot gateway) or `badRequest` (malformed
+    channel / permission lookup error). 
 
 
     **Permissions.** A user may only join their own `/user/{userId}`. `/project/{id}/creator`, `/reviewer` and `/public`
@@ -4530,11 +4531,11 @@ components:
     folderUpdate:
       name: folderUpdate
       title: folderUpdate
-      summary: >-
-        CURRENTLY UNUSED (no code path emits this event; the template still exists in config/notifications.js). Fired
-        when a folder is updated.
+      summary: Fired when a folder is renamed or recoloured (PUT /folders/{folderId}).
       description: >-
-        Fired when a folder is updated (name, color, etc.).
+        Fired when a folder is updated (name, color). resourceId is the folder id and resourceType is 'folder'. For a
+        project folder it is sent on the folder's visibility channel only (project/{projectId}/creator or
+        project/{projectId}/reviewer); folders owned by another resource use {ownerResourceType}/{ownerResourceId}.
 
 
         Payload for the folder update event.
@@ -4546,7 +4547,10 @@ components:
         Token keys marked with (*) will be deprecated in a future release and should not be used for new development;
         replace them with the values and objects in the `changes` key in existing implementations.
       payload:
-        description: Fired when a folder is updated (name, color, etc.).
+        description: >-
+          Fired when a folder is updated (name, color). resourceId is the folder id and resourceType is 'folder'. For a
+          project folder it is sent on the folder's visibility channel only (project/{projectId}/creator or
+          project/{projectId}/reviewer); folders owned by another resource use {ownerResourceType}/{ownerResourceId}.
         allOf:
           - $ref: '#/components/schemas/BaseNotificationEvent'
           - type: object
@@ -6535,12 +6539,34 @@ components:
                     items:
                       type: string
                     description: Original file system paths of the moved items.
+                  items:
+                    type: array
+                    description: >-
+                      The moved items by id, one entry per moved path. Only the items named in the request are listed,
+                      not the contents of a moved folder. The event's own resourceId is still the container (project,
+                      submission or public release).
+                    items:
+                      type: object
+                      properties:
+                        itemPath:
+                          type: string
+                          description: Original file system path of the item (before the move).
+                        resourceId:
+                          type: string
+                          format: uuid
+                          description: Id of the asset or folder at that path.
+                        resourceType:
+                          type: string
+                          enum:
+                            - asset
+                            - folder
                   destinationPath:
                     type: string
                     description: Destination file system path where items were moved.
                 required:
                   - itemsCount
                   - itemPaths
+                  - items
                   - destinationPath
           - type: object
             properties:
@@ -6550,6 +6576,7 @@ components:
       x-notification-tokens:
         - itemsCount
         - itemPaths
+        - items
         - destinationPath
     fileSystemCopy:
       name: fileSystemCopy
@@ -6621,9 +6648,31 @@ components:
                     items:
                       type: string
                     description: File system paths of the deleted items.
+                  items:
+                    type: array
+                    description: >-
+                      The deleted items by id, one entry per deleted path. Only the items named in the request are
+                      listed, not the contents of a deleted folder. The event's own resourceId is still the container
+                      (project, submission or public release).
+                    items:
+                      type: object
+                      properties:
+                        itemPath:
+                          type: string
+                          description: File system path the item was deleted from.
+                        resourceId:
+                          type: string
+                          format: uuid
+                          description: Id of the asset or folder at that path.
+                        resourceType:
+                          type: string
+                          enum:
+                            - asset
+                            - folder
                 required:
                   - itemsCount
                   - itemPaths
+                  - items
           - type: object
             properties:
               changes:
@@ -6632,6 +6681,7 @@ components:
       x-notification-tokens:
         - itemsCount
         - itemPaths
+        - items
     fileSystemPublish:
       name: fileSystemPublish
       title: fileSystemPublish
@@ -12397,4 +12447,5 @@ components:
         Socket.IO handshake query parameter (`io(url, { query: { token } })`): a user JWT, a personal access token or a
         bot API key (bot keys must connect through a configured bot gateway hostname). Not needed on `/public/{token}`
         namespaces. Invalid credentials or a missing permission fail the connection with `connect_error` "forbidden"; a
-        malformed namespace or permission lookup error with "badRequest".
+        valid bot API key on a non-gateway host with "botGatewayRequired"; a malformed namespace or permission lookup
+        error with "badRequest".
