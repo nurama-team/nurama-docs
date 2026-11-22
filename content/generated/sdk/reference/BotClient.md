@@ -124,19 +124,27 @@ new default(apiKey, options?): default;
 | `chat.updateMemberChat` | `public` | `Promise`\<`ChatMember`\> | - |
 | `chat.updateMemberChatIcon` | `public` | `Promise`\<\{ `chat`: `ChatMember`; \} & [`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)\> | - |
 | <a id="config"></a> `config` | `readonly` | [`ConfigMethods`](routes/config.md#configmethods) | - |
-| <a id="convo"></a> `convo` | `readonly` | \{ `completeConvo`: `Promise`\<`CompleteConvoResponse`\>; `deleteConvo`: `Promise`\<`void`\>; `getChatConvos`: `Promise`\<`Convo`[]\>; `getConvo`: `Promise`\<`GetConvoResponse`\>; `getProjectConvos`: `Promise`\<`Convo`[]\>; `getScopeConvos`: `Promise`\<`GetScopeConvosResponse`\>; `joinConvo`: `Promise`\<`JoinConvoResponse`\>; `leaveConvo`: `Promise`\<`LeaveConvoResponse`\>; `promoteConvoArtifact`: `Promise`\<`PromoteConvoArtifactResponse`\>; `rejoinConvo`: `Promise`\<`JoinConvoResponse`\>; `startConvo`: `Promise`\<`StartConvoResponse`\>; `updateConvo`: `Promise`\<`UpdateConvoResponse`\>; \} | - |
+| <a id="convo"></a> `convo` | `readonly` | \{ `completeConvo`: `Promise`\<`CompleteConvoResponse`\>; `deleteConvo`: `Promise`\<`void`\>; `getChatConvos`: `Promise`\<`Convo`[]\>; `getConvo`: `Promise`\<`GetConvoResponse`\>; `getConvoArtifactPlayback`: `Promise`\<`ConvoArtifactPlaybackResponse`\>; `getConvoMentions`: `Promise`\<`ConvoMentionsResponse`\>; `getConvoTasks`: `Promise`\<`ConvoTasksResponse`\>; `getMyConvos`: `Promise`\<`GetMyConvosResponse`\>; `getProjectConvos`: `Promise`\<`Convo`[]\>; `getScopeConvos`: `Promise`\<`GetScopeConvosResponse`\>; `joinConvo`: `Promise`\<`JoinConvoResponse`\>; `leaveConvo`: `Promise`\<`LeaveConvoResponse`\>; `promoteConvoArtifact`: `Promise`\<`PromoteConvoArtifactResponse`\>; `rejoinConvo`: `Promise`\<`JoinConvoResponse`\>; `removeConvoMention`: `Promise`\<`ConvoMentionsResponse`\>; `sendConvoMentions`: `Promise`\<`SendConvoMentionsResponse`\>; `startConvo`: `Promise`\<`StartConvoResponse`\>; `updateConvo`: `Promise`\<`UpdateConvoResponse`\>; `updateConvoMentions`: `Promise`\<`ConvoMentionsResponse`\>; `updateConvoSummary`: `Promise`\<`UpdateConvoSummaryResponse`\>; \} | - |
 | `convo.completeConvo` | `public` | `Promise`\<`CompleteConvoResponse`\> | - |
 | `convo.deleteConvo` | `public` | `Promise`\<`void`\> | - |
 | `convo.getChatConvos` | `public` | `Promise`\<`Convo`[]\> | - |
 | `convo.getConvo` | `public` | `Promise`\<`GetConvoResponse`\> | - |
+| `convo.getConvoArtifactPlayback` | `public` | `Promise`\<`ConvoArtifactPlaybackResponse`\> | - |
+| `convo.getConvoMentions` | `public` | `Promise`\<`ConvoMentionsResponse`\> | - |
+| `convo.getConvoTasks` | `public` | `Promise`\<`ConvoTasksResponse`\> | - |
+| `convo.getMyConvos` | `public` | `Promise`\<`GetMyConvosResponse`\> | - |
 | `convo.getProjectConvos` | `public` | `Promise`\<`Convo`[]\> | - |
 | `convo.getScopeConvos` | `public` | `Promise`\<`GetScopeConvosResponse`\> | - |
 | `convo.joinConvo` | `public` | `Promise`\<`JoinConvoResponse`\> | - |
 | `convo.leaveConvo` | `public` | `Promise`\<`LeaveConvoResponse`\> | - |
 | `convo.promoteConvoArtifact` | `public` | `Promise`\<`PromoteConvoArtifactResponse`\> | - |
 | `convo.rejoinConvo` | `public` | `Promise`\<`JoinConvoResponse`\> | - |
+| `convo.removeConvoMention` | `public` | `Promise`\<`ConvoMentionsResponse`\> | - |
+| `convo.sendConvoMentions` | `public` | `Promise`\<`SendConvoMentionsResponse`\> | - |
 | `convo.startConvo` | `public` | `Promise`\<`StartConvoResponse`\> | - |
 | `convo.updateConvo` | `public` | `Promise`\<`UpdateConvoResponse`\> | - |
+| `convo.updateConvoMentions` | `public` | `Promise`\<`ConvoMentionsResponse`\> | - |
+| `convo.updateConvoSummary` | `public` | `Promise`\<`UpdateConvoSummaryResponse`\> | - |
 | <a id="folder"></a> `folder` | `readonly` | \{ `getFolder`: `Promise`\<`Folder`\>; `getFoldersAssets`: `Promise`\<[`PaginatedResponse`](routes/folder.md#paginatedresponse)\<`Asset`\>\>; `tagFolder`: `Promise`\<`Folder`\>; `untagFolder`: `Promise`\<`Folder`\>; `updateFolder`: `Promise`\<`Folder`\>; `updateFolderIcon`: `Promise`\<`any`\>; \} | - |
 | `folder.getFolder` | `public` | `Promise`\<`Folder`\> | - |
 | `folder.getFoldersAssets` | `public` | `Promise`\<[`PaginatedResponse`](routes/folder.md#paginatedresponse)\<`Asset`\>\> | - |

@@ -37,7 +37,7 @@ Creates an instance of NuramaClient.
 
 | Property | Modifier | Type | Default value | Description |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="ai"></a> `ai` | `public` | \{ `composeWithNu`: `Promise`\<[`ComposeWithNuResponse`](routes/ai.md#composewithnuresponse)\>; `createRevisionSourceUpload`: `Promise`\<[`CreateRevisionSourceUploadResponse`](routes/ai.md#createrevisionsourceuploadresponse)\>; `generateRevision`: `Promise`\<[`GenerateImageRevisionResponse`](routes/ai.md#generateimagerevisionresponse)\>; `generateTasks`: `Promise`\<[`GenerateTasksResponse`](routes/ai.md#generatetasksresponse)\>; `listTones`: `Promise`\<[`ListTonesResponse`](routes/ai.md#listtonesresponse)\>; `polish`: `Promise`\<[`PolishResponse`](routes/ai.md#polishresponse)\>; `submitFeedback`: `Promise`\<\{ `id`: `string`; \}\>; \} | `undefined` | - |
+| <a id="ai"></a> `ai` | `public` | \{ `composeWithNu`: `Promise`\<[`ComposeWithNuResponse`](routes/ai.md#composewithnuresponse)\>; `createRevisionSourceUpload`: `Promise`\<[`CreateRevisionSourceUploadResponse`](routes/ai.md#createrevisionsourceuploadresponse)\>; `generateRevision`: `Promise`\<[`GenerateImageRevisionResponse`](routes/ai.md#generateimagerevisionresponse)\>; `generateTasks`: `Promise`\<[`GenerateTasksResponse`](routes/ai.md#generatetasksresponse)\>; `listTones`: `Promise`\<[`ListTonesResponse`](routes/ai.md#listtonesresponse)\>; `polish`: `Promise`\<[`PolishResponse`](routes/ai.md#polishresponse)\>; `submitFeedback`: `Promise`\<\{ `id`: `string`; \}\>; `suggestConvoTasks`: `Promise`\<[`SuggestConvoTasksResponse`](routes/ai.md#suggestconvotasksresponse)\>; `summarizeConvo`: `Promise`\<[`SummarizeConvoResponse`](routes/ai.md#summarizeconvoresponse)\>; \} | `undefined` | - |
 | `ai.composeWithNu` | `public` | `Promise`\<[`ComposeWithNuResponse`](routes/ai.md#composewithnuresponse)\> | `undefined` | - |
 | `ai.createRevisionSourceUpload` | `public` | `Promise`\<[`CreateRevisionSourceUploadResponse`](routes/ai.md#createrevisionsourceuploadresponse)\> | `undefined` | - |
 | `ai.generateRevision` | `public` | `Promise`\<[`GenerateImageRevisionResponse`](routes/ai.md#generateimagerevisionresponse)\> | `undefined` | - |
@@ -45,6 +45,8 @@ Creates an instance of NuramaClient.
 | `ai.listTones` | `public` | `Promise`\<[`ListTonesResponse`](routes/ai.md#listtonesresponse)\> | `undefined` | - |
 | `ai.polish` | `public` | `Promise`\<[`PolishResponse`](routes/ai.md#polishresponse)\> | `undefined` | - |
 | `ai.submitFeedback` | `public` | `Promise`\<\{ `id`: `string`; \}\> | `undefined` | - |
+| `ai.suggestConvoTasks` | `public` | `Promise`\<[`SuggestConvoTasksResponse`](routes/ai.md#suggestconvotasksresponse)\> | `undefined` | - |
+| `ai.summarizeConvo` | `public` | `Promise`\<[`SummarizeConvoResponse`](routes/ai.md#summarizeconvoresponse)\> | `undefined` | - |
 | <a id="aichat"></a> `aiChat` | `public` | \{ `createTopic`: `Promise`\<`AiChatCreateTopicResponse`\>; `deleteTopic`: `Promise`\<`AiChatGetTopicResponse`\>; `getTopic`: `Promise`\<`AiChatGetTopicResponse`\>; `listTopics`: `Promise`\<`AiChatListTopicsResponse`\>; `updateTopic`: `Promise`\<`AiChatGetTopicResponse`\>; \} | `undefined` | - |
 | `aiChat.createTopic` | `public` | `Promise`\<`AiChatCreateTopicResponse`\> | `undefined` | - |
 | `aiChat.deleteTopic` | `public` | `Promise`\<`AiChatGetTopicResponse`\> | `undefined` | - |
@@ -138,19 +140,27 @@ Creates an instance of NuramaClient.
 | `chat.updateMemberChat` | `public` | `Promise`\<`ChatMember`\> | `undefined` | - |
 | `chat.updateMemberChatIcon` | `public` | `Promise`\<\{ `chat`: `ChatMember`; \} & [`AttachmentUploadRecord`](routes/chat.md#attachmentuploadrecord)\> | `undefined` | - |
 | <a id="config"></a> `config` | `readonly` | [`ConfigMethods`](routes/config.md#configmethods) | `undefined` | - |
-| <a id="convo"></a> `convo` | `public` | \{ `completeConvo`: `Promise`\<`CompleteConvoResponse`\>; `deleteConvo`: `Promise`\<`void`\>; `getChatConvos`: `Promise`\<`Convo`[]\>; `getConvo`: `Promise`\<`GetConvoResponse`\>; `getProjectConvos`: `Promise`\<`Convo`[]\>; `getScopeConvos`: `Promise`\<`GetScopeConvosResponse`\>; `joinConvo`: `Promise`\<`JoinConvoResponse`\>; `leaveConvo`: `Promise`\<`LeaveConvoResponse`\>; `promoteConvoArtifact`: `Promise`\<`PromoteConvoArtifactResponse`\>; `rejoinConvo`: `Promise`\<`JoinConvoResponse`\>; `startConvo`: `Promise`\<`StartConvoResponse`\>; `updateConvo`: `Promise`\<`UpdateConvoResponse`\>; \} | `undefined` | - |
+| <a id="convo"></a> `convo` | `public` | \{ `completeConvo`: `Promise`\<`CompleteConvoResponse`\>; `deleteConvo`: `Promise`\<`void`\>; `getChatConvos`: `Promise`\<`Convo`[]\>; `getConvo`: `Promise`\<`GetConvoResponse`\>; `getConvoArtifactPlayback`: `Promise`\<`ConvoArtifactPlaybackResponse`\>; `getConvoMentions`: `Promise`\<`ConvoMentionsResponse`\>; `getConvoTasks`: `Promise`\<`ConvoTasksResponse`\>; `getMyConvos`: `Promise`\<`GetMyConvosResponse`\>; `getProjectConvos`: `Promise`\<`Convo`[]\>; `getScopeConvos`: `Promise`\<`GetScopeConvosResponse`\>; `joinConvo`: `Promise`\<`JoinConvoResponse`\>; `leaveConvo`: `Promise`\<`LeaveConvoResponse`\>; `promoteConvoArtifact`: `Promise`\<`PromoteConvoArtifactResponse`\>; `rejoinConvo`: `Promise`\<`JoinConvoResponse`\>; `removeConvoMention`: `Promise`\<`ConvoMentionsResponse`\>; `sendConvoMentions`: `Promise`\<`SendConvoMentionsResponse`\>; `startConvo`: `Promise`\<`StartConvoResponse`\>; `updateConvo`: `Promise`\<`UpdateConvoResponse`\>; `updateConvoMentions`: `Promise`\<`ConvoMentionsResponse`\>; `updateConvoSummary`: `Promise`\<`UpdateConvoSummaryResponse`\>; \} | `undefined` | - |
 | `convo.completeConvo` | `public` | `Promise`\<`CompleteConvoResponse`\> | `undefined` | - |
 | `convo.deleteConvo` | `public` | `Promise`\<`void`\> | `undefined` | - |
 | `convo.getChatConvos` | `public` | `Promise`\<`Convo`[]\> | `undefined` | - |
 | `convo.getConvo` | `public` | `Promise`\<`GetConvoResponse`\> | `undefined` | - |
+| `convo.getConvoArtifactPlayback` | `public` | `Promise`\<`ConvoArtifactPlaybackResponse`\> | `undefined` | - |
+| `convo.getConvoMentions` | `public` | `Promise`\<`ConvoMentionsResponse`\> | `undefined` | - |
+| `convo.getConvoTasks` | `public` | `Promise`\<`ConvoTasksResponse`\> | `undefined` | - |
+| `convo.getMyConvos` | `public` | `Promise`\<`GetMyConvosResponse`\> | `undefined` | - |
 | `convo.getProjectConvos` | `public` | `Promise`\<`Convo`[]\> | `undefined` | - |
 | `convo.getScopeConvos` | `public` | `Promise`\<`GetScopeConvosResponse`\> | `undefined` | - |
 | `convo.joinConvo` | `public` | `Promise`\<`JoinConvoResponse`\> | `undefined` | - |
 | `convo.leaveConvo` | `public` | `Promise`\<`LeaveConvoResponse`\> | `undefined` | - |
 | `convo.promoteConvoArtifact` | `public` | `Promise`\<`PromoteConvoArtifactResponse`\> | `undefined` | - |
 | `convo.rejoinConvo` | `public` | `Promise`\<`JoinConvoResponse`\> | `undefined` | - |
+| `convo.removeConvoMention` | `public` | `Promise`\<`ConvoMentionsResponse`\> | `undefined` | - |
+| `convo.sendConvoMentions` | `public` | `Promise`\<`SendConvoMentionsResponse`\> | `undefined` | - |
 | `convo.startConvo` | `public` | `Promise`\<`StartConvoResponse`\> | `undefined` | - |
 | `convo.updateConvo` | `public` | `Promise`\<`UpdateConvoResponse`\> | `undefined` | - |
+| `convo.updateConvoMentions` | `public` | `Promise`\<`ConvoMentionsResponse`\> | `undefined` | - |
+| `convo.updateConvoSummary` | `public` | `Promise`\<`UpdateConvoSummaryResponse`\> | `undefined` | - |
 | <a id="credits"></a> `credits` | `public` | \{ `getBalance`: `Promise`\<[`GetBalanceResponse`](routes/credits.md#getbalanceresponse)\>; `getUsageReport`: `Promise`\<[`UsageReportResponse`](routes/credits.md#usagereportresponse)\>; \} | `undefined` | - |
 | `credits.getBalance` | `public` | `Promise`\<[`GetBalanceResponse`](routes/credits.md#getbalanceresponse)\> | `undefined` | - |
 | `credits.getUsageReport` | `public` | `Promise`\<[`UsageReportResponse`](routes/credits.md#usagereportresponse)\> | `undefined` | - |

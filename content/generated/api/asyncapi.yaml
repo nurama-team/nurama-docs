@@ -158,6 +158,8 @@ channels:
         $ref: '#/components/messages/chatCreateMessage'
       chatReviseMessage:
         $ref: '#/components/messages/chatReviseMessage'
+      chatMentionAdded:
+        $ref: '#/components/messages/chatMentionAdded'
       chatCreateReaction:
         $ref: '#/components/messages/chatCreateReaction'
       chatRefreshMessage:
@@ -318,8 +320,16 @@ channels:
         $ref: '#/components/messages/convoRecordingReady'
       convoTranscriptionReady:
         $ref: '#/components/messages/convoTranscriptionReady'
+      convoSummaryReady:
+        $ref: '#/components/messages/convoSummaryReady'
+      convoMentionsSuggested:
+        $ref: '#/components/messages/convoMentionsSuggested'
+      convoTasksSuggested:
+        $ref: '#/components/messages/convoTasksSuggested'
       feedEvent:
         $ref: '#/components/messages/feedEvent'
+      convoListChange:
+        $ref: '#/components/messages/convoListChange'
       userFeed:
         $ref: '#/components/messages/userFeed'
       assetChatActivity:
@@ -453,6 +463,8 @@ channels:
         $ref: '#/components/messages/chatCreateMessage'
       chatReviseMessage:
         $ref: '#/components/messages/chatReviseMessage'
+      chatMentionAdded:
+        $ref: '#/components/messages/chatMentionAdded'
       chatCreateReaction:
         $ref: '#/components/messages/chatCreateReaction'
       chatRefreshMessage:
@@ -613,8 +625,16 @@ channels:
         $ref: '#/components/messages/convoRecordingReady'
       convoTranscriptionReady:
         $ref: '#/components/messages/convoTranscriptionReady'
+      convoSummaryReady:
+        $ref: '#/components/messages/convoSummaryReady'
+      convoMentionsSuggested:
+        $ref: '#/components/messages/convoMentionsSuggested'
+      convoTasksSuggested:
+        $ref: '#/components/messages/convoTasksSuggested'
       feedEvent:
         $ref: '#/components/messages/feedEvent'
+      convoListChange:
+        $ref: '#/components/messages/convoListChange'
       userFeed:
         $ref: '#/components/messages/userFeed'
       assetChatActivity:
@@ -808,6 +828,7 @@ operations:
       - $ref: '#/channels/resource/messages/chatMemberDelete'
       - $ref: '#/channels/resource/messages/chatCreateMessage'
       - $ref: '#/channels/resource/messages/chatReviseMessage'
+      - $ref: '#/channels/resource/messages/chatMentionAdded'
       - $ref: '#/channels/resource/messages/chatCreateReaction'
       - $ref: '#/channels/resource/messages/chatRefreshMessage'
       - $ref: '#/channels/resource/messages/chatMention'
@@ -888,7 +909,11 @@ operations:
       - $ref: '#/channels/resource/messages/convoParticipantJoined'
       - $ref: '#/channels/resource/messages/convoRecordingReady'
       - $ref: '#/channels/resource/messages/convoTranscriptionReady'
+      - $ref: '#/channels/resource/messages/convoSummaryReady'
+      - $ref: '#/channels/resource/messages/convoMentionsSuggested'
+      - $ref: '#/channels/resource/messages/convoTasksSuggested'
       - $ref: '#/channels/resource/messages/feedEvent'
+      - $ref: '#/channels/resource/messages/convoListChange'
       - $ref: '#/channels/resource/messages/userFeed'
       - $ref: '#/channels/resource/messages/assetChatActivity'
       - $ref: '#/channels/resource/messages/taskChatActivity'
@@ -960,6 +985,7 @@ operations:
       - $ref: '#/channels/public/messages/chatMemberDelete'
       - $ref: '#/channels/public/messages/chatCreateMessage'
       - $ref: '#/channels/public/messages/chatReviseMessage'
+      - $ref: '#/channels/public/messages/chatMentionAdded'
       - $ref: '#/channels/public/messages/chatCreateReaction'
       - $ref: '#/channels/public/messages/chatRefreshMessage'
       - $ref: '#/channels/public/messages/chatMention'
@@ -1040,7 +1066,11 @@ operations:
       - $ref: '#/channels/public/messages/convoParticipantJoined'
       - $ref: '#/channels/public/messages/convoRecordingReady'
       - $ref: '#/channels/public/messages/convoTranscriptionReady'
+      - $ref: '#/channels/public/messages/convoSummaryReady'
+      - $ref: '#/channels/public/messages/convoMentionsSuggested'
+      - $ref: '#/channels/public/messages/convoTasksSuggested'
       - $ref: '#/channels/public/messages/feedEvent'
+      - $ref: '#/channels/public/messages/convoListChange'
       - $ref: '#/channels/public/messages/userFeed'
       - $ref: '#/channels/public/messages/assetChatActivity'
       - $ref: '#/channels/public/messages/taskChatActivity'
@@ -4049,6 +4079,42 @@ components:
         - visibility
         - mentions
         - message
+    chatMentionAdded:
+      name: chatMentionAdded
+      title: chatMentionAdded
+      summary: Fired when an edit to a message newly mentions you.
+      description: |-
+        Fired when an edit to a message newly mentions you. `tokens.preview` is the line shown in the push.
+
+        Payload for the chatMentionAdded event.
+
+        Delivered as the `notification` socket event with `type` set to `chatMentionAdded`.
+      payload:
+        description: Fired when an edit to a message newly mentions you. `tokens.preview` is the line shown in the push.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  chatId:
+                    type: string
+                  messageId:
+                    type: string
+                  preview:
+                    type: string
+      x-notification-tokens:
+        - requesterId
+        - requester
+        - chatId
+        - messageId
+        - mentions
+        - message
+        - resourceType
+        - resourceId
+        - visibility
+        - preview
     chatCreateReaction:
       name: chatCreateReaction
       title: chatCreateReaction
@@ -9092,6 +9158,111 @@ components:
       x-notification-tokens:
         - convoId
         - chatId
+    convoSummaryReady:
+      name: convoSummaryReady
+      title: convoSummaryReady
+      summary: Fired when a summary of a call's transcript has been written.
+      description: >-
+        Raised when someone asks for a summary and it is kept on the convo. `changes.update` carries the convo's id,
+        `summary`, `summaryGeneratedAt`, and its `subject` and `notes`, which the summary fills in when nobody had set
+        them. A summary written automatically as the transcript arrives rides on convoTranscriptionReady instead.
+
+
+        Payload for the convoSummaryReady event.
+
+
+        Delivered as the `notification` socket event with `type` set to `convoSummaryReady`.
+      payload:
+        description: >-
+          Raised when someone asks for a summary and it is kept on the convo. `changes.update` carries the convo's id,
+          `summary`, `summaryGeneratedAt`, and its `subject` and `notes`, which the summary fills in when nobody had set
+          them. A summary written automatically as the transcript arrives rides on convoTranscriptionReady instead.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  convoId:
+                    type: string
+                  chatId:
+                    type: string
+      x-notification-tokens:
+        - convoId
+        - chatId
+    convoMentionsSuggested:
+      name: convoMentionsSuggested
+      title: convoMentionsSuggested
+      summary: Fired when Nu has picked out people and assets a call's transcript talks about.
+      description: >-
+        Sent once, as the transcript is summarised, to the convo's chat and its project feed. `changes.update` carries
+        the convo's id, `participantIds`, and `freshSuggestedMentions` — each a user or asset with the reason it was
+        picked. Clients show them to admins who were on the call until the next load; the kept list is read from `GET
+        /convos/{convoId}/mentions`.
+
+
+        Payload for the convoMentionsSuggested event.
+
+
+        Delivered as the `notification` socket event with `type` set to `convoMentionsSuggested`.
+      payload:
+        description: >-
+          Sent once, as the transcript is summarised, to the convo's chat and its project feed. `changes.update` carries
+          the convo's id, `participantIds`, and `freshSuggestedMentions` — each a user or asset with the reason it was
+          picked. Clients show them to admins who were on the call until the next load; the kept list is read from `GET
+          /convos/{convoId}/mentions`.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  convoId:
+                    type: string
+                  chatId:
+                    type: string
+      x-notification-tokens:
+        - convoId
+        - chatId
+    convoTasksSuggested:
+      name: convoTasksSuggested
+      title: convoTasksSuggested
+      summary: Fired when Nu has suggested board tasks from a call's transcript without being asked.
+      description: >-
+        Sent once, as a project convo's transcript is summarised and where task generation is on, to the convo's chat
+        and its project feed. `changes.update` carries the convo's id, `participantIds`, and `freshSuggestedTasks` —
+        each a subject and description, with `assignedToId`, `boardId` and `columnId` where the transcript and the
+        project's boards made them clear. Nothing has been created. Clients offer them on the convo's card to people who
+        were on the call until the next load; the kept list is returned by `POST /ai/convo-tasks`.
+
+
+        Payload for the convoTasksSuggested event.
+
+
+        Delivered as the `notification` socket event with `type` set to `convoTasksSuggested`.
+      payload:
+        description: >-
+          Sent once, as a project convo's transcript is summarised and where task generation is on, to the convo's chat
+          and its project feed. `changes.update` carries the convo's id, `participantIds`, and `freshSuggestedTasks` —
+          each a subject and description, with `assignedToId`, `boardId` and `columnId` where the transcript and the
+          project's boards made them clear. Nothing has been created. Clients offer them on the convo's card to people
+          who were on the call until the next load; the kept list is returned by `POST /ai/convo-tasks`.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  convoId:
+                    type: string
+                  chatId:
+                    type: string
+      x-notification-tokens:
+        - convoId
+        - chatId
     feedEvent:
       name: feedEvent
       title: feedEvent
@@ -9125,6 +9296,47 @@ components:
                   - event
       x-notification-tokens:
         - event
+    convoListChange:
+      name: convoListChange
+      title: convoListChange
+      summary: Fired when a convo the person can see starts, changes or ends.
+      description: >-
+        Sent on the `user/{userId}` channel of everyone who can see the convo — the members of its side of the project,
+        or of its Team Chat — with one payload for all of them. It carries no convo; clients refetch `GET /v1/convos`. A
+        missed event only delays the list, since the next fetch is complete.
+
+
+        Payload for the convoListChange event.
+
+
+        Delivered as the `notification` socket event with `type` set to `convoListChange`.
+      payload:
+        description: >-
+          Sent on the `user/{userId}` channel of everyone who can see the convo — the members of its side of the
+          project, or of its Team Chat — with one payload for all of them. It carries no convo; clients refetch `GET
+          /v1/convos`. A missed event only delays the list, since the next fetch is complete.
+        allOf:
+          - $ref: '#/components/schemas/BaseNotificationEvent'
+          - type: object
+            properties:
+              tokens:
+                type: object
+                properties:
+                  convoId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum:
+                      - active
+                      - completed
+                      - cancelled
+                required:
+                  - convoId
+                  - status
+      x-notification-tokens:
+        - convoId
+        - status
     userFeed:
       name: userFeed
       title: userFeed

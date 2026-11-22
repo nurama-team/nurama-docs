@@ -49,6 +49,21 @@ One turn of the drafting conversation, as sent back on each request.
 
 ***
 
+### ConvoAiRequest
+
+Which convo, and the workspace (and project) it is in — who pays, and whose AI settings apply.
+
+#### Properties
+
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="convoid"></a> `convoId` | `string` | - |
+| <a id="projectid-1"></a> `projectId?` | `string` | Required for task suggestions; when given it must be the convo's own project. |
+| <a id="regenerate"></a> `regenerate?` | `boolean` | Make a new one even though one is already kept on the convo. Billed again. |
+| <a id="workspaceid-1"></a> `workspaceId` | `string` | - |
+
+***
+
 ### CreateRevisionSourceUploadRequest
 
 Source-upload mint request. Returns a multipart upload bundle the
@@ -63,9 +78,9 @@ is the captured video frame, which is always JPEG. Size cap
 | Property | Type | Description |
 | ------ | ------ | ------ |
 | <a id="assetid"></a> `assetId?` | `string` | Audit-only lineage — the originating asset id. |
-| <a id="projectid-1"></a> `projectId?` | `string` | - |
+| <a id="projectid-2"></a> `projectId?` | `string` | - |
 | <a id="sizeinmb"></a> `sizeInMB` | `number` | - |
-| <a id="workspaceid-1"></a> `workspaceId` | `string` | - |
+| <a id="workspaceid-2"></a> `workspaceId` | `string` | - |
 
 ***
 
@@ -87,10 +102,13 @@ is the captured video frame, which is always JPEG. Size cap
 
 #### Properties
 
-| Property | Type |
-| ------ | ------ |
-| <a id="description"></a> `description` | `string` |
-| <a id="subject"></a> `subject` | `string` |
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="assignedtoid"></a> `assignedToId?` | `string` | The project member the message says the task is for, when it names one unambiguously. |
+| <a id="boardid"></a> `boardId?` | `string` | The board this kind of work belongs on, judged from the project's boards. |
+| <a id="columnid"></a> `columnId?` | `string` | A column on that board, when one clearly fits. |
+| <a id="description"></a> `description` | `string` | - |
+| <a id="subject"></a> `subject` | `string` | - |
 
 ***
 
@@ -104,12 +122,12 @@ is the captured video frame, which is always JPEG. Size cap
 | <a id="jobid"></a> `jobId?` | `string` | Groups all revisions from one modal session. |
 | <a id="mask"></a> `mask?` | \{ `dataUrl`: `string`; \} | Optional alpha-channel mask PNG (data URL) matching the source image's dimensions. Transparent pixels mark the edit region; opaque pixels are preserved. When supplied, the server forwards it as OpenAI's top-level `mask` field — NOT as another `references[]` entry — and auto-augments the prompt with a region directive. |
 | `mask.dataUrl` | `string` | - |
-| <a id="projectid-2"></a> `projectId?` | `string` | - |
+| <a id="projectid-3"></a> `projectId?` | `string` | - |
 | <a id="prompt"></a> `prompt` | `string` | - |
 | <a id="references"></a> `references?` | `string`[] | Prior revisions to condition on (public URLs or data URLs). |
 | <a id="source"></a> `source` | [`ImageRevisionSource`](#imagerevisionsource) | - |
 | <a id="sourceaspect"></a> `sourceAspect?` | `number` | Source image's aspect ratio (width / height). Two effects when set: 1. The server picks the closest OpenAI-supported generation size — landscape, portrait, or square — instead of always generating 1024×1024. Reduces the gap between the model's output aspect and the source aspect before any padding. 2. After generation, the server pads the result with black bars (letterbox/pillarbox) so the final bytes exactly match this aspect. The user gets an output image whose framing matches the input they started from, with the generated content centred and the unfilled edges padded. Omit (or pass `1.0`) for legacy square output. |
-| <a id="workspaceid-2"></a> `workspaceId` | `string` | - |
+| <a id="workspaceid-3"></a> `workspaceId` | `string` | - |
 
 ***
 
@@ -138,8 +156,9 @@ is the captured video frame, which is always JPEG. Size cap
 | <a id="contextmessages"></a> `contextMessages?` | [`TaskGenerationContextMessage`](#taskgenerationcontextmessage)[] | Preceding chat messages (oldest first) to give the model conversational lead-in. Server caps at 10 messages and trims long content per-message; the focal `messageText` is the actual instruction. |
 | <a id="messageid"></a> `messageId?` | `string` | Optional source chat message id — reserved for future audit linking. |
 | <a id="messagetext"></a> `messageText` | `string` | - |
-| <a id="projectid-3"></a> `projectId` | `string` | - |
-| <a id="workspaceid-3"></a> `workspaceId` | `string` | - |
+| <a id="projectid-4"></a> `projectId` | `string` | - |
+| <a id="visibility"></a> `visibility?` | `"creator"` \| `"reviewer"` | The side of the project the caller is working on: whose members a task may come back assigned to. Defaults to `creator`. |
+| <a id="workspaceid-4"></a> `workspaceId` | `string` | - |
 
 ***
 
@@ -172,10 +191,10 @@ is the captured video frame, which is always JPEG. Size cap
 
 | Property | Type |
 | ------ | ------ |
-| <a id="projectid-4"></a> `projectId?` | `string` |
+| <a id="projectid-5"></a> `projectId?` | `string` |
 | <a id="text-2"></a> `text` | `string` |
 | <a id="toneid"></a> `toneId` | `string` |
-| <a id="workspaceid-4"></a> `workspaceId` | `string` |
+| <a id="workspaceid-5"></a> `workspaceId` | `string` |
 
 ***
 
@@ -205,10 +224,46 @@ One Nu Feedback submission.
 | <a id="messageid-1"></a> `messageId?` | `string` | - |
 | <a id="notes"></a> `notes?` | `string` | The user's own words on what worked or didn't. Optional. |
 | <a id="pagecontext"></a> `pageContext?` | `Record`\<`string`, `unknown`\> | Extras the client already holds, folded into the stored snapshot. |
-| <a id="projectid-5"></a> `projectId?` | `string` | - |
+| <a id="projectid-6"></a> `projectId?` | `string` | - |
 | <a id="rating"></a> `rating` | `"positive"` \| `"negative"` | - |
 | <a id="surface"></a> `surface` | `"chat"` \| `"assist"` | Which AI surface produced the reply — the two are tuned separately. |
-| <a id="workspaceid-5"></a> `workspaceId?` | `string` | - |
+| <a id="workspaceid-6"></a> `workspaceId?` | `string` | - |
+
+***
+
+### SuggestConvoTasksResponse
+
+#### Extends
+
+- `ConvoAiBilling`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="balanceafter-4"></a> `balanceAfter` | `number` \| `null` | - | `ConvoAiBilling.balanceAfter` |
+| <a id="billedcredits-4"></a> `billedCredits` | `number` | - | `ConvoAiBilling.billedCredits` |
+| <a id="generated"></a> `generated` | `boolean` | False when a result already kept on the convo was returned; nothing was billed. | `ConvoAiBilling.generated` |
+| <a id="suggestedtasksgeneratedat"></a> `suggestedTasksGeneratedAt` | `number` | Epoch ms. | - |
+| <a id="tasks-1"></a> `tasks` | [`GeneratedTask`](#generatedtask)[] | - | - |
+
+***
+
+### SummarizeConvoResponse
+
+#### Extends
+
+- `ConvoAiBilling`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="balanceafter-5"></a> `balanceAfter` | `number` \| `null` | - | `ConvoAiBilling.balanceAfter` |
+| <a id="billedcredits-5"></a> `billedCredits` | `number` | - | `ConvoAiBilling.billedCredits` |
+| <a id="generated-1"></a> `generated` | `boolean` | False when a result already kept on the convo was returned; nothing was billed. | `ConvoAiBilling.generated` |
+| <a id="summary"></a> `summary` | `string` | - | - |
+| <a id="summarygeneratedat"></a> `summaryGeneratedAt` | `number` | Epoch ms. | - |
 
 ***
 
@@ -276,6 +331,8 @@ function default(client): {
   submitFeedback: Promise<{
      id: string;
   }>;
+  suggestConvoTasks: Promise<SuggestConvoTasksResponse>;
+  summarizeConvo: Promise<SummarizeConvoResponse>;
 };
 ```
 
@@ -305,3 +362,5 @@ composer to rewrite a draft message in a selected tone.
 | `listTones()` | () => `Promise`\<[`ListTonesResponse`](#listtonesresponse)\> | Returns the catalogue of polish tones the platform supports. The FE uses this to populate the tone dropdown without hard-coding the IDs. |
 | `polish()` | (`data`) => `Promise`\<[`PolishResponse`](#polishresponse)\> | - |
 | `submitFeedback()` | (`data`) => `Promise`\<\{ `id`: `string`; \}\> | Record a thumbs-up / thumbs-down on one assistant reply. `chatId` is required because it is what the server authorises against — a user can only rate a reply in a chat they can already read — and it is what the stored transcript snapshot is built from. |
+| `suggestConvoTasks()` | (`data`) => `Promise`\<[`SuggestConvoTasksResponse`](#suggestconvotasksresponse)\> | Suggest board tasks from a convo's transcript. Proposals only — create the ones wanted with `task.bulkCreate`. Kept on the convo, so a second call returns them without billing; pass `regenerate` for new ones. Requires the Boards add-on as well as AI, and a convo in a project. |
+| `summarizeConvo()` | (`data`) => `Promise`\<[`SummarizeConvoResponse`](#summarizeconvoresponse)\> | Summarise a convo from its transcript. The summary is kept on the convo, so a second call returns it without billing; pass `regenerate` for a new one. The convo must be in `workspaceId`, and the caller able to see it. |

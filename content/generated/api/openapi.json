@@ -634,6 +634,14 @@
                     "format": "uuid",
                     "description": "Optional source chat message id. Recorded nowhere\ntoday; reserved for future audit linking between\n`AiUsageEvent` and the originating `ChatMessage`.\n"
                   },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "creator",
+                      "reviewer"
+                    ],
+                    "description": "The side of the project the caller is working on. Its members are who a\ngenerated task may come back assigned to (`assignedToId`), and whose boards it may\ncome back placed on (`boardId`, `columnId`). Defaults to\n`creator`; a caller who cannot read the creator side is given the reviewer\nside whatever is sent.\n"
+                  },
                   "contextMessages": {
                     "type": "array",
                     "maxItems": 10,
@@ -1271,6 +1279,8 @@
                 "assist",
                 "compose",
                 "taskGeneration",
+                "convoSummary",
+                "convoTasks",
                 "imageRevision",
                 "convo"
               ]
@@ -10585,6 +10595,11 @@
                     "type": "string",
                     "maxLength": 10000
                   },
+                  "notifyNewMentions": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Tell the people this edit newly mentions, as a new message would: the mention email, a push, and the live `taskCreate` for their mention task. Left off, an edit creates the mention task and announces nothing.\n"
+                  },
                   "mentions": {
                     "type": "array",
                     "items": {
@@ -12133,6 +12148,11 @@
                     "type": "string",
                     "maxLength": 255,
                     "description": "Display name for the resulting asset. Omitted, one is derived from the convo subject."
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "For a convo that is in no project: the project whose assets to add it to. The caller must be able to add assets there (403 `forbidden` otherwise). Ignored for a project convo, which always goes to its own project.\n"
                   }
                 }
               }
@@ -15306,7 +15326,8 @@
                   "submission",
                   "public",
                   "member",
-                  "task"
+                  "task",
+                  "convo"
                 ]
               }
             },
@@ -19592,7 +19613,7 @@
       ],
       "patch": {
         "summary": "Update a single project setting",
-        "description": "Updates one key of the project's `settings` JSON column. Mirrors the\nworkspace settings endpoint. Requires `canManageProjectSettings`\n(no subscription check on this route).\n\nAt the project level every setting accepts `null`, meaning \"inherit the\nworkspace's value\". Otherwise the type of `value` depends on `name`:\n\n- `allowAiFeatures`, `aiPolishEnabled`, `aiComposeEnabled`, `aiChatEnabled`,\n  `aiAssistEnabled`, `aiTaskGenerationEnabled`, `aiImageRevisionEnabled`,\n  `aiPolishAllowReviewer`, `aiComposeAllowReviewer`, `aiChatAllowReviewer`,\n  `aiAssistAllowReviewer`, `aiTaskGenerationAllowReviewer`,\n  `aiImageRevisionAllowReviewer` — boolean.\n- `aiAssistFollowUpWindow` — integer, 0–30.\n- `aiCustomPreprompt`, `aiTaskGenerationPreprompt` — string (may be empty; empty means \"no preprompt\", null means inherit).\n- `aiChatTools`, `aiAssistTools` — object mapping tool names (`^[a-z][a-z0-9_]*$`) to boolean or null.\n- `originalPruning` — an `OriginalPruningPolicy` object, or null to turn automatic\n  pruning off.\n\nA `value` of the wrong type for the setting is a validation error (400).\n",
+        "description": "Updates one key of the project's `settings` JSON column. Mirrors the\nworkspace settings endpoint. Requires `canManageProjectSettings`\n(no subscription check on this route).\n\nAt the project level every setting accepts `null`, meaning \"inherit the\nworkspace's value\". Otherwise the type of `value` depends on `name`:\n\n- `allowAiFeatures`, `aiPolishEnabled`, `aiComposeEnabled`, `aiChatEnabled`,\n  `aiAssistEnabled`, `aiTaskGenerationEnabled`, `aiConvoSummaryEnabled`,\n  `aiConvoAutoSummaryEnabled`, `aiImageRevisionEnabled`,\n  `aiPolishAllowReviewer`, `aiComposeAllowReviewer`, `aiChatAllowReviewer`,\n  `aiAssistAllowReviewer`, `aiTaskGenerationAllowReviewer`,\n  `aiImageRevisionAllowReviewer` — boolean.\n- `aiAssistFollowUpWindow` — integer, 0–30.\n- `aiCustomPreprompt`, `aiTaskGenerationPreprompt` — string (may be empty; empty means \"no preprompt\", null means inherit).\n- `aiChatTools`, `aiAssistTools` — object mapping tool names (`^[a-z][a-z0-9_]*$`) to boolean or null.\n- `originalPruning` — an `OriginalPruningPolicy` object, or null to turn automatic\n  pruning off.\n\nA `value` of the wrong type for the setting is a validation error (400).\n",
         "tags": [
           "Projects"
         ],
@@ -25893,6 +25914,8 @@
                 "aiAssistEnabled",
                 "aiAssistFollowUpWindow",
                 "aiTaskGenerationEnabled",
+                "aiConvoSummaryEnabled",
+                "aiConvoAutoSummaryEnabled",
                 "aiImageRevisionEnabled",
                 "aiPolishAllowReviewer",
                 "aiComposeAllowReviewer",
@@ -26652,10 +26675,254 @@
           }
         ]
       },
+      "Dot3DAnnotation": {
+        "type": "object",
+        "description": "A pin on the surface of a 3D model. `position` and `normal` are in the coordinate space of the asset's `media` GLB, so the same pin lands on the same spot in every viewer. Takes no timestamps and none of the 2D transform properties.\n",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "dot3d"
+            ]
+          },
+          "position": {
+            "$ref": "#/components/schemas/Vector3"
+          },
+          "normal": {
+            "$ref": "#/components/schemas/Vector3"
+          },
+          "scale": {
+            "type": "number",
+            "default": 1,
+            "minimum": 0.1,
+            "maximum": 10,
+            "description": "Size multiplier for the pin"
+          },
+          "color": {
+            "type": "string",
+            "default": "#9b9b9b"
+          },
+          "camera": {
+            "type": "object",
+            "description": "The view the pin was placed from, as `<model-viewer>` camera strings. Clients pass it back to the viewer to restore that view.\n",
+            "properties": {
+              "orbit": {
+                "type": "string",
+                "maxLength": 120,
+                "example": "1.2rad 0.8rad 4m"
+              },
+              "target": {
+                "type": "string",
+                "maxLength": 120,
+                "example": "0m 0.5m 0m"
+              },
+              "fieldOfView": {
+                "type": "string",
+                "maxLength": 120,
+                "example": "30deg"
+              }
+            },
+            "required": [
+              "orbit"
+            ]
+          },
+          "fileId": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "The model file the position was measured on"
+          },
+          "nestedAnnotations": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/NestedAnnotation"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "position",
+          "normal"
+        ]
+      },
+      "Vector3": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "z": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "z"
+        ]
+      },
+      "DocPinAnnotation": {
+        "type": "object",
+        "description": "A pin on a page of a document. `page` is the page number in the original document, counted from 1, and `coordinates` are percentages of the page.\n",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "docPin"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "coordinates": {
+            "$ref": "#/components/schemas/PercentageCoordinates"
+          },
+          "color": {
+            "type": "string",
+            "default": "#9b9b9b"
+          },
+          "fileId": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "The PDF the pin was placed on"
+          }
+        },
+        "required": [
+          "type",
+          "page",
+          "coordinates"
+        ]
+      },
+      "DocHighlightAnnotation": {
+        "type": "object",
+        "description": "A highlight over a run of text on a page of a document. The text is the anchor: `start` and `end` are offsets into the page's text with all whitespace removed, and `text` with `prefix` and `suffix` lets a client find the passage again if the offsets no longer match. `rects` are where the highlight was drawn when it was made, in percentages of the page, for clients that cannot measure the text themselves.\n",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "docHighlight"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end": {
+            "type": "integer",
+            "description": "Exclusive; greater than `start`"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "The highlighted text"
+          },
+          "prefix": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "The text just before the highlight"
+          },
+          "suffix": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "The text just after the highlight"
+          },
+          "rects": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "width": {
+                  "type": "number"
+                },
+                "height": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "width",
+                "height"
+              ]
+            }
+          },
+          "color": {
+            "type": "string",
+            "default": "#9b9b9b"
+          },
+          "fileId": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "The PDF the highlight was made on"
+          }
+        },
+        "required": [
+          "type",
+          "page",
+          "start",
+          "end",
+          "text"
+        ]
+      },
+      "DocPageAnnotation": {
+        "type": "object",
+        "description": "A comment on a whole page of a document, with no mark on it.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "docPage"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "color": {
+            "type": "string",
+            "default": "#9b9b9b"
+          },
+          "fileId": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "type",
+          "page"
+        ]
+      },
       "Annotation": {
         "oneOf": [
           {
             "$ref": "#/components/schemas/DotAnnotation"
+          },
+          {
+            "$ref": "#/components/schemas/Dot3DAnnotation"
+          },
+          {
+            "$ref": "#/components/schemas/DocPinAnnotation"
+          },
+          {
+            "$ref": "#/components/schemas/DocHighlightAnnotation"
+          },
+          {
+            "$ref": "#/components/schemas/DocPageAnnotation"
           },
           {
             "$ref": "#/components/schemas/FrameCommentAnnotation"
@@ -26674,6 +26941,10 @@
           "propertyName": "type",
           "mapping": {
             "dot": "#/components/schemas/DotAnnotation",
+            "dot3d": "#/components/schemas/Dot3DAnnotation",
+            "docPin": "#/components/schemas/DocPinAnnotation",
+            "docHighlight": "#/components/schemas/DocHighlightAnnotation",
+            "docPage": "#/components/schemas/DocPageAnnotation",
             "frameComment": "#/components/schemas/FrameCommentAnnotation",
             "rectangle": "#/components/schemas/ShapeAnnotation",
             "circle": "#/components/schemas/ShapeAnnotation",
@@ -29762,14 +30033,15 @@
               "submission",
               "public",
               "member",
-              "task"
+              "task",
+              "convo"
             ]
           },
           "subjectKey": {
             "type": "string",
             "format": "uuid",
             "nullable": true,
-            "description": "The asset, project or task chat, submission, public release or (for a join) membership the card is about. Null for upload, publish, task and leave cards."
+            "description": "The asset, project or task chat, submission, public release, convo or (for a join) membership the card is about. Null for upload, publish, task and leave cards."
           },
           "actorId": {
             "type": "string",
@@ -30464,7 +30736,11 @@
                   "enum": [
                     "polish",
                     "chat",
+                    "assist",
+                    "compose",
                     "taskGeneration",
+                    "convoSummary",
+                    "convoTasks",
                     "imageRevision",
                     "convo"
                   ]
@@ -33881,6 +34157,8 @@
           "aiAssistEnabled",
           "aiAssistFollowUpWindow",
           "aiTaskGenerationEnabled",
+          "aiConvoSummaryEnabled",
+          "aiConvoAutoSummaryEnabled",
           "aiImageRevisionEnabled",
           "aiPolishAllowReviewer",
           "aiComposeAllowReviewer",
